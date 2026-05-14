@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Oracle 19c Architecture Deep Dive | Oracle DBA Simplified</title>
+  <meta name="description" content="Oracle 19c Database Architecture explained — SGA, PGA, Background Processes, Memory Structures, Storage. Interactive diagrams with real SQL queries."/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config={darkMode:'class',theme:{extend:{colors:{oracle:{red:'#C74634',dark:'#8B2E22',light:'#E8604A'}},fontFamily:{display:['Sora','sans-serif'],body:['DM Sans','sans-serif'],mono:['JetBrains Mono','monospace']}}}}
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{--color-primary:#C74634;--color-primary-hover:#a8392a;--color-surface:#111118;--color-border:#1e1e2e;--space-2:8px;--space-4:16px;--space-6:24px;--space-8:32px;--space-12:48px;--space-16:64px;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#0a0a0f;color:#e2e8f0;overflow-x:hidden;}
+    ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:#0a0a0f;}::-webkit-scrollbar-thumb{background:#C74634;border-radius:3px;}
+    .glass{background:rgba(255,255,255,0.04);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);}
+    .glass-strong{background:rgba(255,255,255,0.07);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);}
+    .gradient-text{background:linear-gradient(135deg,#C74634,#ff8c7a,#ffb347);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .gradient-text-w{background:linear-gradient(135deg,#fff,#cbd5e1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12;pointer-events:none;}
+    .grid-bg{background-image:linear-gradient(rgba(199,70,52,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(199,70,52,.03) 1px,transparent 1px);background-size:64px 64px;}
+    .nav-link{font-size:.875rem;color:#94a3b8;transition:color .2s;position:relative;}
+    .nav-link:hover,.nav-link.active{color:#C74634;}
+    .btn-primary{background:linear-gradient(135deg,#C74634,#a8392a);color:#fff;border-radius:6px;padding:10px 24px;font-weight:600;font-size:.875rem;transition:all .2s;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(199,70,52,.4);}
+    .btn-ghost{background:transparent;color:#e2e8f0;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:10px 24px;font-weight:500;font-size:.875rem;transition:all .2s;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-ghost:hover{border-color:rgba(199,70,52,.5);color:#C74634;}
+    .badge{font-size:.75rem;padding:3px 10px;border-radius:100px;font-weight:600;display:inline-block;}
+    .badge-red{background:rgba(199,70,52,.15);color:#E8604A;border:1px solid rgba(199,70,52,.25);}
+    .badge-blue{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.25);}
+    .badge-green{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);}
+    .badge-purple{background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.25);}
+    .badge-orange{background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.25);}
+    .badge-cyan{background:rgba(6,182,212,.15);color:#22d3ee;border:1px solid rgba(6,182,212,.25);}
+    .badge-yellow{background:rgba(234,179,8,.15);color:#facc15;border:1px solid rgba(234,179,8,.25);}
+
+    /* reveal */
+    .reveal{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease;}
+    .reveal.visible{opacity:1;transform:none;}
+
+    /* Terminal */
+    .terminal{background:#0d0d14;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden;}
+    .terminal-bar{background:#1a1a25;padding:10px 16px;display:flex;align-items:center;gap:8px;}
+    .t-dot{width:11px;height:11px;border-radius:50%;}
+    code .kw{color:#ff7eb6;} code .fn{color:#78d4f4;} code .str{color:#a8ff78;} code .cm{color:#6b7280;font-style:italic;} code .num{color:#ffb347;} code .op{color:#e2e8f0;}
+
+    /* Tabs */
+    .tab-btn{padding:8px 18px;border-radius:8px;font-size:.8rem;font-weight:600;transition:all .2s;cursor:pointer;border:1px solid transparent;color:#64748b;}
+    .tab-btn.active,.tab-btn:hover{background:rgba(199,70,52,.12);color:#C74634;border-color:rgba(199,70,52,.3);}
+    .tab-content{display:none;} .tab-content.active{display:block;}
+
+    /* Architecture diagram */
+    #arch-diagram{position:relative;width:100%;min-height:560px;}
+    .arch-box{position:absolute;border-radius:12px;transition:all .25s;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+    .arch-box:hover{transform:scale(1.04);z-index:10;}
+    .arch-box.selected{z-index:10;box-shadow:0 0 0 2px #C74634,0 0 30px rgba(199,70,52,.4)!important;}
+    .arch-arrow{position:absolute;pointer-events:none;}
+
+    /* Process cards */
+    .proc-card{transition:transform .25s,box-shadow .25s;}
+    .proc-card:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(0,0,0,.4);}
+
+    /* accordion */
+    .acc-content{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+    .acc-content.open{max-height:800px;}
+    .acc-icon{transition:transform .3s;}
+    .acc-btn.open .acc-icon{transform:rotate(180deg);}
+
+    /* flow step */
+    .flow-step{position:relative;}
+    .flow-step:not(:last-child)::after{content:'';position:absolute;left:23px;top:100%;width:2px;height:32px;background:linear-gradient(to bottom,#C74634,transparent);}
+
+    /* mobile menu */
+    #mob-menu{max-height:0;overflow:hidden;transition:max-height .4s;}
+    #mob-menu.open{max-height:600px;}
+
+    /* section header */
+    .section-label{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:100px;margin-bottom:12px;}
+
+    /* info panel */
+    #info-panel{transition:all .4s ease;}
+
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    @keyframes pulseGlow{0%,100%{box-shadow:0 0 15px rgba(199,70,52,.3)}50%{box-shadow:0 0 40px rgba(199,70,52,.6)}}
+    .animate-float{animation:float 4s ease-in-out infinite;}
+    .animate-pulse-glow{animation:pulseGlow 3s ease-in-out infinite;}
+  </style>
+</head>
+<body class="relative">
+
+<!-- ===== NAVBAR ===== -->
+<nav class="fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/5">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="flex items-center gap-2 text-neutral-400 hover:text-oracle-red transition-colors text-sm font-medium">
+        <i class="fas fa-arrow-left text-xs"></i> Back to Home
+      </a>
+      <span class="text-neutral-700">|</span>
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-md bg-gradient-to-br from-oracle-red to-oracle-dark flex items-center justify-center">
+          <i class="fas fa-layer-group text-white text-xs"></i>
+        </div>
+        <span class="font-display font-bold text-white text-sm">Oracle DBA Simplified</span>
+      </div>
+    </div>
+    <div class="hidden md:flex items-center gap-5">
+      <a href="#overview" class="nav-link">Overview</a>
+      <a href="#diagram" class="nav-link">Diagram</a>
+      <a href="#sga" class="nav-link">SGA</a>
+      <a href="#pga" class="nav-link">PGA</a>
+      <a href="#processes" class="nav-link">Processes</a>
+      <a href="#storage" class="nav-link">Storage</a>
+      <a href="#sql-flow" class="nav-link">SQL Flow</a>
+      <a href="#queries" class="nav-link">Queries</a>
+    </div>
+    <button id="mob-btn" class="md:hidden text-neutral-400 hover:text-white"><i class="fas fa-bars"></i></button>
+  </div>
+  <div id="mob-menu" class="md:hidden px-6 pb-4">
+    <div class="flex flex-col gap-3 pt-2">
+      <a href="#overview" class="nav-link">Overview</a>
+      <a href="#diagram" class="nav-link">Diagram</a>
+      <a href="#sga" class="nav-link">SGA</a>
+      <a href="#pga" class="nav-link">PGA</a>
+      <a href="#processes" class="nav-link">Processes</a>
+      <a href="#storage" class="nav-link">Storage</a>
+      <a href="#sql-flow" class="nav-link">SQL Flow</a>
+      <a href="#queries" class="nav-link">Queries</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="relative min-h-[60vh] flex items-center pt-24 pb-16 overflow-hidden grid-bg">
+  <div class="orb" style="width:500px;height:500px;top:-100px;left:-100px;background:radial-gradient(circle,#C74634,transparent);"></div>
+  <div class="orb" style="width:400px;height:400px;bottom:-50px;right:-50px;background:radial-gradient(circle,#3b82f6,transparent);"></div>
+  <div class="max-w-[1200px] mx-auto px-6 relative z-10">
+    <div class="flex flex-col lg:flex-row items-center gap-12">
+      <div class="flex-1">
+        <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-6">
+          <span class="w-2 h-2 rounded-full bg-oracle-red animate-pulse"></span>
+          <span class="text-xs text-neutral-400 font-mono">Official Oracle 19c Documentation</span>
+        </div>
+        <h1 class="font-display font-extrabold text-5xl leading-tight mb-5">
+          <span class="gradient-text-w">Oracle 19c Database</span><br/>
+          <span class="gradient-text">Architecture</span><br/>
+          <span class="gradient-text-w">Deep Dive</span>
+        </h1>
+        <p class="text-neutral-400 text-lg mb-8 leading-relaxed max-w-xl">SGA, PGA, Background Processes, Memory Structures — every internal component explained with interactive diagrams, real-world context, and production SQL queries.</p>
+        <div class="flex flex-wrap gap-3">
+          <a href="#diagram" class="btn-primary"><i class="fas fa-sitemap text-xs"></i> View Diagram</a>
+          <a href="#sga" class="btn-ghost"><i class="fas fa-memory text-xs"></i> SGA Deep Dive</a>
+          <a href="#processes" class="btn-ghost"><i class="fas fa-cogs text-xs"></i> Background Processes</a>
+        </div>
+      </div>
+      <!-- Animated icon cluster -->
+      <div class="relative w-72 h-72 flex-shrink-0 hidden lg:block">
+        <div class="absolute inset-0 rounded-full border border-oracle-red/15 animate-[spin_25s_linear_infinite]"></div>
+        <div class="absolute inset-8 rounded-full border border-blue-500/10 animate-[spin_18s_linear_reverse_infinite]"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="w-28 h-28 rounded-2xl glass-strong flex items-center justify-center animate-float animate-pulse-glow">
+            <i class="fas fa-layer-group text-oracle-red text-4xl"></i>
+          </div>
+        </div>
+        <div class="absolute -top-2 right-8 glass rounded-xl px-3 py-2 text-xs font-mono animate-[float_5s_ease-in-out_infinite]"><span class="text-oracle-red">SGA</span> · 8 GB</div>
+        <div class="absolute bottom-0 left-4 glass rounded-xl px-3 py-2 text-xs font-mono animate-[float_6s_ease-in-out_1s_infinite]"><span class="text-blue-400">PGA</span> · 2 GB</div>
+        <div class="absolute top-1/2 -right-6 glass rounded-xl px-3 py-2 text-xs font-mono animate-[float_4s_ease-in-out_2s_infinite]"><span class="text-green-400">DBWn</span> ✓</div>
+        <div class="absolute top-8 left-0 glass rounded-xl px-3 py-2 text-xs font-mono animate-[float_7s_ease-in-out_0.5s_infinite]"><span class="text-purple-400">LGWR</span> ✓</div>
+      </div>
+    </div>
+
+    <!-- Quick-nav pills -->
+    <div class="flex flex-wrap gap-2 mt-12">
+      <a href="#overview" class="badge badge-red cursor-pointer hover:opacity-80 transition-opacity">Overview</a>
+      <a href="#diagram" class="badge badge-blue cursor-pointer hover:opacity-80 transition-opacity">Interactive Diagram</a>
+      <a href="#sga" class="badge badge-green cursor-pointer hover:opacity-80 transition-opacity">SGA</a>
+      <a href="#pga" class="badge badge-purple cursor-pointer hover:opacity-80 transition-opacity">PGA</a>
+      <a href="#processes" class="badge badge-orange cursor-pointer hover:opacity-80 transition-opacity">Background Processes</a>
+      <a href="#storage" class="badge badge-cyan cursor-pointer hover:opacity-80 transition-opacity">Storage</a>
+      <a href="#sql-flow" class="badge badge-yellow cursor-pointer hover:opacity-80 transition-opacity">SQL Flow</a>
+      <a href="#queries" class="badge" style="background:rgba(236,72,153,.15);color:#f472b6;border:1px solid rgba(236,72,153,.25);">Monitoring Queries</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== OVERVIEW ===== -->
+<section id="overview" class="py-20 relative">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="section-label badge-red badge">Instance vs Database</span>
+      <h2 class="font-display font-bold text-4xl text-white mb-4">What Is an Oracle Database?</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">Oracle separates two fundamental concepts that beginners often confuse — the <strong class="text-white">Instance</strong> (memory + processes) and the <strong class="text-white">Database</strong> (physical files on disk).</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-6 mb-10">
+      <!-- Instance -->
+      <div class="glass rounded-2xl p-8 reveal border-l-4 border-oracle-red/60">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-12 h-12 rounded-xl bg-oracle-red/10 border border-oracle-red/20 flex items-center justify-center">
+            <i class="fas fa-microchip text-oracle-red text-xl"></i>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-white text-xl">Oracle Instance</h3>
+            <p class="text-xs text-oracle-red font-mono">Memory + Background Processes</p>
+          </div>
+        </div>
+        <p class="text-neutral-400 text-sm leading-relaxed mb-5">An instance is a set of memory structures and background processes that manage database files. It <strong class="text-white">exists only in memory</strong> — when you shut down the instance, it disappears. An instance can exist without database files, and vice versa.</p>
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 text-sm"><i class="fas fa-check text-oracle-red text-xs w-4"></i><span class="text-neutral-300"><strong>SGA</strong> — System Global Area (shared memory)</span></div>
+          <div class="flex items-center gap-2 text-sm"><i class="fas fa-check text-oracle-red text-xs w-4"></i><span class="text-neutral-300"><strong>PGA</strong> — Program Global Area (per-process memory)</span></div>
+          <div class="flex items-center gap-2 text-sm"><i class="fas fa-check text-oracle-red text-xs w-4"></i><span class="text-neutral-300"><strong>Background Processes</strong> — PMON, SMON, DBWn, LGWR…</span></div>
+          <div class="flex items-center gap-2 text-sm"><i class="fas fa-check text-oracle-red text-xs w-4"></i><span class="text-neutral-300"><strong>Server Processes</strong> — handle client SQL requests</span></div>
+        </div>
+        <div class="mt-5 terminal text-xs">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 ml-2 font-mono">SQL*Plus</span></div>
+          <pre class="p-4 font-mono text-xs leading-relaxed"><code><span class="kw">SELECT</span> instance_name, status, version
+<span class="kw">FROM</span>   v$instance;
+
+<span class="cm">-- OUTPUT:</span>
+<span class="cm">-- INSTANCE_NAME  STATUS   VERSION</span>
+<span class="cm">-- ORCL           OPEN     19.0.0.0.0</span></code></pre>
+        </div>
+      </div>
+      <!-- Database -->
+      <div class="glass rounded-2xl p-8 reveal border-l-4 border-blue-500/60" style="transition-delay:.1s">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+            <i class="fas fa-hdd text-blue-400 text-xl"></i>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-white text-xl">Oracle Database</h3>
+            <p class="text-xs text-blue-400 font-mono">Physical Files on Disk</p>
+          </div>
+        </div>
+        <p class="text-neutral-400 text-sm leading-relaxed mb-5">The database is a set of <strong class="text-white">physical files on disk</strong> — data files, control files, redo log files. It persists even when the instance is shut down. The database can exist independently of any running instance.</p>
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 text-sm"><i class="fas fa-check text-blue-400 text-xs w-4"></i><span class="text-neutral-300"><strong>Data Files</strong> (.dbf) — SYSTEM, SYSAUX, USERS, UNDO, TEMP</span></div>
+          <div class="flex items-center gap-2 text-sm"><i class="fas fa-check text-blue-400 text-xs w-4"></i><span class="text-neutral-300"><strong>Control Files</strong> — metadata about the database structure</span></div>
+          <div class="flex items-center gap-2 text-sm"><i class="fas fa-check text-blue-400 text-xs w-4"></i><span class="text-neutral-300"><strong>Online Redo Logs</strong> — record every change made</span></div>
+          <div class="flex items-center gap-2 text-sm"><i class="fas fa-check text-blue-400 text-xs w-4"></i><span class="text-neutral-300"><strong>Archive Logs</strong> — historical redo for point-in-time recovery</span></div>
+        </div>
+        <div class="mt-5 terminal text-xs">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 ml-2 font-mono">SQL*Plus</span></div>
+          <pre class="p-4 font-mono text-xs leading-relaxed"><code><span class="kw">SELECT</span> name, db_unique_name, open_mode
+<span class="kw">FROM</span>   v$database;
+
+<span class="cm">-- OUTPUT:</span>
+<span class="cm">-- NAME  DB_UNIQUE_NAME  OPEN_MODE</span>
+<span class="cm">-- ORCL  ORCL            READ WRITE</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Relationship callout -->
+    <div class="glass rounded-2xl p-6 reveal flex flex-col md:flex-row items-center gap-6 border border-oracle-red/15">
+      <div class="w-12 h-12 rounded-full bg-oracle-red/10 border border-oracle-red/20 flex items-center justify-center flex-shrink-0">
+        <i class="fas fa-lightbulb text-oracle-red"></i>
+      </div>
+      <div>
+        <h4 class="font-display font-semibold text-white mb-1">Key Insight: 1 Instance ↔ 1 Database (or N Instances in RAC)</h4>
+        <p class="text-neutral-400 text-sm leading-relaxed">In a single-instance setup, one instance manages one database. In Oracle RAC (Real Application Clusters), <strong class="text-white">multiple instances</strong> running on separate server machines share a single database — providing high availability and horizontal scalability.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== INTERACTIVE DIAGRAM ===== -->
+<section id="diagram" class="py-20 relative bg-gradient-to-b from-transparent to-surface-card/20">
+  <div class="orb" style="width:400px;height:400px;top:50%;right:-100px;background:radial-gradient(circle,#8b5cf6,transparent);opacity:.08;"></div>
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="section-label badge-blue badge">Interactive</span>
+      <h2 class="font-display font-bold text-4xl text-white mb-4">Oracle 19c Architecture <span class="gradient-text">Diagram</span></h2>
+      <p class="text-neutral-400">Click any component to learn what it does, why it exists, and how to query it.</p>
+    </div>
+
+    <!-- Diagram wrapper -->
+    <div class="glass rounded-3xl p-4 md:p-8 reveal">
+      <!-- The diagram itself - responsive flex layout -->
+      <div class="flex flex-col gap-4 font-mono text-xs">
+
+        <!-- ROW 1: Client -->
+        <div class="flex justify-center">
+          <div class="arch-comp glass rounded-xl px-6 py-3 border border-white/10 flex items-center gap-3 cursor-pointer hover:border-oracle-red/50 transition-colors" data-comp="client">
+            <i class="fas fa-user text-neutral-400"></i>
+            <span class="text-neutral-300 font-semibold">Client Process (Application)</span>
+          </div>
+        </div>
+
+        <!-- arrow down -->
+        <div class="flex justify-center"><div class="flex flex-col items-center gap-1"><div class="w-px h-6 bg-oracle-red/40"></div><i class="fas fa-chevron-down text-oracle-red/60 text-xs"></i><span class="text-neutral-600 text-xs">TCP/IP via Listener</span></div></div>
+
+        <!-- ROW 2: Listener + Server Process -->
+        <div class="flex flex-col md:flex-row justify-center gap-4 items-center">
+          <div class="arch-comp glass rounded-xl px-5 py-3 border border-green-500/20 flex items-center gap-2 cursor-pointer hover:border-green-500/50 transition-colors" data-comp="listener">
+            <i class="fas fa-network-wired text-green-400 text-sm"></i>
+            <span class="text-green-300 font-semibold">Oracle Listener</span>
+          </div>
+          <i class="fas fa-arrow-right text-neutral-600 hidden md:block"></i>
+          <div class="arch-comp glass rounded-xl px-5 py-3 border border-blue-500/20 flex items-center gap-2 cursor-pointer hover:border-blue-500/50 transition-colors" data-comp="server-process">
+            <i class="fas fa-server text-blue-400 text-sm"></i>
+            <span class="text-blue-300 font-semibold">Server Process (Dedicated)</span>
+          </div>
+        </div>
+
+        <!-- arrow down -->
+        <div class="flex justify-center"><div class="flex flex-col items-center gap-1"><div class="w-px h-6 bg-blue-500/40"></div><i class="fas fa-chevron-down text-blue-500/60 text-xs"></i></div></div>
+
+        <!-- ROW 3: ORACLE INSTANCE BIG BOX -->
+        <div class="rounded-2xl border border-oracle-red/25 p-4 relative" style="background:rgba(199,70,52,0.03)">
+          <div class="absolute -top-3 left-6 bg-[#0a0a0f] px-3">
+            <span class="text-oracle-red font-bold text-xs tracking-widest uppercase">Oracle Instance</span>
+          </div>
+
+          <!-- SGA box -->
+          <div class="rounded-xl border border-yellow-500/25 p-4 mb-4 relative" style="background:rgba(234,179,8,0.03)">
+            <div class="absolute -top-3 left-4 bg-[#0a0a0f] px-3">
+              <span class="text-yellow-400 font-bold text-xs tracking-widest uppercase">System Global Area (SGA) — shared by ALL processes</span>
+            </div>
+
+            <!-- SGA components grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-2">
+
+              <div class="arch-comp glass rounded-xl p-3 border border-oracle-red/20 cursor-pointer hover:border-oracle-red/60 hover:bg-oracle-red/5 transition-all text-center" data-comp="shared-pool">
+                <div class="w-8 h-8 rounded-lg bg-oracle-red/10 flex items-center justify-center mx-auto mb-2"><i class="fas fa-share-alt text-oracle-red text-sm"></i></div>
+                <div class="text-white font-semibold text-xs">Shared Pool</div>
+                <div class="text-neutral-500 text-xs mt-0.5">Library + Dict Cache</div>
+              </div>
+
+              <div class="arch-comp glass rounded-xl p-3 border border-blue-500/20 cursor-pointer hover:border-blue-500/60 hover:bg-blue-500/5 transition-all text-center" data-comp="buffer-cache">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center mx-auto mb-2"><i class="fas fa-buffer text-blue-400 text-sm"></i></div>
+                <div class="text-white font-semibold text-xs">Buffer Cache</div>
+                <div class="text-neutral-500 text-xs mt-0.5">Data block cache</div>
+              </div>
+
+              <div class="arch-comp glass rounded-xl p-3 border border-green-500/20 cursor-pointer hover:border-green-500/60 hover:bg-green-500/5 transition-all text-center" data-comp="redo-log-buffer">
+                <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center mx-auto mb-2"><i class="fas fa-scroll text-green-400 text-sm"></i></div>
+                <div class="text-white font-semibold text-xs">Redo Log Buffer</div>
+                <div class="text-neutral-500 text-xs mt-0.5">Circular buffer</div>
+              </div>
+
+              <div class="arch-comp glass rounded-xl p-3 border border-purple-500/20 cursor-pointer hover:border-purple-500/60 hover:bg-purple-500/5 transition-all text-center" data-comp="large-pool">
+                <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center mx-auto mb-2"><i class="fas fa-expand-arrows-alt text-purple-400 text-sm"></i></div>
+                <div class="text-white font-semibold text-xs">Large Pool</div>
+                <div class="text-neutral-500 text-xs mt-0.5">RMAN, Parallel</div>
+              </div>
+
+              <div class="arch-comp glass rounded-xl p-3 border border-cyan-500/20 cursor-pointer hover:border-cyan-500/60 hover:bg-cyan-500/5 transition-all text-center" data-comp="java-pool">
+                <div class="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center mx-auto mb-2"><i class="fab fa-java text-cyan-400 text-sm"></i></div>
+                <div class="text-white font-semibold text-xs">Java Pool</div>
+                <div class="text-neutral-500 text-xs mt-0.5">JVM code/data</div>
+              </div>
+
+              <div class="arch-comp glass rounded-xl p-3 border border-orange-500/20 cursor-pointer hover:border-orange-500/60 hover:bg-orange-500/5 transition-all text-center" data-comp="inmemory">
+                <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center mx-auto mb-2"><i class="fas fa-bolt text-orange-400 text-sm"></i></div>
+                <div class="text-white font-semibold text-xs">In-Memory Area</div>
+                <div class="text-neutral-500 text-xs mt-0.5">Columnar format</div>
+              </div>
+
+            </div>
+          </div><!-- /SGA -->
+
+          <!-- PGA + Background Processes side by side -->
+          <div class="grid md:grid-cols-2 gap-4">
+
+            <!-- PGA -->
+            <div class="arch-comp rounded-xl border border-pink-500/25 p-4 cursor-pointer hover:border-pink-500/50 transition-colors relative" style="background:rgba(236,72,153,0.03)" data-comp="pga">
+              <div class="absolute -top-3 left-4 bg-[#0a0a0f] px-2">
+                <span class="text-pink-400 font-bold text-xs uppercase tracking-wider">PGA (per server process)</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 mt-2">
+                <div class="glass rounded-lg p-2 text-center"><div class="text-pink-400 font-semibold text-xs">Sort Area</div><div class="text-neutral-600 text-xs">ORDER BY / GROUP BY</div></div>
+                <div class="glass rounded-lg p-2 text-center"><div class="text-pink-400 font-semibold text-xs">Hash Area</div><div class="text-neutral-600 text-xs">Hash joins</div></div>
+                <div class="glass rounded-lg p-2 text-center"><div class="text-pink-400 font-semibold text-xs">Private SQL</div><div class="text-neutral-600 text-xs">Bind vars, cursors</div></div>
+                <div class="glass rounded-lg p-2 text-center"><div class="text-pink-400 font-semibold text-xs">Session Mem</div><div class="text-neutral-600 text-xs">Logon info, UGA</div></div>
+              </div>
+            </div>
+
+            <!-- Background Processes -->
+            <div class="rounded-xl border border-cyan-500/25 p-4 relative" style="background:rgba(6,182,212,0.03)">
+              <div class="absolute -top-3 left-4 bg-[#0a0a0f] px-2">
+                <span class="text-cyan-400 font-bold text-xs uppercase tracking-wider">Background Processes</span>
+              </div>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <div class="arch-comp glass rounded-lg px-2 py-1.5 cursor-pointer hover:border-oracle-red/50 transition-colors border border-transparent" data-comp="pmon"><span class="text-oracle-red font-bold text-xs">PMON</span></div>
+                <div class="arch-comp glass rounded-lg px-2 py-1.5 cursor-pointer hover:border-yellow-500/50 transition-colors border border-transparent" data-comp="smon"><span class="text-yellow-400 font-bold text-xs">SMON</span></div>
+                <div class="arch-comp glass rounded-lg px-2 py-1.5 cursor-pointer hover:border-blue-500/50 transition-colors border border-transparent" data-comp="dbwn"><span class="text-blue-400 font-bold text-xs">DBWn</span></div>
+                <div class="arch-comp glass rounded-lg px-2 py-1.5 cursor-pointer hover:border-green-500/50 transition-colors border border-transparent" data-comp="lgwr"><span class="text-green-400 font-bold text-xs">LGWR</span></div>
+                <div class="arch-comp glass rounded-lg px-2 py-1.5 cursor-pointer hover:border-purple-500/50 transition-colors border border-transparent" data-comp="ckpt"><span class="text-purple-400 font-bold text-xs">CKPT</span></div>
+                <div class="arch-comp glass rounded-lg px-2 py-1.5 cursor-pointer hover:border-orange-500/50 transition-colors border border-transparent" data-comp="mmon"><span class="text-orange-400 font-bold text-xs">MMON</span></div>
+                <div class="arch-comp glass rounded-lg px-2 py-1.5 cursor-pointer hover:border-cyan-500/50 transition-colors border border-transparent" data-comp="arcn"><span class="text-cyan-400 font-bold text-xs">ARCn</span></div>
+                <div class="arch-comp glass rounded-lg px-2 py-1.5 cursor-pointer hover:border-pink-500/50 transition-colors border border-transparent" data-comp="lreg"><span class="text-pink-400 font-bold text-xs">LREG</span></div>
+                <div class="arch-comp glass rounded-lg px-2 py-1.5 cursor-pointer hover:border-lime-500/50 transition-colors border border-transparent" data-comp="reco"><span class="text-lime-400 font-bold text-xs">RECO</span></div>
+                <div class="arch-comp glass rounded-lg px-2 py-1.5 cursor-pointer hover:border-red-400/50 transition-colors border border-transparent" data-comp="mmnl"><span class="text-red-300 font-bold text-xs">MMNL</span></div>
+              </div>
+            </div>
+
+          </div><!-- /PGA + BG grid -->
+        </div><!-- /Oracle Instance -->
+
+        <!-- arrows down to database -->
+        <div class="flex justify-around items-center px-8">
+          <div class="flex flex-col items-center gap-1 text-xs text-neutral-600">
+            <div class="w-px h-6 bg-blue-500/40"></div>
+            <i class="fas fa-chevron-down text-blue-500/60 text-xs"></i>
+            <span>DBWn writes</span>
+          </div>
+          <div class="flex flex-col items-center gap-1 text-xs text-neutral-600">
+            <div class="w-px h-6 bg-green-500/40"></div>
+            <i class="fas fa-chevron-down text-green-500/60 text-xs"></i>
+            <span>LGWR writes</span>
+          </div>
+          <div class="flex flex-col items-center gap-1 text-xs text-neutral-600">
+            <div class="w-px h-6 bg-purple-500/40"></div>
+            <i class="fas fa-chevron-down text-purple-500/60 text-xs"></i>
+            <span>CKPT updates</span>
+          </div>
+          <div class="flex flex-col items-center gap-1 text-xs text-neutral-600">
+            <div class="w-px h-6 bg-cyan-500/40"></div>
+            <i class="fas fa-chevron-down text-cyan-500/60 text-xs"></i>
+            <span>ARCn archives</span>
+          </div>
+        </div>
+
+        <!-- ROW 4: DATABASE FILES -->
+        <div class="rounded-2xl border border-blue-500/25 p-4 relative" style="background:rgba(59,130,246,0.03)">
+          <div class="absolute -top-3 left-6 bg-[#0a0a0f] px-3">
+            <span class="text-blue-400 font-bold text-xs tracking-widest uppercase">Oracle Database (Physical Files)</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-2">
+            <div class="arch-comp glass rounded-xl p-3 border border-blue-500/20 cursor-pointer hover:border-blue-500/60 transition-all text-center" data-comp="datafiles">
+              <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center mx-auto mb-2"><i class="fas fa-file-alt text-blue-400 text-sm"></i></div>
+              <div class="text-white font-semibold text-xs">Data Files</div>
+              <div class="text-neutral-500 text-xs">.dbf</div>
+            </div>
+            <div class="arch-comp glass rounded-xl p-3 border border-green-500/20 cursor-pointer hover:border-green-500/60 transition-all text-center" data-comp="redo-logs">
+              <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center mx-auto mb-2"><i class="fas fa-sync text-green-400 text-sm"></i></div>
+              <div class="text-white font-semibold text-xs">Online Redo Logs</div>
+              <div class="text-neutral-500 text-xs">.log (circular)</div>
+            </div>
+            <div class="arch-comp glass rounded-xl p-3 border border-purple-500/20 cursor-pointer hover:border-purple-500/60 transition-all text-center" data-comp="controlfile">
+              <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center mx-auto mb-2"><i class="fas fa-sliders-h text-purple-400 text-sm"></i></div>
+              <div class="text-white font-semibold text-xs">Control File</div>
+              <div class="text-neutral-500 text-xs">.ctl (multiplex!)</div>
+            </div>
+            <div class="arch-comp glass rounded-xl p-3 border border-orange-500/20 cursor-pointer hover:border-orange-500/60 transition-all text-center" data-comp="archive-logs">
+              <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center mx-auto mb-2"><i class="fas fa-archive text-orange-400 text-sm"></i></div>
+              <div class="text-white font-semibold text-xs">Archive Logs</div>
+              <div class="text-neutral-500 text-xs">Point-in-time recovery</div>
+            </div>
+            <div class="arch-comp glass rounded-xl p-3 border border-yellow-500/20 cursor-pointer hover:border-yellow-500/60 transition-all text-center" data-comp="spfile">
+              <div class="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center mx-auto mb-2"><i class="fas fa-cog text-yellow-400 text-sm"></i></div>
+              <div class="text-white font-semibold text-xs">SPFILE / PFILE</div>
+              <div class="text-neutral-500 text-xs">Init parameters</div>
+            </div>
+            <div class="arch-comp glass rounded-xl p-3 border border-red-500/20 cursor-pointer hover:border-red-500/60 transition-all text-center" data-comp="alertlog">
+              <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center mx-auto mb-2"><i class="fas fa-exclamation-triangle text-red-400 text-sm"></i></div>
+              <div class="text-white font-semibold text-xs">Alert Log / ADR</div>
+              <div class="text-neutral-500 text-xs">Diagnostics</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /diagram flex col -->
+
+      <!-- Info Panel (populated by JS) -->
+      <div id="info-panel" class="mt-6 glass rounded-2xl p-6 border border-oracle-red/20 hidden">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div id="ip-icon" class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"></div>
+            <div>
+              <h3 id="ip-title" class="font-display font-bold text-white text-lg"></h3>
+              <p id="ip-sub" class="text-xs font-mono text-oracle-red"></p>
+            </div>
+          </div>
+          <button onclick="closeInfoPanel()" class="text-neutral-500 hover:text-white transition-colors flex-shrink-0"><i class="fas fa-times"></i></button>
+        </div>
+        <p id="ip-desc" class="text-neutral-400 text-sm leading-relaxed mt-4"></p>
+        <div id="ip-points" class="mt-4 space-y-1.5"></div>
+        <div id="ip-code" class="mt-4"></div>
+      </div>
+
+    </div><!-- /glass card -->
+  </div>
+</section>
+
+<!-- ===== SGA DEEP DIVE ===== -->
+<section id="sga" class="py-20 relative">
+  <div class="orb" style="width:350px;height:350px;top:0;left:-80px;background:radial-gradient(circle,#C74634,transparent);opacity:.08;"></div>
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="section-label badge-red badge">Memory Architecture</span>
+      <h2 class="font-display font-bold text-4xl text-white mb-4">System Global Area <span class="gradient-text">(SGA)</span></h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">The SGA is the heart of the Oracle instance — a <strong class="text-white">shared read/write memory area</strong> allocated at instance startup and shared by ALL server and background processes.</p>
+    </div>
+    <div class="terminal reveal mb-10">
+      <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 ml-2 font-mono text-xs">Check SGA at startup</span></div>
+      <div class="grid md:grid-cols-2 gap-0">
+        <pre class="p-5 font-mono text-xs leading-relaxed border-r border-white/5"><code><span class="cm">-- View all SGA components</span>
+SELECT name, ROUND(bytes/1024/1024,1) AS mb
+FROM   v$sgainfo ORDER BY bytes DESC;
+
+SHOW parameter sga_target;
+SHOW parameter memory_target;</code></pre>
+        <pre class="p-5 font-mono text-xs leading-relaxed"><code><span class="cm">-- Example output:</span>
+NAME                     MB
+------------------------ ------
+Maximum SGA Size         8192.0
+Total SGA Size           8000.0
+Database Buffers         5120.0
+Shared Pool Size         1536.0
+Large Pool Size          128.0
+Java Pool Size            64.0
+Redo Buffers              16.8</code></pre>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="flex flex-wrap gap-2 mb-6" id="sga-tabs">
+        <button class="tab-btn active" data-tab="shared-pool-tab">Shared Pool</button>
+        <button class="tab-btn" data-tab="buffer-cache-tab">Buffer Cache</button>
+        <button class="tab-btn" data-tab="redo-buffer-tab">Redo Log Buffer</button>
+        <button class="tab-btn" data-tab="large-pool-tab">Large Pool</button>
+        <button class="tab-btn" data-tab="inmemory-tab">In-Memory Area</button>
+        <button class="tab-btn" data-tab="other-pools-tab">Other Pools</button>
+      </div>
+      <!-- SHARED POOL -->
+      <div id="shared-pool-tab" class="tab-content active">
+        <div class="glass rounded-2xl p-8">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-oracle-red/10 border border-oracle-red/20 flex items-center justify-center"><i class="fas fa-share-alt text-oracle-red text-2xl"></i></div>
+            <div><h3 class="font-display font-bold text-white text-2xl">Shared Pool</h3><p class="text-oracle-red text-sm font-mono">Involved in EVERY database operation</p></div>
+          </div>
+          <p class="text-neutral-400 mb-6 leading-relaxed">Caches parsed SQL, PL/SQL code, system parameters, and data dictionary information. A <strong class="text-white">soft parse</strong> (library cache hit) reuses existing parsed code. A <strong class="text-white">hard parse</strong> (miss) rebuilds execution plan from scratch — expensive.</p>
+          <div class="grid md:grid-cols-2 gap-6 mb-6">
+            <div class="space-y-3">
+              <div class="glass rounded-xl p-4 border-l-4 border-oracle-red/60"><div class="font-semibold text-white text-sm mb-1">Library Cache</div><p class="text-neutral-500 text-xs leading-relaxed">Stores executable SQL and PL/SQL code. Multiple private SQL areas in separate PGAs can point to one shared SQL area here. Contains shared SQL areas, PL/SQL code, locks, and library cache handles.</p></div>
+              <div class="glass rounded-xl p-4 border-l-4 border-blue-500/60"><div class="font-semibold text-white text-sm mb-1">Data Dictionary Cache (Row Cache)</div><p class="text-neutral-500 text-xs leading-relaxed">Stores rows of database object information — tables, columns, users, privileges. Called "row cache" because it holds data as rows, not blocks. Hit on every SQL parse.</p></div>
+              <div class="glass rounded-xl p-4 border-l-4 border-green-500/60"><div class="font-semibold text-white text-sm mb-1">Server Result Cache</div><p class="text-neutral-500 text-xs leading-relaxed">Holds complete result sets of SQL queries and PL/SQL functions. If underlying data unchanged, returns cached result instantly — zero I/O, zero CPU recalculation.</p></div>
+              <div class="glass rounded-xl p-4 border-l-4 border-purple-500/60"><div class="font-semibold text-white text-sm mb-1">Reserved Pool</div><p class="text-neutral-500 text-xs leading-relaxed">Small area for large contiguous memory allocations (>5 KB). Prevents fragmentation for large PL/SQL packages, Java classes, and large cursors.</p></div>
+            </div>
+            <div>
+              <div class="terminal text-xs">
+                <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+                <pre class="p-4 leading-relaxed"><code><span class="cm">-- Library cache hit ratio (target >99%)</span>
+SELECT ROUND((1 - SUM(reloads) /
+       SUM(pins)) * 100, 2) "Hit%"
+FROM   v$librarycache;
+
+<span class="cm">-- Top shared pool consumers</span>
+SELECT name, ROUND(bytes/1024/1024,1) mb
+FROM   v$sgastat
+WHERE  pool = 'shared pool'
+ORDER BY bytes DESC FETCH FIRST 10 ROWS ONLY;
+
+<span class="cm">-- Hard parse rate</span>
+SELECT name, value FROM v$sysstat
+WHERE  name IN ('parse count (hard)',
+                'parse count (total)');
+
+<span class="cm">-- Flush (use with care in production!)</span>
+ALTER SYSTEM FLUSH shared_pool;</code></pre>
+              </div>
+              <div class="mt-4 glass rounded-xl p-4 border border-oracle-red/15">
+                <p class="text-xs text-neutral-400"><i class="fas fa-lightbulb text-oracle-red mr-2"></i><strong class="text-white">Use bind variables</strong> to convert hard parses to soft parses. One SQL template with bind variables = one shared SQL area for thousands of executions.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- BUFFER CACHE -->
+      <div id="buffer-cache-tab" class="tab-content">
+        <div class="glass rounded-2xl p-8">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center"><i class="fas fa-database text-blue-400 text-2xl"></i></div>
+            <div><h3 class="font-display font-bold text-white text-2xl">Database Buffer Cache</h3><p class="text-blue-400 text-sm font-mono">Largest SGA component · caches 8KB data blocks from disk</p></div>
+          </div>
+          <p class="text-neutral-400 mb-6 leading-relaxed">Stores copies of data blocks read from data files. All users share the same cache. Goal: keep frequently accessed blocks in memory (cache hit = fast), write cold blocks to disk (cache miss = read from disk = slow). Uses LRU + touch count algorithm.</p>
+          <div class="grid md:grid-cols-3 gap-4 mb-6">
+            <div class="glass rounded-xl p-5 border border-blue-500/20"><div class="font-semibold text-blue-400 text-sm mb-2">Default Pool</div><p class="text-neutral-500 text-xs">Normal caching. Default block size 8KB. LRU manages eviction. Hot blocks stay; cold blocks age out.</p></div>
+            <div class="glass rounded-xl p-5 border border-green-500/20"><div class="font-semibold text-green-400 text-sm mb-2">Keep Pool</div><p class="text-neutral-500 text-xs">For frequently accessed blocks that age out of default pool. Pin critical small lookup tables. <code class="text-green-400 text-xs">ALTER TABLE t STORAGE (BUFFER_POOL KEEP);</code></p></div>
+            <div class="glass rounded-xl p-5 border border-orange-500/20"><div class="font-semibold text-orange-400 text-sm mb-2">Recycle Pool</div><p class="text-neutral-500 text-xs">For infrequently used blocks. Prevents large FTS blocks from flushing your working set. <code class="text-orange-400 text-xs">ALTER TABLE t STORAGE (BUFFER_POOL RECYCLE);</code></p></div>
+          </div>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <h4 class="font-semibold text-white text-sm mb-2">Buffer States</h4>
+              <div class="flex gap-2 items-center text-xs"><span class="w-2 h-2 rounded-full bg-neutral-500 flex-shrink-0"></span><span class="text-blue-400 font-semibold w-20">Unused</span><span class="text-neutral-500">Available — never used or currently free</span></div>
+              <div class="flex gap-2 items-center text-xs"><span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span><span class="text-green-400 font-semibold w-20">Clean</span><span class="text-neutral-500">Identical to disk — can be reused immediately</span></div>
+              <div class="flex gap-2 items-center text-xs"><span class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></span><span class="text-red-400 font-semibold w-20">Dirty</span><span class="text-neutral-500">Modified — DBWn must write to disk before reuse</span></div>
+              <div class="flex gap-2 items-center text-xs"><span class="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0"></span><span class="text-yellow-400 font-semibold w-20">Pinned</span><span class="text-neutral-500">In use right now — cannot be evicted</span></div>
+            </div>
+            <div class="terminal text-xs">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+              <pre class="p-4 leading-relaxed"><code><span class="cm">-- Buffer cache hit ratio (target >95%)</span>
+SELECT ROUND((1-(phyrds/(dbg+cg+phyrds)))*100,2) hit
+FROM (SELECT SUM(value) phyrds FROM v$sysstat
+      WHERE name='physical reads'),
+     (SELECT SUM(value) dbg FROM v$sysstat
+      WHERE name='db block gets'),
+     (SELECT SUM(value) cg FROM v$sysstat
+      WHERE name='consistent gets');
+
+<span class="cm">-- Buffer pools</span>
+SELECT name, block_size, current_size mb
+FROM   v$buffer_pool;
+
+<span class="cm">-- Objects in keep pool</span>
+SELECT owner, segment_name, buffer_pool
+FROM   dba_segments
+WHERE  buffer_pool = 'KEEP';</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- REDO LOG BUFFER -->
+      <div id="redo-buffer-tab" class="tab-content">
+        <div class="glass rounded-2xl p-8">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center"><i class="fas fa-scroll text-green-400 text-2xl"></i></div>
+            <div><h3 class="font-display font-bold text-white text-2xl">Redo Log Buffer</h3><p class="text-green-400 text-sm font-mono">Circular buffer · server processes write · LGWR flushes to disk</p></div>
+          </div>
+          <p class="text-neutral-400 mb-6 leading-relaxed">A circular buffer holding <strong class="text-white">redo entries</strong> — records of every change made to the database. Contains information to reconstruct changes (DML, DDL, internal ops) for database recovery. Server processes write here; LGWR writes to online redo log files on disk.</p>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="font-semibold text-white text-sm mb-3">LGWR Writes When:</h4>
+              <div class="space-y-2">
+                <div class="glass rounded-lg px-4 py-3 flex gap-3 text-xs"><span class="text-green-400 font-bold flex-shrink-0">1</span><span class="text-neutral-400">User issues <code class="text-green-400">COMMIT</code> (immediate, synchronous write)</span></div>
+                <div class="glass rounded-lg px-4 py-3 flex gap-3 text-xs"><span class="text-green-400 font-bold flex-shrink-0">2</span><span class="text-neutral-400">Buffer is <strong class="text-white">one-third full</strong> or contains 1 MB of data</span></div>
+                <div class="glass rounded-lg px-4 py-3 flex gap-3 text-xs"><span class="text-green-400 font-bold flex-shrink-0">3</span><span class="text-neutral-400">Every <strong class="text-white">3 seconds</strong> automatically</span></div>
+                <div class="glass rounded-lg px-4 py-3 flex gap-3 text-xs"><span class="text-green-400 font-bold flex-shrink-0">4</span><span class="text-neutral-400">Before DBWn writes dirty buffers (write-ahead logging)</span></div>
+                <div class="glass rounded-lg px-4 py-3 flex gap-3 text-xs"><span class="text-green-400 font-bold flex-shrink-0">5</span><span class="text-neutral-400">Online redo log switch occurs</span></div>
+              </div>
+              <div class="mt-4 glass rounded-xl p-4 border border-green-500/15">
+                <p class="text-xs text-neutral-400"><i class="fas fa-lightbulb text-green-400 mr-2"></i><strong class="text-white">Fast Commit:</strong> When you COMMIT, Oracle writes redo to disk and returns success — even though data blocks may still be in the buffer cache (dirty). On crash recovery, redo is replayed to bring the DB forward.</p>
+              </div>
+            </div>
+            <div class="terminal text-xs">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+              <pre class="p-4 leading-relaxed"><code><span class="cm">-- Redo buffer allocation retries (target ~0)</span>
+SELECT name, value FROM v$sysstat
+WHERE  name='redo buffer allocation retries';
+
+<span class="cm">-- Log buffer size</span>
+SHOW parameter log_buffer;
+
+<span class="cm">-- Online redo log groups</span>
+SELECT group#, members,
+       bytes/1024/1024 mb, status, archived
+FROM   v$log;
+
+<span class="cm">-- Log switch frequency (should be <4/hr)</span>
+SELECT TO_CHAR(first_time,'YYYY-MM-DD HH24') hr,
+       COUNT(*) switches
+FROM   v$log_history
+GROUP BY TO_CHAR(first_time,'YYYY-MM-DD HH24')
+ORDER BY 1 DESC FETCH FIRST 24 ROWS ONLY;</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- LARGE POOL -->
+      <div id="large-pool-tab" class="tab-content">
+        <div class="glass rounded-2xl p-8">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center"><i class="fas fa-expand-arrows-alt text-purple-400 text-2xl"></i></div>
+            <div><h3 class="font-display font-bold text-white text-2xl">Large Pool</h3><p class="text-purple-400 text-sm font-mono">Optional · no LRU · large memory allocations</p></div>
+          </div>
+          <p class="text-neutral-400 mb-6 leading-relaxed">Optional area for large memory allocations that would cause fragmentation in the shared pool. Has <strong class="text-white">no LRU list</strong> — memory is allocated and held until the using process releases it. Pieces freed immediately become available to other processes.</p>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="space-y-3">
+              <div class="glass rounded-xl p-4 border-l-4 border-purple-500/60"><div class="text-purple-400 font-semibold text-xs mb-1">RMAN I/O Slaves</div><p class="text-neutral-500 text-xs">Backup/restore I/O buffers. Recommended: at least 8 MB × number of channels.</p></div>
+              <div class="glass rounded-xl p-4 border-l-4 border-blue-500/60"><div class="text-blue-400 font-semibold text-xs mb-1">Parallel Query Buffers</div><p class="text-neutral-500 text-xs">Inter-process message buffers for parallel execution operations.</p></div>
+              <div class="glass rounded-xl p-4 border-l-4 border-green-500/60"><div class="text-green-400 font-semibold text-xs mb-1">Shared Server UGA</div><p class="text-neutral-500 text-xs">In shared server mode, User Global Area (UGA) moves from PGA to large pool so any shared server process can access session data.</p></div>
+              <div class="glass rounded-xl p-4 border-l-4 border-orange-500/60"><div class="text-orange-400 font-semibold text-xs mb-1">Deferred Inserts (MEMOPTIMIZE FOR WRITE)</div><p class="text-neutral-500 text-xs">IoT-style high-frequency inserts buffered here. SMCO/Wnnn flush to disk asynchronously after 1 MB per session or 60 seconds.</p></div>
+            </div>
+            <div class="terminal text-xs">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+              <pre class="p-4 leading-relaxed"><code><span class="cm">-- Large pool size</span>
+SHOW parameter large_pool_size;
+
+<span class="cm">-- Large pool current usage</span>
+SELECT name, ROUND(bytes/1024/1024,1) mb
+FROM   v$sgastat
+WHERE  pool = 'large pool';
+
+<span class="cm">-- Resize dynamically</span>
+ALTER SYSTEM SET large_pool_size=256M SCOPE=both;
+
+<span class="cm">-- ORA-04031 = out of memory in pools</span>
+<span class="cm">-- Check if large pool is undersized</span>
+SELECT * FROM v$shared_pool_advice;</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- IN-MEMORY -->
+      <div id="inmemory-tab" class="tab-content">
+        <div class="glass rounded-2xl p-8">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center"><i class="fas fa-bolt text-orange-400 text-2xl"></i></div>
+            <div><h3 class="font-display font-bold text-white text-2xl">In-Memory Column Store (IM)</h3><p class="text-orange-400 text-sm font-mono">Optional · columnar format · analytic acceleration</p></div>
+          </div>
+          <p class="text-neutral-400 mb-6 leading-relaxed">Stores tables/partitions in memory simultaneously in <strong class="text-white">row format</strong> (buffer cache, for OLTP) AND <strong class="text-white">columnar format</strong> (IM column store, for analytics). Oracle transparently routes queries. Does not double memory requirements — buffer cache runs much smaller than full DB size.</p>
+          <div class="grid md:grid-cols-3 gap-4 mb-6">
+            <div class="glass rounded-xl p-4 border border-orange-500/20 text-center"><div class="text-orange-400 font-bold text-sm mb-1">IMCU</div><div class="text-white text-xs font-semibold mb-2">In-Memory Compression Unit</div><p class="text-neutral-500 text-xs">Compressed, read-only storage unit for columnar data. One IMCU per set of rows for all columns.</p></div>
+            <div class="glass rounded-xl p-4 border border-yellow-500/20 text-center"><div class="text-yellow-400 font-bold text-sm mb-1">SMU</div><div class="text-white text-xs font-semibold mb-2">Snapshot Metadata Unit</div><p class="text-neutral-500 text-xs">Tracks transactional changes for its associated IMCU. Every IMCU has exactly one SMU.</p></div>
+            <div class="glass rounded-xl p-4 border border-lime-500/20 text-center"><div class="text-lime-400 font-bold text-sm mb-1">IMEU</div><div class="text-white text-xs font-semibold mb-2">In-Memory Expression Unit</div><p class="text-neutral-500 text-xs">Materialized virtual columns and IM expressions — logical extension of its parent IMCU.</p></div>
+          </div>
+          <div class="terminal text-xs">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+            <pre class="p-4 leading-relaxed"><code><span class="cm">-- Enable (requires Oracle In-Memory option)</span>
+ALTER SYSTEM SET inmemory_size=2G SCOPE=spfile; -- restart
+
+<span class="cm">-- Populate a table</span>
+ALTER TABLE sales INMEMORY;
+
+<span class="cm">-- Check population status</span>
+SELECT owner, segment_name, populate_status,
+       ROUND(bytes/1024/1024,1) disk_mb,
+       ROUND(inmemory_size/1024/1024,1) mem_mb
+FROM   v$im_segments;
+
+<span class="cm">-- Force populate immediately</span>
+EXEC DBMS_INMEMORY.POPULATE('HR','EMPLOYEES');
+
+<span class="cm">-- Increase IM size on-the-fly (12.2+)</span>
+ALTER SYSTEM SET inmemory_size=4G SCOPE=both;</code></pre>
+          </div>
+        </div>
+      </div>
+      <!-- OTHER POOLS -->
+      <div id="other-pools-tab" class="tab-content">
+        <div class="glass rounded-2xl p-8">
+          <h3 class="font-display font-bold text-white text-2xl mb-6">Other SGA Components</h3>
+          <div class="grid md:grid-cols-2 gap-5">
+            <div class="glass rounded-xl p-5 border border-cyan-500/20"><div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-lg bg-cyan-500/10 flex items-center justify-center"><i class="fab fa-java text-cyan-400"></i></div><div class="font-semibold text-white">Java Pool</div></div><p class="text-neutral-500 text-xs leading-relaxed mb-2">Stores session-specific Java code and data in the JVM. Shared part of each Java class (methods, read-only code vectors). Separate per-session state stays in PGA (dedicated) or SGA (shared server).</p><code class="text-cyan-400 text-xs">SHOW parameter java_pool_size;</code></div>
+            <div class="glass rounded-xl p-5 border border-orange-500/20"><div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-lg bg-orange-500/10 flex items-center justify-center"><i class="fas fa-stream text-orange-400"></i></div><div class="font-semibold text-white">Streams Pool</div></div><p class="text-neutral-500 text-xs leading-relaxed mb-2">Used by Oracle Streams, Data Pump, GoldenGate integrated capture/apply. Stores buffered queue messages. Starts at zero, grows dynamically when Streams is used.</p><code class="text-orange-400 text-xs">SHOW parameter streams_pool_size;</code></div>
+            <div class="glass rounded-xl p-5 border border-pink-500/20"><div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-lg bg-pink-500/10 flex items-center justify-center"><i class="fas fa-microchip text-pink-400"></i></div><div class="font-semibold text-white">Fixed SGA</div></div><p class="text-neutral-500 text-xs leading-relaxed mb-2">Internal housekeeping area. Size set by Oracle — cannot be altered. Contains database/instance state info and lock information shared between processes.</p><code class="text-pink-400 text-xs">SELECT * FROM v$sgainfo WHERE name='Fixed SGA Size';</code></div>
+            <div class="glass rounded-xl p-5 border border-indigo-500/20"><div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center"><i class="fas fa-bolt text-indigo-400"></i></div><div class="font-semibold text-white">Memoptimize Pool</div></div><p class="text-neutral-500 text-xs leading-relaxed mb-2">High-performance key-based queries for MEMOPTIMIZE FOR READ tables. 75% buffer area (permanently pinned) + 25% hash index. Cannot grow/shrink dynamically — requires instance restart.</p><code class="text-indigo-400 text-xs">SHOW parameter memoptimize_pool_size;</code></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PGA ===== -->
+<section id="pga" class="py-20 relative bg-gradient-to-b from-transparent to-black/20">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="section-label badge-purple badge">Per-Process Memory</span>
+      <h2 class="font-display font-bold text-4xl text-white mb-4">Program Global Area <span class="gradient-text">(PGA)</span></h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">A <strong class="text-white">private, non-shared</strong> memory region exclusive to each server process and background process. One PGA per process. Never allocated in the SGA.</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-8 items-start">
+      <div class="reveal">
+        <div class="glass rounded-2xl p-6 border border-pink-500/20">
+          <h3 class="font-display font-semibold text-white mb-5 text-lg">PGA Structure (Dedicated Server)</h3>
+          <div class="space-y-3">
+            <div class="rounded-xl border border-pink-500/30 p-4" style="background:rgba(236,72,153,0.05)">
+              <div class="font-semibold text-pink-400 text-sm mb-2">Private SQL Area</div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="glass rounded-lg p-2"><div class="text-white font-semibold">Persistent Area</div><div class="text-neutral-500 mt-1">Bind variable values. Freed only when cursor is closed by the client.</div></div>
+                <div class="glass rounded-lg p-2"><div class="text-white font-semibold">Run-Time Area</div><div class="text-neutral-500 mt-1">Query execution state — rows fetched, position in scan. Freed when statement closes.</div></div>
+              </div>
+            </div>
+            <div class="rounded-xl border border-blue-500/30 p-4" style="background:rgba(59,130,246,0.05)">
+              <div class="font-semibold text-blue-400 text-sm mb-2">SQL Work Areas</div>
+              <div class="grid grid-cols-3 gap-2 text-xs">
+                <div class="glass rounded-lg p-2 text-center"><div class="text-white font-semibold">Sort Area</div><div class="text-neutral-500">ORDER BY / GROUP BY</div></div>
+                <div class="glass rounded-lg p-2 text-center"><div class="text-white font-semibold">Hash Area</div><div class="text-neutral-500">Hash join builds hash table from left input</div></div>
+                <div class="glass rounded-lg p-2 text-center"><div class="text-white font-semibold">Bitmap Area</div><div class="text-neutral-500">Merges multiple bitmap indexes</div></div>
+              </div>
+            </div>
+            <div class="rounded-xl border border-green-500/30 p-4" style="background:rgba(34,197,94,0.05)">
+              <div class="font-semibold text-green-400 text-sm mb-2">User Global Area (UGA)</div>
+              <div class="text-neutral-500 text-xs">Session variables, logon info, OLAP pool. In <strong class="text-white">dedicated server</strong> → in PGA. In <strong class="text-white">shared server</strong> → moved to SGA Large Pool so any shared server process can access it.</div>
+            </div>
+            <div class="rounded-xl border border-yellow-500/30 p-4" style="background:rgba(234,179,8,0.05)">
+              <div class="font-semibold text-yellow-400 text-sm mb-2">Stack Space + Hash/Bitmap Areas</div>
+              <div class="text-neutral-500 text-xs">OS-level stack for session variables and arrays. Hash area for hash joins, bitmap merge area for bitmap index operations.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="space-y-5 reveal" style="transition-delay:.1s">
+        <div class="terminal text-xs">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 ml-2 font-mono">PGA Monitoring</span></div>
+          <pre class="p-4 leading-relaxed"><code><span class="cm">-- PGA aggregate stats</span>
+SELECT name, ROUND(value/1024/1024,1) mb
+FROM   v$pgastat
+WHERE  name IN (
+  'aggregate PGA target parameter',
+  'total PGA allocated',
+  'total PGA inuse',
+  'cache hit percentage'  -- target >90%
+);
+
+<span class="cm">-- Top PGA consumers</span>
+SELECT s.sid, s.username,
+       ROUND(p.pga_alloc_mem/1024/1024,1) mb
+FROM   v$session s JOIN v$process p
+       ON s.paddr = p.addr
+ORDER BY p.pga_alloc_mem DESC
+FETCH FIRST 10 ROWS ONLY;
+
+<span class="cm">-- PGA advisor</span>
+SELECT pga_target_for_estimate/1024/1024 tgt_mb,
+       estd_pga_cache_hit_percentage hit_pct
+FROM   v$pga_target_advice
+ORDER BY 1;</code></pre>
+        </div>
+        <div class="glass rounded-xl p-5 border border-pink-500/20">
+          <h4 class="font-semibold text-white text-sm mb-3">Dedicated vs Shared Server Memory Location</h4>
+          <table class="w-full text-xs">
+            <thead><tr class="border-b border-white/10"><th class="text-left text-neutral-500 pb-2 pr-4">Memory Area</th><th class="text-left text-neutral-500 pb-2 pr-4">Dedicated</th><th class="text-left text-neutral-500 pb-2">Shared Server</th></tr></thead>
+            <tbody>
+              <tr class="border-b border-white/5"><td class="py-2 pr-4 text-neutral-400">Session memory (UGA)</td><td class="pr-4 text-green-400">PGA</td><td class="text-orange-400">SGA (Large Pool)</td></tr>
+              <tr class="border-b border-white/5"><td class="py-2 pr-4 text-neutral-400">Persistent area</td><td class="pr-4 text-green-400">PGA</td><td class="text-orange-400">SGA (Large Pool)</td></tr>
+              <tr class="border-b border-white/5"><td class="py-2 pr-4 text-neutral-400">Run-time area</td><td class="pr-4 text-green-400">PGA</td><td class="text-green-400">PGA</td></tr>
+              <tr><td class="py-2 pr-4 text-neutral-400">SQL Work Areas</td><td class="pr-4 text-green-400">PGA</td><td class="text-green-400">PGA</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="glass rounded-xl p-4 border border-orange-500/15">
+          <p class="text-xs text-neutral-400"><i class="fas fa-lightbulb text-orange-400 mr-2"></i><strong class="text-white">Tuning:</strong> If work areas spill to temp disk, sorts/hash joins are dramatically slower. Monitor <code class="text-orange-400">cache hit percentage</code> in v$pgastat — target &gt;90%. Set PGA_AGGREGATE_TARGET to ~20% of RAM (OLTP) or ~50% (analytics).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== BACKGROUND PROCESSES ===== -->
+<section id="processes" class="py-20 relative">
+  <div class="orb" style="width:400px;height:400px;bottom:0;right:-100px;background:radial-gradient(circle,#C74634,transparent);opacity:.07;"></div>
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="section-label badge-orange badge">Process Architecture</span>
+      <h2 class="font-display font-bold text-4xl text-white mb-4">Background <span class="gradient-text">Processes</span></h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">Background processes start automatically when the instance starts. Each performs a unique task, but all work together. They consolidate functions that would otherwise require multiple programs per connected user.</p>
+    </div>
+    <div class="terminal reveal mb-10">
+      <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 ml-2 font-mono text-xs">List all running background processes</span></div>
+      <pre class="p-5 font-mono text-xs leading-relaxed"><code>SELECT pname, description FROM v$bgprocess WHERE paddr != '00' ORDER BY pname;
+<span class="cm">-- or</span>
+SELECT spid, stid, program FROM v$process WHERE pname IS NOT NULL ORDER BY pname;</code></pre>
+    </div>
+
+    <!-- Mandatory processes grid -->
+    <h3 class="font-display font-bold text-white text-2xl mb-6 reveal">Mandatory Background Processes</h3>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
+
+      <!-- PMON -->
+      <div class="proc-card glass rounded-2xl p-6 reveal border border-oracle-red/15">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-11 h-11 rounded-xl bg-oracle-red/10 border border-oracle-red/20 flex items-center justify-center font-mono font-bold text-oracle-red text-sm">PMON</div>
+          <div><div class="font-display font-bold text-white">Process Monitor</div><div class="text-xs text-neutral-500">Mandatory · runs as OS process</div></div>
+        </div>
+        <p class="text-neutral-400 text-xs leading-relaxed mb-3">Periodically scans all processes to find any that died abnormally. Coordinates cleanup work via CLMN and CLnn slave processes. Responsible for resetting active transaction table, releasing locks, removing dead process IDs.</p>
+        <div class="space-y-1.5 text-xs">
+          <div class="flex gap-2"><i class="fas fa-check text-oracle-red text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Detects dead server/dispatcher processes</span></div>
+          <div class="flex gap-2"><i class="fas fa-check text-oracle-red text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Initiates cleanup of terminated sessions</span></div>
+          <div class="flex gap-2"><i class="fas fa-check text-oracle-red text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Can quarantine corrupted resources (v$quarantine)</span></div>
+        </div>
+        <div class="mt-4 terminal text-xs"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-3"><code>SELECT * FROM v$cleanup_process;
+SELECT * FROM v$dead_cleanup;</code></pre></div>
+      </div>
+
+      <!-- SMON -->
+      <div class="proc-card glass rounded-2xl p-6 reveal border border-yellow-500/15" style="transition-delay:.05s">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-11 h-11 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center font-mono font-bold text-yellow-400 text-sm">SMON</div>
+          <div><div class="font-display font-bold text-white">System Monitor</div><div class="text-xs text-neutral-500">Mandatory · system-level cleanup</div></div>
+        </div>
+        <p class="text-neutral-400 text-xs leading-relaxed mb-3">Performs instance recovery at startup if needed. In RAC, SMON on one instance can recover another failed instance. Cleans temporary segments, coalesces free extents, maintains SCN-to-time mapping.</p>
+        <div class="space-y-1.5 text-xs">
+          <div class="flex gap-2"><i class="fas fa-check text-yellow-400 text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Instance recovery on startup (roll forward + rollback)</span></div>
+          <div class="flex gap-2"><i class="fas fa-check text-yellow-400 text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Cleans orphaned temporary segments</span></div>
+          <div class="flex gap-2"><i class="fas fa-check text-yellow-400 text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Maintains SCN-to-time mapping (Flashback)</span></div>
+        </div>
+        <div class="mt-4 terminal text-xs"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-3"><code><span class="cm">-- Temp segment cleanup</span>
+SELECT * FROM v$sort_usage;
+SELECT tablespace_name, contents
+FROM   dba_tablespaces
+WHERE  contents='TEMPORARY';</code></pre></div>
+      </div>
+
+      <!-- DBWn -->
+      <div class="proc-card glass rounded-2xl p-6 reveal border border-blue-500/15" style="transition-delay:.1s">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center font-mono font-bold text-blue-400 text-sm">DBWn</div>
+          <div><div class="font-display font-bold text-white">Database Writer</div><div class="text-xs text-neutral-500">DBW0-DBW9, DBWa-z, BW36-BW99</div></div>
+        </div>
+        <p class="text-neutral-400 text-xs leading-relaxed mb-3">Writes dirty (modified) buffers from the buffer cache to data files on disk. Performs scattered multi-block writes. Up to 100 DBW processes (DB_WRITER_PROCESSES). Writes are slower than LGWR's sequential writes.</p>
+        <div class="space-y-1.5 text-xs">
+          <div class="flex gap-2"><i class="fas fa-check text-blue-400 text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Writes when free buffer threshold is crossed</span></div>
+          <div class="flex gap-2"><i class="fas fa-check text-blue-400 text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Writes to advance checkpoint position</span></div>
+          <div class="flex gap-2"><i class="fas fa-check text-blue-400 text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Also writes to Smart Flash Cache if configured</span></div>
+        </div>
+        <div class="mt-4 terminal text-xs"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-3"><code>SHOW parameter db_writer_processes;
+<span class="cm">-- DBW I/O stats</span>
+SELECT name, value FROM v$sysstat
+WHERE name LIKE 'physical write%';</code></pre></div>
+      </div>
+
+      <!-- LGWR -->
+      <div class="proc-card glass rounded-2xl p-6 reveal border border-green-500/15">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-11 h-11 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center font-mono font-bold text-green-400 text-sm">LGWR</div>
+          <div><div class="font-display font-bold text-white">Log Writer</div><div class="text-xs text-neutral-500">Most critical background process</div></div>
+        </div>
+        <p class="text-neutral-400 text-xs leading-relaxed mb-3">Writes redo log buffer to online redo log files on disk. Performs fast sequential writes (unlike DBWn's scattered writes). The atomic write of the commit record is the single event that confirms a transaction has committed.</p>
+        <div class="space-y-1.5 text-xs">
+          <div class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">On COMMIT — immediate, synchronous write to disk</span></div>
+          <div class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Every 3 seconds or when buffer 1/3 full</span></div>
+          <div class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Group commits — batches multiple transactions' redo</span></div>
+        </div>
+        <div class="mt-4 terminal text-xs"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-3"><code><span class="cm">-- Log write waits (should be near 0)</span>
+SELECT name, value FROM v$sysstat
+WHERE name='log file sync';
+<span class="cm">-- v$log shows current log group</span>
+SELECT * FROM v$log;</code></pre></div>
+      </div>
+
+      <!-- CKPT -->
+      <div class="proc-card glass rounded-2xl p-6 reveal border border-purple-500/15" style="transition-delay:.05s">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center font-mono font-bold text-purple-400 text-sm">CKPT</div>
+          <div><div class="font-display font-bold text-white">Checkpoint Process</div><div class="text-xs text-neutral-500">Updates control file &amp; data file headers</div></div>
+        </div>
+        <p class="text-neutral-400 text-xs leading-relaxed mb-3">At specific checkpoint events, signals DBWn to write dirty buffers, then updates the control file and all data file headers with the checkpoint SCN. Checks every 3 seconds whether PGA_AGGREGATE_LIMIT is exceeded.</p>
+        <div class="space-y-1.5 text-xs">
+          <div class="flex gap-2"><i class="fas fa-check text-purple-400 text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Signals DBWn to write dirty buffers to disk</span></div>
+          <div class="flex gap-2"><i class="fas fa-check text-purple-400 text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Updates control file with checkpoint position</span></div>
+          <div class="flex gap-2"><i class="fas fa-check text-purple-400 text-xs mt-0.5 flex-shrink-0"></i><span class="text-neutral-400">Does NOT write data blocks or redo logs itself</span></div>
+        </div>
+        <div class="mt-4 terminal text-xs"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-3"><code><span class="cm">-- Force a checkpoint</span>
+ALTER SYSTEM CHECKPOINT;
+<span class="cm">-- Checkpoint info in control file</span>
+SELECT checkpoint_change# FROM v$database;</code></pre></div>
+      </div>
+
+      <!-- MMON/MMNL -->
+      <div class="proc-card glass rounded-2xl p-6 reveal border border-orange-500/15" style="transition-delay:.1s">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-11 h-11 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center font-mono font-bold text-orange-400 text-xs">MMON</div>
+          <div><div class="font-display font-bold text-white">Manageability Monitor</div><div class="text-xs text-neutral-500">AWR snapshots + MMNL for ASH</div></div>
+        </div>
+        <p class="text-neutral-400 text-xs leading-relaxed mb-3">MMON gathers SGA statistics and creates AWR snapshots every 60 minutes. Runs ADDM analysis and threshold alerts. MMNL samples v$session every second into ASH buffer, flushes to DBA_HIST_ACTIVE_SESS_HISTORY when full.</p>
+        <div class="mt-4 terminal text-xs"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-3"><code><span class="cm">-- AWR snapshots</span>
+SELECT snap_id, begin_interval_time
+FROM   dba_hist_snapshot
+ORDER BY snap_id DESC FETCH FIRST 5 ROWS ONLY;
+<span class="cm">-- ASH live</span>
+SELECT * FROM v$active_session_history
+WHERE rownum <= 10;</code></pre></div>
+      </div>
+
+    </div>
+
+    <!-- Optional processes -->
+    <h3 class="font-display font-bold text-white text-2xl mb-6 reveal">Optional Background Processes</h3>
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="glass rounded-2xl p-5 reveal border border-cyan-500/15 proc-card">
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center font-mono font-bold text-cyan-400 text-xs mb-3">ARCn</div>
+        <div class="font-semibold text-white text-sm mb-2">Archiver Process</div>
+        <p class="text-neutral-500 text-xs leading-relaxed">Copies online redo logs to archive destination after a log switch. Exists only in ARCHIVELOG mode. Can also transmit redo to Data Guard standby destinations.</p>
+        <code class="text-cyan-400 text-xs mt-3 block">ARCHIVE LOG LIST;</code>
+      </div>
+      <div class="glass rounded-2xl p-5 reveal border border-pink-500/15 proc-card" style="transition-delay:.05s">
+        <div class="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center font-mono font-bold text-pink-400 text-xs mb-3">LREG</div>
+        <div class="font-semibold text-white text-sm mb-2">Listener Registration</div>
+        <p class="text-neutral-500 text-xs leading-relaxed">Registers the instance, services, handlers, and endpoints with the Oracle Net Listener. In 12c+, LREG replaced PMON for listener registration. Polls listener at startup.</p>
+        <code class="text-pink-400 text-xs mt-3 block">lsnrctl status LISTENER</code>
+      </div>
+      <div class="glass rounded-2xl p-5 reveal border border-lime-500/15 proc-card" style="transition-delay:.1s">
+        <div class="w-10 h-10 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center font-mono font-bold text-lime-400 text-xs mb-3">RECO</div>
+        <div class="font-semibold text-white text-sm mb-2">Recoverer Process</div>
+        <p class="text-neutral-500 text-xs leading-relaxed">Automatically resolves in-doubt distributed transactions. Connects to remote databases, resolves hanging two-phase commits, removes rows from pending transaction tables.</p>
+        <code class="text-lime-400 text-xs mt-3 block">SELECT * FROM dba_2pc_pending;</code>
+      </div>
+      <div class="glass rounded-2xl p-5 reveal border border-indigo-500/15 proc-card" style="transition-delay:.15s">
+        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-mono font-bold text-indigo-400 text-xs mb-3">PMAN</div>
+        <div class="font-semibold text-white text-sm mb-2">Process Manager</div>
+        <p class="text-neutral-500 text-xs leading-relaxed">Monitors, spawns, and stops shared server processes, connection brokers, job queue processes (CJQ0/Jnnn), and restartable background processes.</p>
+        <code class="text-indigo-400 text-xs mt-3 block">SHOW parameter job_queue_processes;</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STORAGE ARCHITECTURE ===== -->
+<section id="storage" class="py-20 relative bg-gradient-to-b from-transparent to-black/20">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="section-label badge-cyan badge">Physical Storage</span>
+      <h2 class="font-display font-bold text-4xl text-white mb-4">Database Storage <span class="gradient-text">Architecture</span></h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">The database is a set of physical files that persist on disk — independent of any running instance. Understanding these files is essential for backup, recovery, and troubleshooting.</p>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+      <div class="glass rounded-2xl p-6 reveal border-t-2 border-blue-500 proc-card">
+        <div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center"><i class="fas fa-file-alt text-blue-400"></i></div><div><div class="font-semibold text-white">Data Files (.dbf)</div><div class="text-xs text-blue-400 font-mono">Required</div></div></div>
+        <p class="text-neutral-500 text-xs leading-relaxed mb-3">Contain actual user data — tables, indexes, sequences. Organized into tablespaces: SYSTEM (data dictionary), SYSAUX (auxiliary), USERS, TEMP (sorting), UNDO (rollback segments).</p>
+        <div class="terminal text-xs"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-3"><code>SELECT file_name, tablespace_name,
+       ROUND(bytes/1024/1024/1024,2) gb,
+       status, autoextensible
+FROM   dba_data_files
+ORDER BY tablespace_name;</code></pre></div>
+      </div>
+      <div class="glass rounded-2xl p-6 reveal border-t-2 border-purple-500 proc-card" style="transition-delay:.05s">
+        <div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center"><i class="fas fa-sliders-h text-purple-400"></i></div><div><div class="font-semibold text-white">Control File (.ctl)</div><div class="text-xs text-purple-400 font-mono">Required · multiplex!</div></div></div>
+        <p class="text-neutral-500 text-xs leading-relaxed mb-3">Binary file containing metadata about the database structure — database name, data file/redo log locations and statuses, checkpoint info, backup records. Lost control file = cannot open database.</p>
+        <div class="terminal text-xs"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-3"><code>SELECT name, status FROM v$controlfile;
+<span class="cm">-- Always multiplex to 3+ copies!</span>
+SHOW parameter control_files;</code></pre></div>
+      </div>
+      <div class="glass rounded-2xl p-6 reveal border-t-2 border-green-500 proc-card" style="transition-delay:.1s">
+        <div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center"><i class="fas fa-sync text-green-400"></i></div><div><div class="font-semibold text-white">Online Redo Logs</div><div class="text-xs text-green-400 font-mono">Required · circular · multiplex!</div></div></div>
+        <p class="text-neutral-500 text-xs leading-relaxed mb-3">Record every change made to the database as it occurs. Circular — filled sequentially, then reused. At least 2 groups required. When a group fills, a log switch occurs and ARCn archives it (in ARCHIVELOG mode).</p>
+        <div class="terminal text-xs"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-3"><code>SELECT group#, sequence#, members,
+       bytes/1048576 mb, status
+FROM   v$log;
+<span class="cm">-- Add a redo log group</span>
+ALTER DATABASE ADD LOGFILE GROUP 4
+('/u01/redo04a.log') SIZE 500M;</code></pre></div>
+      </div>
+      <div class="glass rounded-2xl p-6 reveal border-t-2 border-orange-500 proc-card">
+        <div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center"><i class="fas fa-archive text-orange-400"></i></div><div><div class="font-semibold text-white">Archive Log Files</div><div class="text-xs text-orange-400 font-mono">Optional but essential for recovery</div></div></div>
+        <p class="text-neutral-500 text-xs leading-relaxed mb-3">Copies of filled online redo logs. Enable point-in-time recovery — restore a backup, apply archive logs forward to recover to any point. Required for Data Guard, GoldenGate, and RMAN incremental backups.</p>
+        <div class="terminal text-xs"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-3"><code>ARCHIVE LOG LIST;
+SELECT dest_name, status, target
+FROM   v$archive_dest
+WHERE  status='VALID';
+SELECT * FROM v$archived_log
+WHERE  standby_dest='NO'
+ORDER BY sequence# DESC FETCH FIRST 5 ROWS ONLY;</code></pre></div>
+      </div>
+      <div class="glass rounded-2xl p-6 reveal border-t-2 border-yellow-500 proc-card" style="transition-delay:.05s">
+        <div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center"><i class="fas fa-cog text-yellow-400"></i></div><div><div class="font-semibold text-white">SPFILE / PFILE</div><div class="text-xs text-yellow-400 font-mono">Required for startup</div></div></div>
+        <p class="text-neutral-500 text-xs leading-relaxed mb-3">SPFILE (server parameter file) — binary file storing initialization parameters. Supports dynamic changes via ALTER SYSTEM. PFILE (init.ora) — text version. SPFILE is preferred in production.</p>
+        <div class="terminal text-xs"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-3"><code>SHOW parameter spfile;
+<span class="cm">-- Create PFILE from SPFILE</span>
+CREATE PFILE='/tmp/init.ora' FROM SPFILE;
+<span class="cm">-- Edit and create SPFILE back</span>
+CREATE SPFILE FROM PFILE='/tmp/init.ora';</code></pre></div>
+      </div>
+      <div class="glass rounded-2xl p-6 reveal border-t-2 border-red-500 proc-card" style="transition-delay:.1s">
+        <div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center"><i class="fas fa-exclamation-triangle text-red-400"></i></div><div><div class="font-semibold text-white">Alert Log / ADR</div><div class="text-xs text-red-400 font-mono">Automatic Diagnostic Repository</div></div></div>
+        <p class="text-neutral-500 text-xs leading-relaxed mb-3">The alert log is your first stop for any issue — chronological log of messages, errors, and events. ADR contains trace files, dumps, health monitor reports, and incident packages. Always check it first on any problem.</p>
+        <div class="terminal text-xs"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-3"><code>SHOW parameter diagnostic_dest;
+<span class="cm">-- Alert log location:</span>
+<span class="cm">-- $ADR_HOME/alert/log.xml</span>
+<span class="cm">-- OR: $ADR_HOME/trace/alert_SID.log</span>
+tail -200f $ORACLE_BASE/diag/rdbms/orcl/orcl/trace/alert_orcl.log</code></pre></div>
+      </div>
+    </div>
+
+    <!-- Logical storage -->
+    <div class="glass rounded-2xl p-8 reveal">
+      <h3 class="font-display font-bold text-white text-xl mb-6">Logical Storage Hierarchy</h3>
+      <div class="flex flex-col md:flex-row items-center gap-4 justify-center mb-6 text-sm">
+        <div class="glass rounded-xl px-6 py-3 text-center border border-oracle-red/30"><span class="text-oracle-red font-bold">Tablespace</span><div class="text-neutral-500 text-xs mt-1">Logical container</div></div>
+        <i class="fas fa-arrow-right text-neutral-600 hidden md:block"></i>
+        <i class="fas fa-arrow-down text-neutral-600 md:hidden"></i>
+        <div class="glass rounded-xl px-6 py-3 text-center border border-blue-500/30"><span class="text-blue-400 font-bold">Segment</span><div class="text-neutral-500 text-xs mt-1">Table, Index, Undo</div></div>
+        <i class="fas fa-arrow-right text-neutral-600 hidden md:block"></i>
+        <i class="fas fa-arrow-down text-neutral-600 md:hidden"></i>
+        <div class="glass rounded-xl px-6 py-3 text-center border border-green-500/30"><span class="text-green-400 font-bold">Extent</span><div class="text-neutral-500 text-xs mt-1">Contiguous blocks</div></div>
+        <i class="fas fa-arrow-right text-neutral-600 hidden md:block"></i>
+        <i class="fas fa-arrow-down text-neutral-600 md:hidden"></i>
+        <div class="glass rounded-xl px-6 py-3 text-center border border-purple-500/30"><span class="text-purple-400 font-bold">Block</span><div class="text-neutral-500 text-xs mt-1">8 KB (default)</div></div>
+      </div>
+      <div class="terminal text-xs">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-4 leading-relaxed"><code><span class="cm">-- Tablespace usage (most important monitoring query)</span>
+SELECT t.tablespace_name,
+       ROUND(t.total_mb,1)     total_mb,
+       ROUND(f.free_mb,1)      free_mb,
+       ROUND(t.total_mb - f.free_mb,1) used_mb,
+       ROUND((1 - f.free_mb/t.total_mb)*100,1) pct_used
+FROM (SELECT tablespace_name, SUM(bytes)/1024/1024 total_mb FROM dba_data_files GROUP BY tablespace_name) t
+JOIN (SELECT tablespace_name, SUM(bytes)/1024/1024 free_mb  FROM dba_free_space   GROUP BY tablespace_name) f
+  ON t.tablespace_name = f.tablespace_name
+ORDER BY pct_used DESC;
+
+<span class="cm">-- Add datafile when tablespace is full</span>
+ALTER TABLESPACE users ADD DATAFILE '+DATA' SIZE 10G AUTOEXTEND ON NEXT 1G MAXSIZE 50G;</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SQL FLOW ===== -->
+<section id="sql-flow" class="py-20 relative">
+  <div class="orb" style="width:350px;height:350px;top:0;left:-80px;background:radial-gradient(circle,#8b5cf6,transparent);opacity:.08;"></div>
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="section-label badge-yellow badge">End-to-End Flow</span>
+      <h2 class="font-display font-bold text-4xl text-white mb-4">What Happens When You Run <span class="gradient-text">a SQL Statement?</span></h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">Trace the exact path a SELECT and a COMMIT take through the Oracle architecture — from client all the way to disk.</p>
+    </div>
+    <div class="grid lg:grid-cols-2 gap-10">
+      <!-- SELECT flow -->
+      <div class="reveal">
+        <div class="glass rounded-2xl p-6 border border-blue-500/20 h-full">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center"><i class="fas fa-search text-blue-400"></i></div>
+            <div><h3 class="font-display font-bold text-white text-lg">SELECT Statement Flow</h3><p class="text-blue-400 text-xs font-mono">What happens step by step when you run a query</p></div>
+          </div>
+          <div class="space-y-0">
+            <div class="flow-step flex gap-4 pb-8"><div class="w-11 h-11 rounded-full bg-oracle-red/15 border border-oracle-red/30 flex items-center justify-center flex-shrink-0 font-bold text-oracle-red text-sm">1</div><div><div class="font-semibold text-white text-sm">Client sends SQL to Server Process</div><p class="text-neutral-500 text-xs mt-1 leading-relaxed">Application sends SQL via Oracle Net. Listener accepts the connection, spawns or assigns a dedicated server process, and hands off the connection.</p></div></div>
+            <div class="flow-step flex gap-4 pb-8"><div class="w-11 h-11 rounded-full bg-blue-500/15 border border-blue-500/30 flex items-center justify-center flex-shrink-0 font-bold text-blue-400 text-sm">2</div><div><div class="font-semibold text-white text-sm">Parse — Check Shared Pool</div><p class="text-neutral-500 text-xs mt-1 leading-relaxed"><span class="text-green-400 font-semibold">Soft parse:</span> identical SQL found in library cache → reuse plan. <span class="text-red-400 font-semibold">Hard parse:</span> not found → syntax check, semantic check (data dictionary cache), CBO optimization, store new plan.</p></div></div>
+            <div class="flow-step flex gap-4 pb-8"><div class="w-11 h-11 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center flex-shrink-0 font-bold text-green-400 text-sm">3</div><div><div class="font-semibold text-white text-sm">Bind — Substitute Bind Variables</div><p class="text-neutral-500 text-xs mt-1 leading-relaxed">Server process substitutes bind variable values from the PGA persistent area into the execution plan before execution begins.</p></div></div>
+            <div class="flow-step flex gap-4 pb-8"><div class="w-11 h-11 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center flex-shrink-0 font-bold text-purple-400 text-sm">4</div><div><div class="font-semibold text-white text-sm">Execute — Run the Plan (Buffer Cache)</div><p class="text-neutral-500 text-xs mt-1 leading-relaxed">For each data block: (a) check buffer cache — cache hit → logical read (fast). (b) Not found → read from data file into buffer cache, then logical read (physical read = slow path).</p></div></div>
+            <div class="flow-step flex gap-4 pb-8"><div class="w-11 h-11 rounded-full bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center flex-shrink-0 font-bold text-yellow-400 text-sm">5</div><div><div class="font-semibold text-white text-sm">Consistent Read (Read Consistency)</div><p class="text-neutral-500 text-xs mt-1 leading-relaxed">Server reads blocks in consistent mode — uses undo segments to reconstruct data as it appeared at the query's start SCN. You never see another session's uncommitted changes.</p></div></div>
+            <div class="flex gap-4"><div class="w-11 h-11 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center justify-center flex-shrink-0 font-bold text-orange-400 text-sm">6</div><div><div class="font-semibold text-white text-sm">Fetch — Return Rows to Client</div><p class="text-neutral-500 text-xs mt-1 leading-relaxed">Server process sends result rows back via Oracle Net. Array fetch — multiple rows per round-trip. OPEN_CURSORS parameter limits private SQL areas per session.</p></div></div>
+          </div>
+        </div>
+      </div>
+      <!-- COMMIT flow -->
+      <div class="reveal" style="transition-delay:.15s">
+        <div class="glass rounded-2xl p-6 border border-green-500/20 h-full">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center"><i class="fas fa-check-double text-green-400"></i></div>
+            <div><h3 class="font-display font-bold text-white text-lg">COMMIT — The Fast Commit Mechanism</h3><p class="text-green-400 text-xs font-mono">Why Oracle is fast and durable at the same time</p></div>
+          </div>
+          <div class="space-y-0">
+            <div class="flow-step flex gap-4 pb-8"><div class="w-11 h-11 rounded-full bg-oracle-red/15 border border-oracle-red/30 flex items-center justify-center flex-shrink-0 font-bold text-oracle-red text-sm">1</div><div><div class="font-semibold text-white text-sm">DML Modifies Buffer Cache Blocks</div><p class="text-neutral-500 text-xs mt-1 leading-relaxed">Server process changes data blocks in the buffer cache (dirty buffers). Generates redo records in the redo log buffer. Undo records stored in undo segments for rollback capability.</p></div></div>
+            <div class="flow-step flex gap-4 pb-8"><div class="w-11 h-11 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center flex-shrink-0 font-bold text-green-400 text-sm">2</div><div><div class="font-semibold text-white text-sm">COMMIT — SCN Assigned</div><p class="text-neutral-500 text-xs mt-1 leading-relaxed">Transaction gets a <span class="text-white font-semibold">System Change Number (SCN)</span> — Oracle's global logical clock. The commit SCN + all redo entries for this transaction go into the redo log buffer.</p></div></div>
+            <div class="flow-step flex gap-4 pb-8"><div class="w-11 h-11 rounded-full bg-blue-500/15 border border-blue-500/30 flex items-center justify-center flex-shrink-0 font-bold text-blue-400 text-sm">3</div><div><div class="font-semibold text-white text-sm">LGWR Writes Redo to Disk (Synchronous)</div><p class="text-neutral-500 text-xs mt-1 leading-relaxed">LGWR immediately writes the commit record + redo entries from the buffer to the online redo log on disk. <span class="text-white font-semibold">This single atomic write IS the commit point.</span> Transaction is now permanently durable.</p></div></div>
+            <div class="flow-step flex gap-4 pb-8"><div class="w-11 h-11 rounded-full bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center flex-shrink-0 font-bold text-yellow-400 text-sm">4</div><div><div class="font-semibold text-white text-sm">Oracle Returns "Commit Complete"</div><p class="text-neutral-500 text-xs mt-1 leading-relaxed">Oracle signals success to the application immediately — even though the modified data blocks are still dirty in the buffer cache, NOT yet written to data files on disk.</p></div></div>
+            <div class="flow-step flex gap-4 pb-8"><div class="w-11 h-11 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center flex-shrink-0 font-bold text-purple-400 text-sm">5</div><div><div class="font-semibold text-white text-sm">DBWn Eventually Writes Dirty Blocks to Disk</div><p class="text-neutral-500 text-xs mt-1 leading-relaxed">DBWn writes dirty buffers to data files asynchronously at checkpoint time. Much later than the commit. Safe because redo log already has everything needed to replay the changes on recovery.</p></div></div>
+            <div class="flex gap-4"><div class="w-11 h-11 rounded-full bg-red-500/15 border border-red-500/30 flex items-center justify-center flex-shrink-0 font-bold text-red-400 text-sm">!!</div><div><div class="font-semibold text-white text-sm">Instance Crashes Before DBWn Writes?</div><p class="text-neutral-500 text-xs mt-1 leading-relaxed">No problem. On next startup, SMON performs <span class="text-white font-semibold">instance recovery</span>: replays redo (roll forward) to bring committed changes forward, then rolls back all uncommitted transactions. The redo log is the safety net.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== KEY MONITORING QUERIES ===== -->
+<section id="queries" class="py-20 relative bg-gradient-to-b from-transparent to-black/20">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="section-label badge" style="background:rgba(236,72,153,.15);color:#f472b6;border:1px solid rgba(236,72,153,.25);">Production DBA</span>
+      <h2 class="font-display font-bold text-4xl text-white mb-4">Essential Monitoring <span class="gradient-text">SQL Queries</span></h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">The queries every Oracle DBA must know by heart. These will be used daily in any production DBA role.</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl overflow-hidden reveal">
+        <div class="p-4 border-b border-white/5 flex items-center justify-between"><span class="font-display font-semibold text-white text-sm">Database Health Check</span><span class="badge badge-red">Daily</span></div>
+        <pre class="p-5 font-mono text-xs leading-relaxed overflow-x-auto"><code>-- Instance status
+SELECT instance_name, status, version,
+       startup_time FROM v$instance;
+
+-- Database mode
+SELECT name, open_mode, log_mode,
+       db_unique_name FROM v$database;
+
+-- All SGA components
+SELECT name, ROUND(value/1024/1024,1) mb
+FROM   v$sga;
+
+-- Session count by status
+SELECT status, COUNT(*) FROM v$session
+GROUP BY status;</code></pre>
+      </div>
+      <div class="glass rounded-2xl overflow-hidden reveal" style="transition-delay:.05s">
+        <div class="p-4 border-b border-white/5 flex items-center justify-between"><span class="font-display font-semibold text-white text-sm">Memory Hit Ratios</span><span class="badge badge-blue">Weekly</span></div>
+        <pre class="p-5 font-mono text-xs leading-relaxed overflow-x-auto"><code>-- Buffer cache hit ratio (target >95%)
+SELECT ROUND((1-(phyrds/(dbg+cg+phyrds)))*100,2) hit_pct
+FROM (SELECT SUM(value) phyrds FROM v$sysstat
+      WHERE name='physical reads'),
+     (SELECT SUM(value) dbg FROM v$sysstat
+      WHERE name='db block gets'),
+     (SELECT SUM(value) cg FROM v$sysstat
+      WHERE name='consistent gets');
+
+-- Library cache hit ratio (target >99%)
+SELECT ROUND((1-SUM(reloads)/SUM(pins))*100,2)
+FROM   v$librarycache;
+
+-- PGA cache hit pct (target >90%)
+SELECT name, value FROM v$pgastat
+WHERE  name='cache hit percentage';</code></pre>
+      </div>
+      <div class="glass rounded-2xl overflow-hidden reveal" style="transition-delay:.1s">
+        <div class="p-4 border-b border-white/5 flex items-center justify-between"><span class="font-display font-semibold text-white text-sm">Tablespace Usage</span><span class="badge badge-orange">Daily</span></div>
+        <pre class="p-5 font-mono text-xs leading-relaxed overflow-x-auto"><code>-- Tablespace usage % (alert when >80%)
+SELECT t.tablespace_name,
+       ROUND((1-f.free_mb/t.total_mb)*100,1) pct_used,
+       ROUND(t.total_mb,0)   total_mb,
+       ROUND(f.free_mb,0)    free_mb
+FROM (SELECT tablespace_name,
+             SUM(bytes)/1048576 total_mb
+      FROM dba_data_files
+      GROUP BY tablespace_name) t
+JOIN (SELECT tablespace_name,
+             SUM(bytes)/1048576 free_mb
+      FROM dba_free_space
+      GROUP BY tablespace_name) f
+  ON t.tablespace_name=f.tablespace_name
+ORDER BY pct_used DESC;</code></pre>
+      </div>
+      <div class="glass rounded-2xl overflow-hidden reveal" style="transition-delay:.15s">
+        <div class="p-4 border-b border-white/5 flex items-center justify-between"><span class="font-display font-semibold text-white text-sm">Top SQL &amp; Blocking Sessions</span><span class="badge badge-purple">On-Demand</span></div>
+        <pre class="p-5 font-mono text-xs leading-relaxed overflow-x-auto"><code>-- Top SQL by elapsed time
+SELECT sql_id, executions,
+       ROUND(elapsed_time/1e6,2) elapsed_sec,
+       ROUND(elapsed_time/
+         DECODE(executions,0,1,executions)/1e6,3) avg_sec,
+       SUBSTR(sql_text,1,60) preview
+FROM   v$sql
+ORDER BY elapsed_time DESC
+FETCH FIRST 10 ROWS ONLY;
+
+-- Blocking sessions (P1 incident first step)
+SELECT blocking_session blk_sid, sid, wait_class,
+       seconds_in_wait sec_wait, state
+FROM   v$session
+WHERE  blocking_session IS NOT NULL
+ORDER BY seconds_in_wait DESC;</code></pre>
+      </div>
+      <div class="glass rounded-2xl overflow-hidden reveal">
+        <div class="p-4 border-b border-white/5 flex items-center justify-between"><span class="font-display font-semibold text-white text-sm">Background Processes Status</span><span class="badge badge-green">Daily</span></div>
+        <pre class="p-5 font-mono text-xs leading-relaxed overflow-x-auto"><code>-- All running background processes
+SELECT pname, description
+FROM   v$bgprocess
+WHERE  paddr != '00'
+ORDER BY pname;
+
+-- Check if LGWR, DBWn, PMON etc. are running
+SELECT program, spid, pname, background
+FROM   v$process
+WHERE  background IS NOT NULL
+ORDER BY pname;
+
+-- Archive log destination status
+SELECT dest_name, status, target, archiver
+FROM   v$archive_dest
+WHERE  status != 'INACTIVE';</code></pre>
+      </div>
+      <div class="glass rounded-2xl overflow-hidden reveal" style="transition-delay:.05s">
+        <div class="p-4 border-b border-white/5 flex items-center justify-between"><span class="font-display font-semibold text-white text-sm">AWR Snapshot &amp; FRA</span><span class="badge badge-cyan">Weekly</span></div>
+        <pre class="p-5 font-mono text-xs leading-relaxed overflow-x-auto"><code>-- Last 5 AWR snapshots
+SELECT snap_id,
+       TO_CHAR(begin_interval_time,'DD-MON HH24:MI') begin_time
+FROM   dba_hist_snapshot
+ORDER BY snap_id DESC
+FETCH FIRST 5 ROWS ONLY;
+
+-- Fast Recovery Area usage
+SELECT name,
+       ROUND(space_limit/1024/1024/1024,2)    limit_gb,
+       ROUND(space_used/1024/1024/1024,2)     used_gb,
+       ROUND(space_reclaimable/1024/1024/1024,2) reclaimable_gb,
+       number_of_files
+FROM   v$recovery_file_dest;</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="border-t border-white/5 py-14">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-oracle-red to-oracle-dark flex items-center justify-center"><i class="fas fa-database text-white text-sm"></i></div>
+          <div><span class="font-display font-bold text-white text-sm block">Oracle DBA Simplified</span><span class="text-oracle-red text-xs font-mono">Learn. Build. Master.</span></div>
+        </div>
+        <p class="text-neutral-500 text-sm leading-relaxed">The simplest way to learn Oracle Database Administration from the ground up.</p>
+      </div>
+      <div>
+        <h4 class="font-display font-semibold text-white text-sm mb-4">Architecture Topics</h4>
+        <ul class="space-y-2 text-sm text-neutral-500">
+          <li><a href="#overview" class="hover:text-oracle-red transition-colors">Instance vs Database</a></li>
+          <li><a href="#diagram" class="hover:text-oracle-red transition-colors">Interactive Diagram</a></li>
+          <li><a href="#sga" class="hover:text-oracle-red transition-colors">SGA Components</a></li>
+          <li><a href="#pga" class="hover:text-oracle-red transition-colors">PGA Structure</a></li>
+          <li><a href="#processes" class="hover:text-oracle-red transition-colors">Background Processes</a></li>
+          <li><a href="#storage" class="hover:text-oracle-red transition-colors">Storage Architecture</a></li>
+          <li><a href="#sql-flow" class="hover:text-oracle-red transition-colors">SQL Flow</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-display font-semibold text-white text-sm mb-4">More Topics</h4>
+        <ul class="space-y-2 text-sm text-neutral-500">
+          <li><a href="index.html" class="hover:text-oracle-red transition-colors">Home</a></li>
+          <li><a href="index.html#topics" class="hover:text-oracle-red transition-colors">All Topics</a></li>
+          <li><a href="index.html#blogs" class="hover:text-oracle-red transition-colors">Blog Articles</a></li>
+          <li><a href="index.html#interview" class="hover:text-oracle-red transition-colors">Interview Prep</a></li>
+          <li><a href="index.html#scenarios" class="hover:text-oracle-red transition-colors">DBA Scenarios</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-display font-semibold text-white text-sm mb-4">Official References</h4>
+        <ul class="space-y-2 text-sm text-neutral-500">
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/memory-architecture.html" target="_blank" class="hover:text-oracle-red transition-colors flex items-center gap-1">Oracle 19c Concepts <i class="fas fa-external-link-alt text-xs"></i></a></li>
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/" target="_blank" class="hover:text-oracle-red transition-colors flex items-center gap-1">19c Reference <i class="fas fa-external-link-alt text-xs"></i></a></li>
+          <li><a href="https://gavinsoorma.com.au" target="_blank" class="hover:text-oracle-red transition-colors flex items-center gap-1">GavinSoorma.com.au <i class="fas fa-external-link-alt text-xs"></i></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-neutral-600 text-xs font-mono">© 2025 Oracle DBA Simplified. Content based on Oracle 19c official documentation.</p>
+      <a href="index.html" class="btn-ghost text-xs px-4 py-2"><i class="fas fa-arrow-left text-xs"></i> Back to Homepage</a>
+    </div>
+  </div>
+</footer>
+
+<button id="back-top" class="fixed bottom-8 right-8 w-10 h-10 bg-oracle-red rounded-lg flex items-center justify-center shadow-lg hover:bg-oracle-dark transition-colors opacity-0 translate-y-4 transition-all duration-300 z-50" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="fas fa-arrow-up text-white text-sm"></i>
+</button>
+
+<script>
+// Back to top
+window.addEventListener('scroll',()=>{
+  const btn=document.getElementById('back-top');
+  if(btn){btn.style.opacity=window.scrollY>400?'1':'0';btn.style.transform=window.scrollY>400?'translateY(0)':'translateY(16px)';}
+});
+
+// Mobile menu
+const mobBtn=document.getElementById('mob-btn');
+if(mobBtn)mobBtn.addEventListener('click',()=>document.getElementById('mob-menu').classList.toggle('open'));
+
+// Nav active on scroll
+const sections=document.querySelectorAll('section[id]');
+const navLinks=document.querySelectorAll('.nav-link');
+window.addEventListener('scroll',()=>{
+  let current='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)current=s.id;});
+  navLinks.forEach(l=>{l.classList.remove('active');if(l.getAttribute('href')==='#'+current)l.classList.add('active');});
+},{passive:true});
+
+// Scroll reveal
+const ro=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+// SGA tabs
+document.querySelectorAll('#sga-tabs .tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#sga-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    const t=document.getElementById(btn.dataset.tab);
+    if(t)t.classList.add('active');
+  });
+});
+
+// Diagram info panel data
+const compData={
+  client:{icon:'fas fa-user',iconColor:'#94a3b8',title:'Client Process (Application)',sub:'Runs application code · communicates via Oracle Net',desc:'The client process runs the application. It cannot access the SGA directly. It sends SQL to its dedicated server process via Oracle Net and receives result rows back.',points:['Creates a connection via Oracle Net listener','Sends SQL to the server process','Represented in v$session','Can run on a different host than the database server'],code:'SELECT sid, serial#, username, machine, program\nFROM   v$session WHERE type=\'USER\'\nORDER BY logon_time DESC;'},
+  listener:{icon:'fas fa-network-wired',iconColor:'#4ade80',title:'Oracle Net Listener',sub:'Accepts connections · LREG registers services',desc:'The listener receives incoming client connection requests and routes them to the database instance. LREG (12c+) registers instance services and endpoints with the listener at startup.',points:['Listens on TCP port 1521 by default','Spawns or assigns a server process per connection','Supports multiple databases on one server','Config: listener.ora, sqlnet.ora'],code:'lsnrctl status\nlsnrctl start\nSELECT name FROM v$services;'},
+  'server-process':{icon:'fas fa-server',iconColor:'#60a5fa',title:'Server Process (Dedicated)',sub:'One per client · owns its own PGA',desc:'The server process handles all SQL processing for its client. It parses SQL, generates execution plans, reads data from the buffer cache or disk, and returns results. Has its own private PGA.',points:['Parses and executes all SQL for its client','Reads data blocks from buffer cache or data files','Writes redo to the redo log buffer','Has its own PGA for work areas and session data'],code:'SELECT s.sid, s.username, p.spid os_pid,\n       p.pga_alloc_mem/1024/1024 pga_mb\nFROM   v$session s JOIN v$process p\n       ON s.paddr=p.addr\nWHERE  s.type=\'USER\';'},
+  'shared-pool':{icon:'fas fa-share-alt',iconColor:'#C74634',title:'Shared Pool',sub:'Library Cache + Data Dictionary Cache + Result Cache',desc:'Caches parsed SQL, PL/SQL code, data dictionary information, and query result sets. Involved in almost every database operation. Soft parse (reuse plan) vs hard parse (rebuild plan).',points:['Library Cache: execution plans and PL/SQL code','Data Dictionary Cache: object metadata as rows','Server Result Cache: complete query result sets','Reserved Pool: large contiguous allocations >5KB'],code:'SELECT name, ROUND(bytes/1024/1024,1) mb\nFROM   v$sgastat WHERE pool=\'shared pool\'\nORDER BY bytes DESC FETCH FIRST 10 ROWS ONLY;'},
+  'buffer-cache':{icon:'fas fa-database',iconColor:'#60a5fa',title:'Database Buffer Cache',sub:'Caches 8KB data blocks · LRU algorithm',desc:'Stores copies of data blocks from data files. All users share it. LRU keeps hot blocks in memory. Cache hit = fast logical read. Cache miss = slow physical read from disk. DBWn writes dirty buffers to disk.',points:['Default pool: 8KB blocks, LRU-managed','Keep pool: for frequently-accessed blocks','Recycle pool: for infrequently-used objects','Smart Flash Cache: SSD L2 cache (Linux/Solaris)'],code:'SELECT ROUND((1-(phyrds/(dbg+cg+phyrds)))*100,2) hit_pct\nFROM (SELECT SUM(value) phyrds FROM v$sysstat WHERE name=\'physical reads\'),\n     (SELECT SUM(value) dbg FROM v$sysstat WHERE name=\'db block gets\'),\n     (SELECT SUM(value) cg FROM v$sysstat WHERE name=\'consistent gets\');'},
+  'redo-log-buffer':{icon:'fas fa-scroll',iconColor:'#4ade80',title:'Redo Log Buffer',sub:'Circular · server processes write · LGWR flushes',desc:'Circular SGA buffer storing redo entries — records of every database change. LGWR flushes it to online redo log files on COMMIT, every 3 seconds, or when 1/3 full.',points:['Every DML generates redo entries here','LGWR flushes on COMMIT (synchronous)','Sized by LOG_BUFFER init parameter','Redo buffer allocation retries should be near 0'],code:'SELECT name, value FROM v$sysstat\nWHERE  name IN (\'redo buffer allocation retries\',\n                \'redo entries\', \'redo size\');'},
+  'large-pool':{icon:'fas fa-expand-arrows-alt',iconColor:'#a78bfa',title:'Large Pool',sub:'Optional · no LRU · large allocations',desc:'Optional SGA area for large allocations (RMAN, parallel query, shared server UGA, deferred inserts). No LRU — memory held until explicitly released by the allocating process.',points:['RMAN I/O slaves: backup/restore buffers','Parallel query: inter-process message buffers','Shared server: UGA stored here instead of PGA','Deferred inserts (MEMOPTIMIZE FOR WRITE)'],code:'SHOW parameter large_pool_size;\nSELECT name, ROUND(bytes/1024/1024,1) mb\nFROM   v$sgastat WHERE pool=\'large pool\';'},
+  'java-pool':{icon:'fab fa-java',iconColor:'#22d3ee',title:'Java Pool',sub:'JVM code and session-specific data',desc:'Stores session-specific Java code and data in the JVM. Contains the shared part of each Java class. Required when Oracle JVM stored procedures are used.',points:['Shared class methods and read-only code vectors','Session state: in PGA (dedicated) or SGA (shared server)','Java Pool Advisor tracks size impact on parse rate','Typically 32-64MB for most installations'],code:'SHOW parameter java_pool_size;'},
+  inmemory:{icon:'fas fa-bolt',iconColor:'#fb923c',title:'In-Memory Column Store',sub:'Optional · columnar format · analytics',desc:'Stores tables/partitions in columnar format alongside the row-format buffer cache. Oracle transparently routes OLTP queries to the buffer cache and analytic queries to the IM column store.',points:['IMCU: compressed columnar storage unit','SMU: snapshot metadata unit per IMCU','IMEU: materialized virtual columns','Controlled by INMEMORY_SIZE parameter'],code:'ALTER TABLE sales INMEMORY;\nSELECT owner, segment_name, populate_status,\n       ROUND(inmemory_size/1024/1024,1) mb\nFROM   v$im_segments;'},
+  pga:{icon:'fas fa-user-cog',iconColor:'#f472b6',title:'Program Global Area (PGA)',sub:'Private · per server process · never in SGA',desc:'Private memory exclusive to each server and background process. Contains private SQL area (bind variables, run-time state), SQL work areas (sort, hash, bitmap), and session memory (UGA in dedicated mode).',points:['One PGA per server process — fully isolated','Sort area: ORDER BY, GROUP BY operations','Hash area: hash join builds hash table here','PGA too small → spills to temp disk (very slow)'],code:'SELECT name, ROUND(value/1024/1024,1) mb\nFROM   v$pgastat\nWHERE  name IN (\'total PGA allocated\',\n                \'cache hit percentage\');'},
+  pmon:{icon:'fas fa-heartbeat',iconColor:'#C74634',title:'PMON — Process Monitor',sub:'Detects dead processes and initiates cleanup',desc:'Periodically scans all processes. Detects abnormally terminated server and dispatcher processes. Delegates cleanup to CLMN/CLnn processes. Rolls back uncommitted transactions of dead sessions, releases locks.',points:['Detects dead server and dispatcher processes','Delegates cleanup to CLMN and CLnn slaves','Rolls back uncommitted transactions of dead sessions','Can quarantine corrupted resources (v$quarantine)'],code:'SELECT * FROM v$cleanup_process;\nSELECT * FROM v$dead_cleanup;'},
+  smon:{icon:'fas fa-broom',iconColor:'#facc15',title:'SMON — System Monitor',sub:'Instance recovery + temp cleanup + undo management',desc:'Performs instance recovery at startup after a crash. In RAC, SMON on one instance can recover a failed peer. Cleans orphaned temp segments, maintains SCN-to-time mapping for Flashback.',points:['Instance recovery: roll forward redo, then rollback uncommitted','Cleans orphaned temporary segments','Coalesces free extents in dictionary-managed tablespaces','Maintains SCN-to-time mapping table for Flashback'],code:'SELECT status FROM v$instance;\nSELECT * FROM v$sort_usage;'},
+  dbwn:{icon:'fas fa-save',iconColor:'#60a5fa',title:'DBWn — Database Writer',sub:'Writes dirty buffer cache blocks to data files',desc:'DBWn writes modified buffer cache blocks to data files. Performs scattered multi-block writes. Writes when free buffer threshold is crossed, at checkpoint, or when tablespace is taken offline. Up to 100 DBW processes.',points:['Up to 100 processes: DBW0-DBW9, DBWa-z, BW36-BW99','Uses multiblock writes for efficiency','Write-ahead: LGWR writes redo before DBWn writes data','Also writes to Smart Flash Cache if configured'],code:'SHOW parameter db_writer_processes;\nSELECT name, value FROM v$sysstat\nWHERE  name LIKE \'physical write%\';'},
+  lgwr:{icon:'fas fa-pen',iconColor:'#4ade80',title:'LGWR — Log Writer',sub:'Sequential writes · on every COMMIT · the commit point',desc:'Writes redo log buffer to online redo log files. The atomic write of the commit record to the redo log is the single event that confirms a transaction is committed. Fast sequential writes make this the backbone of Oracle durability.',points:['Writes on COMMIT (immediate, synchronous)','Writes every 3 seconds or when buffer 1/3 full','Group commits: batches multiple transactions in one write','If any log file member fails, continues with remaining members'],code:'SELECT name, value FROM v$sysstat WHERE name=\'log file sync\';\nSELECT group#, sequence#, status FROM v$log;'},
+  ckpt:{icon:'fas fa-flag-checkered',iconColor:'#a78bfa',title:'CKPT — Checkpoint Process',sub:'Signals DBWn · updates control file · data file headers',desc:'At checkpoint events, signals DBWn to write dirty buffers to disk. Then updates the control file and all data file headers with the checkpoint SCN and position in redo. CKPT does NOT write data blocks or redo itself.',points:['Signals DBWn to begin writing dirty buffers','Updates control file with checkpoint position','Updates data file headers with checkpoint SCN','Checks PGA_AGGREGATE_LIMIT every 3 seconds'],code:'ALTER SYSTEM CHECKPOINT;\nSELECT checkpoint_change#, checkpoint_time FROM v$database;\nSELECT file#, checkpoint_change# FROM v$datafile;'},
+  mmon:{icon:'fas fa-chart-line',iconColor:'#fb923c',title:'MMON + MMNL',sub:'AWR snapshots every 60 min · ASH every 1 second',desc:'MMON creates AWR snapshots every 60 minutes, runs ADDM analysis, issues metric threshold alerts. MMNL samples v$session every second into the ASH buffer and flushes to DBA_HIST_ACTIVE_SESS_HISTORY.',points:['AWR snapshot interval: 60 min default, 8-day retention','ADDM auto-analyzes each snapshot pair','MMNL: 1-second ASH sampling granularity','ASH enables retroactive diagnosis of past performance issues'],code:'SELECT snap_id, begin_interval_time FROM dba_hist_snapshot\nORDER BY snap_id DESC FETCH FIRST 5 ROWS ONLY;\n@$ORACLE_HOME/rdbms/admin/awrrpt.sql'},
+  arcn:{icon:'fas fa-archive',iconColor:'#22d3ee',title:'ARCn — Archiver Processes',sub:'Copies redo logs after log switch · ARCHIVELOG mode only',desc:'ARCn copies filled online redo log files to archive destinations after a log switch. Only exists in ARCHIVELOG mode. Sends redo to Data Guard standby destinations. Multiple ARCn processes run in parallel.',points:['Copies online redo logs after each log switch','Sends redo to Data Guard standby destinations','Without archiving: point-in-time recovery is impossible','Required for RMAN incremental backups and GoldenGate'],code:'ARCHIVE LOG LIST;\nSELECT dest_name, status FROM v$archive_dest WHERE status=\'VALID\';\nALTER DATABASE ARCHIVELOG;'},
+  lreg:{icon:'fas fa-broadcast-tower',iconColor:'#f472b6',title:'LREG — Listener Registration',sub:'Registers instance/services with the listener',desc:'LREG notifies the Oracle Net Listener about the database instance, available services, dispatcher processes, and endpoints. Replaced PMON for listener registration in Oracle 12c+.',points:['Registers on instance startup automatically','Updates listener when services change','Polls the listener; if not running, retries periodically','In RAC, also runs on ASM and CRS instances'],code:'lsnrctl status\nSELECT name, network_name FROM v$services;\nSELECT * FROM v$listener_network;'},
+  reco:{icon:'fas fa-handshake',iconColor:'#a3e635',title:'RECO — Recoverer Process',sub:'Resolves in-doubt distributed transactions',desc:'Automatically resolves in-doubt two-phase commit (2PC) transactions in distributed database environments. Connects to remote databases and clears pending transaction rows once outcome is determined.',points:['Handles two-phase commit in distributed DBs','Reconnects to remote databases after network failures','Clears DBA_2PC_PENDING entries once resolved','Only active in distributed database configurations'],code:'SELECT local_tran_id, state, advice\nFROM   dba_2pc_pending;\nCOMMIT FORCE \'local_tran_id\';'},
+  mmnl:{icon:'fas fa-history',iconColor:'#fca5a5',title:'MMNL — Manageability Monitor Lite',sub:'1-second ASH sampling · flushes to disk when buffer full',desc:'MMNL samples v$session and v$session_wait every second and stores data in the Active Session History (ASH) buffer in SGA. Flushes to DBA_HIST_ACTIVE_SESS_HISTORY when the ASH buffer is full.',points:['1-second sampling — finest Oracle performance granularity','Enables retroactive analysis of past performance issues','Data: v$active_session_history → DBA_HIST_ACTIVE_SESS_HISTORY','Key for identifying wait events, SQL, blocking chains historically'],code:'SELECT sql_id, event, COUNT(*)\nFROM   v$active_session_history\nWHERE  sample_time > SYSDATE - 1/24\nGROUP BY sql_id, event ORDER BY 3 DESC\nFETCH FIRST 10 ROWS ONLY;'},
+  datafiles:{icon:'fas fa-file-alt',iconColor:'#60a5fa',title:'Data Files (.dbf)',sub:'Required · store all user data and dictionary',desc:'Physical files containing actual database data — tables, indexes, sequences. Each tablespace has one or more data files. SYSTEM (data dictionary), SYSAUX, USERS, UNDO (rollback), TEMP (sorting).',points:['SYSTEM: data dictionary — never lose this','SYSAUX: AWR, Enterprise Manager, auxiliary features','UNDO: rollback/undo segments for read consistency','TEMP: temporary segments for sorts and hash joins'],code:'SELECT file_name, tablespace_name,\n       ROUND(bytes/1073741824,2) size_gb,\n       autoextensible\nFROM   dba_data_files ORDER BY tablespace_name;'},
+  'redo-logs':{icon:'fas fa-sync',iconColor:'#4ade80',title:'Online Redo Log Files',sub:'Required · circular · at least 2 groups · multiplex!',desc:'Record every change made to the database. Organized in groups written in circular fashion. Each group should have 2+ members on different disks. A log switch triggers archiving.',points:['Circular: filled groups are reused','Log switch occurs when current group fills','At least 2 groups, 2+ members each, 500MB-2GB per file','Recommend: 3+ groups for protection'],code:'SELECT group#, sequence#, members,\n       bytes/1048576 mb, status, archived\nFROM   v$log;\nALTER DATABASE ADD LOGFILE MEMBER\n\'/u02/redo01b.log\' TO GROUP 1;'},
+  controlfile:{icon:'fas fa-sliders-h',iconColor:'#a78bfa',title:'Control File',sub:'Required · multiplex to 3+ copies on different disks',desc:'Binary file containing database structure metadata — database name, data file locations, redo log locations, checkpoint info. Required to open the database. Must be multiplexed.',points:['Required for database startup','Must be multiplexed to 3+ copies on different disks','Contains RMAN backup catalog when no separate catalog','Lost without backup = potentially unrecoverable'],code:'SELECT name, status FROM v$controlfile;\nSHOW parameter control_files;\nALTER DATABASE BACKUP CONTROLFILE TO \'/backup/ctrl.bkp\';'},
+  'archive-logs':{icon:'fas fa-archive',iconColor:'#fb923c',title:'Archive Log Files',sub:'Optional but essential · enable point-in-time recovery',desc:'Copies of filled online redo log groups preserved by ARCn. Enable point-in-time recovery from any backup. Required for Data Guard, GoldenGate, and RMAN incremental backups.',points:['Enable point-in-time recovery from any backup','Required for Data Guard and GoldenGate replication','FRA (Fast Recovery Area) manages space automatically','Monitor FRA usage — full FRA will hang the database!'],code:'ARCHIVE LOG LIST;\nSELECT dest_name, status, target FROM v$archive_dest\nWHERE  status=\'VALID\';\nSELECT * FROM v$recovery_file_dest;'},
+  spfile:{icon:'fas fa-cog',iconColor:'#facc15',title:'SPFILE / PFILE',sub:'Required for startup · SPFILE preferred in production',desc:'SPFILE (binary) stores initialization parameters. Changes via ALTER SYSTEM persist across restarts. PFILE (text init.ora) is the predecessor. Create PFILE from SPFILE for editing.',points:['SPFILE: binary, supports ALTER SYSTEM changes','PFILE: text init.ora, edit manually','SCOPE=MEMORY: change this instance only (no restart)','SCOPE=SPFILE: persist after restart','SCOPE=BOTH: change now and persist'],code:'SHOW parameter spfile;\nCREATE PFILE=\'/tmp/init.ora\' FROM SPFILE;\nCREATE SPFILE FROM PFILE=\'/tmp/init.ora\';\nALTER SYSTEM SET sga_target=12G SCOPE=SPFILE;'},
+  alertlog:{icon:'fas fa-exclamation-triangle',iconColor:'#f87171',title:'Alert Log / ADR',sub:'Automatic Diagnostic Repository · always check here first',desc:'The alert log is a chronological log of database messages and errors — startup/shutdown, ORA- errors, parameter changes, log switches. ADR contains trace files, dump files, and incident packages.',points:['Background trace files: $ADR/trace/SID_pmon_PID.trc','Server process traces: $ADR/trace/SID_ora_PID.trc','Incident dumps: created on ORA-600, ORA-4031, ORA-7445','Health Monitor reports: run diagnostic checks on DB components'],code:'SHOW parameter diagnostic_dest;\n-- Alert log path:\n-- $ORACLE_BASE/diag/rdbms/DB_NAME/SID/trace/alert_SID.log\n-- tail -200f alert_orcl.log'}
+};
+
+function showInfo(key){
+  const d=compData[key];if(!d)return;
+  const panel=document.getElementById('info-panel');
+  if(!panel)return;
+  document.getElementById('ip-icon').innerHTML=`<i class="${d.icon} text-lg" style="color:${d.iconColor}"></i>`;
+  document.getElementById('ip-icon').style.background=`${d.iconColor}20`;
+  document.getElementById('ip-title').textContent=d.title;
+  document.getElementById('ip-sub').textContent=d.sub;
+  document.getElementById('ip-desc').textContent=d.desc;
+  const pts=document.getElementById('ip-points');
+  pts.innerHTML=d.points.map(p=>`<div class="flex gap-2 text-xs items-start"><span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${d.iconColor}"></span><span class="text-neutral-400">${p}</span></div>`).join('');
+  document.getElementById('ip-code').innerHTML=d.code?`<div class="terminal mt-3"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-4 font-mono text-xs leading-relaxed overflow-x-auto">${d.code}</pre></div>`:'';
+  panel.classList.remove('hidden');
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  document.querySelectorAll('.arch-comp').forEach(c=>c.classList.remove('ring-2','ring-oracle-red'));
+  document.querySelectorAll(`.arch-comp[data-comp="${key}"]`).forEach(c=>c.classList.add('ring-2','ring-oracle-red'));
+}
+
+function closeInfoPanel(){
+  const p=document.getElementById('info-panel');
+  if(p)p.classList.add('hidden');
+  document.querySelectorAll('.arch-comp').forEach(c=>c.classList.remove('ring-2','ring-oracle-red'));
+}
+
+document.querySelectorAll('.arch-comp[data-comp]').forEach(el=>{
+  el.addEventListener('click',()=>showInfo(el.dataset.comp));
+});
+</script>
+</body>
+</html>

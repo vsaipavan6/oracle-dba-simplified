@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>RMAN Backup &amp; Recovery | Oracle DBA Simplified</title>
+  <meta name="description" content="Oracle RMAN Backup &amp; Recovery — Architecture, backup types, recovery scenarios, FRA, block change tracking, and real-world DBA commands."/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config={darkMode:'class',theme:{extend:{colors:{oracle:{red:'#3b82f6',dark:'#1d4ed8',light:'#60a5fa'}},fontFamily:{display:['Sora','sans-serif'],body:['DM Sans','sans-serif'],mono:['JetBrains Mono','monospace']}}}}
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{--color-primary:#3b82f6;--color-primary-hover:#1d4ed8;--color-surface:#111118;--color-border:#1e1e2e;--space-2:8px;--space-4:16px;--space-6:24px;--space-8:32px;--space-12:48px;--space-16:64px;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#0a0a0f;color:#e2e8f0;overflow-x:hidden;}
+    ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:#0a0a0f;}::-webkit-scrollbar-thumb{background:#3b82f6;border-radius:3px;}
+    .glass{background:rgba(255,255,255,0.04);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);}
+    .glass-strong{background:rgba(255,255,255,0.07);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);}
+    .gradient-text{background:linear-gradient(135deg,#3b82f6,#60a5fa,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .gradient-text-w{background:linear-gradient(135deg,#fff,#cbd5e1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12;pointer-events:none;}
+    .grid-bg{background-image:linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);background-size:64px 64px;}
+    .nav-link{font-size:.875rem;color:#94a3b8;transition:color .2s;position:relative;}
+    .nav-link:hover,.nav-link.active{color:#60a5fa;}
+    .btn-primary{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border-radius:6px;padding:10px 24px;font-weight:600;font-size:.875rem;transition:all .2s;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(59,130,246,.4);}
+    .btn-ghost{background:transparent;color:#e2e8f0;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:10px 24px;font-weight:500;font-size:.875rem;transition:all .2s;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-ghost:hover{border-color:rgba(59,130,246,.5);color:#3b82f6;}
+    .badge{font-size:.75rem;padding:3px 10px;border-radius:100px;font-weight:600;display:inline-block;}
+    .badge-red{background:rgba(199,70,52,.15);color:#E8604A;border:1px solid rgba(199,70,52,.25);}
+    .badge-blue{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.25);}
+    .badge-green{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);}
+    .badge-purple{background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.25);}
+    .badge-orange{background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.25);}
+    .badge-cyan{background:rgba(6,182,212,.15);color:#22d3ee;border:1px solid rgba(6,182,212,.25);}
+    .badge-yellow{background:rgba(234,179,8,.15);color:#facc15;border:1px solid rgba(234,179,8,.25);}
+    .reveal{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease;}
+    .reveal.visible{opacity:1;transform:none;}
+    .terminal{background:#0d0d14;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden;}
+    .terminal-bar{background:#1a1a25;padding:10px 16px;display:flex;align-items:center;gap:8px;}
+    .t-dot{width:11px;height:11px;border-radius:50%;}
+    code .kw{color:#ff7eb6;} code .fn{color:#78d4f4;} code .str{color:#a8ff78;} code .cm{color:#6b7280;font-style:italic;} code .num{color:#ffb347;} code .op{color:#e2e8f0;}
+    .tab-btn{padding:8px 18px;border-radius:8px;font-size:.8rem;font-weight:600;transition:all .2s;cursor:pointer;border:1px solid transparent;color:#64748b;}
+    .tab-btn.active,.tab-btn:hover{background:rgba(199,70,52,.12);color:#C74634;border-color:rgba(59,130,246,.3);}
+    .tab-content{display:none;} .tab-content.active{display:block;}
+    .proc-card{transition:transform .25s,box-shadow .25s;}
+    .proc-card:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(0,0,0,.4);}
+    .acc-content{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+    .acc-content.open{max-height:1200px;}
+    .acc-icon{transition:transform .3s;}
+    .acc-btn.open .acc-icon{transform:rotate(180deg);}
+    .flow-step{position:relative;}
+    .flow-step:not(:last-child)::after{content:'';position:absolute;left:23px;top:100%;width:2px;height:32px;background:linear-gradient(to bottom,#C74634,transparent);}
+    #mob-menu{max-height:0;overflow:hidden;transition:max-height .4s;}
+    #mob-menu.open{max-height:600px;}
+    .arch-comp{transition:all .25s;cursor:pointer;}
+    .arch-comp:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(59,130,246,.3);}
+    .arch-comp.selected{box-shadow:0 0 0 2px #C74634,0 0 24px rgba(59,130,246,.4);}
+    .scenario-card{transition:all .25s;}
+    .scenario-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.4);}
+  </style>
+</head>
+<body class="dark grid-bg">
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/5">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="flex items-center gap-2 text-neutral-400 hover:text-oracle-red transition-colors text-sm font-medium">
+        <i class="fas fa-arrow-left text-xs"></i> Back to Home
+      </a>
+      <span class="text-neutral-700">|</span>
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-md bg-gradient-to-br from-oracle-red to-oracle-dark flex items-center justify-center">
+          <i class="fas fa-redo-alt text-white text-xs"></i>
+        </div>
+        <span class="font-display font-bold text-white text-sm">Oracle DBA Simplified</span>
+      </div>
+    </div>
+    <div class="hidden md:flex items-center gap-6">
+      <a href="#overview" class="nav-link">Overview</a>
+      <a href="#architecture" class="nav-link">Architecture</a>
+      <a href="#backup-types" class="nav-link">Backup Types</a>
+      <a href="#configuration" class="nav-link">Configuration</a>
+      <a href="#recovery" class="nav-link">Recovery</a>
+      <a href="#monitoring" class="nav-link">Monitoring</a>
+    </div>
+    <button id="mob-btn" class="md:hidden text-neutral-400 hover:text-white">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+  <div id="mob-menu" class="md:hidden px-6 pb-4">
+    <div class="flex flex-col gap-3 pt-2">
+      <a href="#overview" class="nav-link">Overview</a>
+      <a href="#architecture" class="nav-link">Architecture</a>
+      <a href="#backup-types" class="nav-link">Backup Types</a>
+      <a href="#configuration" class="nav-link">Configuration</a>
+      <a href="#recovery" class="nav-link">Recovery</a>
+      <a href="#monitoring" class="nav-link">Monitoring</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
+  <div class="orb w-96 h-96 bg-oracle-red top-20 left-10"></div>
+  <div class="orb w-80 h-80 bg-blue-600 bottom-20 right-10"></div>
+  <div class="orb w-64 h-64 bg-purple-600 top-40 right-1/3"></div>
+  <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
+    <!-- Animated icon cluster -->
+    <div class="flex justify-center mb-8">
+      <div class="relative w-36 h-36">
+        <div class="absolute inset-0 rounded-full bg-oracle-red/10 animate-ping"></div>
+        <div class="absolute inset-4 rounded-full bg-oracle-red/15 animate-pulse"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="w-24 h-24 rounded-2xl glass-strong flex items-center justify-center border border-oracle-red/40">
+            <i class="fas fa-shield-halved text-oracle-red text-4xl"></i>
+          </div>
+        </div>
+        <div class="absolute -top-2 -right-2 w-9 h-9 rounded-xl glass flex items-center justify-center border border-green-500/30">
+          <i class="fas fa-rotate text-green-400 text-sm"></i>
+        </div>
+        <div class="absolute -bottom-2 -left-2 w-9 h-9 rounded-xl glass flex items-center justify-center border border-blue-500/30">
+          <i class="fas fa-hard-drive text-blue-400 text-sm"></i>
+        </div>
+        <div class="absolute -bottom-2 -right-2 w-9 h-9 rounded-xl glass flex items-center justify-center border border-yellow-500/30">
+          <i class="fas fa-tape text-yellow-400 text-sm"></i>
+        </div>
+      </div>
+    </div>
+    <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-6 border border-oracle-red/20">
+      <span class="w-2 h-2 rounded-full bg-oracle-red animate-pulse"></span>
+      <span class="text-sm text-neutral-400 font-medium">Oracle 19c RMAN Deep Dive</span>
+    </div>
+    <h1 class="font-display font-bold text-5xl md:text-7xl mb-6 leading-tight">
+      <span class="gradient-text-w">RMAN Backup</span><br/>
+      <span class="gradient-text">&amp; Recovery</span>
+    </h1>
+    <p class="text-neutral-400 text-xl max-w-3xl mx-auto mb-10 leading-relaxed">
+      Recovery Manager (RMAN) is Oracle's built-in tool for database backup, restore, and recovery.
+      Master architecture, channels, retention policies, and every real-world recovery scenario.
+    </p>
+    <!-- Quick nav pills -->
+    <div class="flex flex-wrap justify-center gap-3 mb-12">
+      <a href="#architecture" class="badge badge-red cursor-pointer hover:scale-105 transition-transform py-2 px-4">Architecture</a>
+      <a href="#backup-types" class="badge badge-blue cursor-pointer hover:scale-105 transition-transform py-2 px-4">Backup Types</a>
+      <a href="#configuration" class="badge badge-green cursor-pointer hover:scale-105 transition-transform py-2 px-4">Configuration</a>
+      <a href="#recovery" class="badge badge-purple cursor-pointer hover:scale-105 transition-transform py-2 px-4">Recovery Scenarios</a>
+      <a href="#fra" class="badge badge-orange cursor-pointer hover:scale-105 transition-transform py-2 px-4">Fast Recovery Area</a>
+      <a href="#advanced" class="badge badge-cyan cursor-pointer hover:scale-105 transition-transform py-2 px-4">Advanced Features</a>
+      <a href="#monitoring" class="badge badge-yellow cursor-pointer hover:scale-105 transition-transform py-2 px-4">Monitoring</a>
+    </div>
+    <!-- Stats bar -->
+    <div class="glass rounded-2xl p-6 max-w-4xl mx-auto border border-white/5 grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div class="text-center"><div class="font-display font-bold text-3xl gradient-text">19c</div><div class="text-neutral-500 text-sm mt-1">Oracle Version</div></div>
+      <div class="text-center"><div class="font-display font-bold text-3xl gradient-text">25+</div><div class="text-neutral-500 text-sm mt-1">Recovery Scenarios</div></div>
+      <div class="text-center"><div class="font-display font-bold text-3xl gradient-text">0</div><div class="text-neutral-500 text-sm mt-1">Data Loss (PITR)</div></div>
+      <div class="text-center"><div class="font-display font-bold text-3xl gradient-text">1:1</div><div class="text-neutral-500 text-sm mt-1">Block-Level Restore</div></div>
+    </div>
+  </div>
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-neutral-600">
+    <i class="fas fa-chevron-down"></i>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-red mb-4">What is RMAN?</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Recovery Manager Overview</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">RMAN is Oracle's native backup &amp; recovery solution — automatically installed, tightly integrated with the database engine, and far superior to cold OS-level copies.</p>
+  </div>
+  <div class="grid md:grid-cols-2 gap-8 mb-12">
+    <!-- What RMAN Does -->
+    <div class="glass rounded-2xl p-8 border border-oracle-red/15 reveal">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-xl bg-oracle-red/10 flex items-center justify-center border border-oracle-red/20">
+          <i class="fas fa-shield-halved text-oracle-red"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white text-xl">What RMAN Does</h3>
+      </div>
+      <ul class="space-y-3">
+        <li class="flex items-start gap-3"><i class="fas fa-check text-oracle-red mt-1 text-sm"></i><div><span class="text-white font-medium">Block-Level Backup</span> — only backs up used database blocks, not empty space</div></li>
+        <li class="flex items-start gap-3"><i class="fas fa-check text-oracle-red mt-1 text-sm"></i><div><span class="text-white font-medium">Incremental Backups</span> — only changed blocks since last backup (Level 0/1)</div></li>
+        <li class="flex items-start gap-3"><i class="fas fa-check text-oracle-red mt-1 text-sm"></i><div><span class="text-white font-medium">Online Backup</span> — backs up open databases (ARCHIVELOG mode required)</div></li>
+        <li class="flex items-start gap-3"><i class="fas fa-check text-oracle-red mt-1 text-sm"></i><div><span class="text-white font-medium">Corruption Detection</span> — detects physical &amp; logical block corruption during backup</div></li>
+        <li class="flex items-start gap-3"><i class="fas fa-check text-oracle-red mt-1 text-sm"></i><div><span class="text-white font-medium">Metadata Tracking</span> — stores backup info in control file or recovery catalog</div></li>
+        <li class="flex items-start gap-3"><i class="fas fa-check text-oracle-red mt-1 text-sm"></i><div><span class="text-white font-medium">Parallelism</span> — multiple channels for faster backup/restore</div></li>
+      </ul>
+    </div>
+    <!-- Key Advantages -->
+    <div class="glass rounded-2xl p-8 border border-blue-500/15 reveal">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+          <i class="fas fa-trophy text-blue-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white text-xl">RMAN vs OS Copy</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="border-b border-white/10"><th class="text-left py-2 text-neutral-400 font-medium">Feature</th><th class="text-center py-2 text-oracle-red font-medium">RMAN</th><th class="text-center py-2 text-neutral-400 font-medium">OS Copy</th></tr></thead>
+          <tbody class="divide-y divide-white/5">
+            <tr><td class="py-2 text-neutral-300">Backup while open</td><td class="text-center py-2"><i class="fas fa-check text-green-400"></i></td><td class="text-center py-2"><i class="fas fa-xmark text-red-400"></i></td></tr>
+            <tr><td class="py-2 text-neutral-300">Incremental backup</td><td class="text-center py-2"><i class="fas fa-check text-green-400"></i></td><td class="text-center py-2"><i class="fas fa-xmark text-red-400"></i></td></tr>
+            <tr><td class="py-2 text-neutral-300">Corruption detection</td><td class="text-center py-2"><i class="fas fa-check text-green-400"></i></td><td class="text-center py-2"><i class="fas fa-xmark text-red-400"></i></td></tr>
+            <tr><td class="py-2 text-neutral-300">Compression</td><td class="text-center py-2"><i class="fas fa-check text-green-400"></i></td><td class="text-center py-2"><i class="fas fa-xmark text-red-400"></i></td></tr>
+            <tr><td class="py-2 text-neutral-300">Encryption</td><td class="text-center py-2"><i class="fas fa-check text-green-400"></i></td><td class="text-center py-2"><i class="fas fa-xmark text-red-400"></i></td></tr>
+            <tr><td class="py-2 text-neutral-300">Block recovery</td><td class="text-center py-2"><i class="fas fa-check text-green-400"></i></td><td class="text-center py-2"><i class="fas fa-xmark text-red-400"></i></td></tr>
+            <tr><td class="py-2 text-neutral-300">Tape support</td><td class="text-center py-2"><i class="fas fa-check text-green-400"></i></td><td class="text-center py-2 text-neutral-500">limited</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- RMAN Startup terminal -->
+  <div class="terminal reveal">
+    <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">RMAN Connection Methods</span></div>
+    <div class="p-6 font-mono text-sm leading-7">
+      <code>
+<span class="cm">-- Method 1: OS authentication (recommended for local)</span><br/>
+<span class="op">$</span> <span class="fn">rman</span> <span class="kw">TARGET</span> <span class="str">/</span><br/>
+<br/>
+<span class="cm">-- Method 2: Target with SYSBACKUP privilege</span><br/>
+<span class="op">$</span> <span class="fn">rman</span><br/>
+<span class="kw">RMAN&gt;</span> <span class="fn">CONNECT TARGET</span> <span class="str">"sbu@prod AS SYSBACKUP"</span><br/>
+<br/>
+<span class="cm">-- Method 3: With Recovery Catalog</span><br/>
+<span class="op">$</span> <span class="fn">rman</span> <span class="kw">TARGET</span> sys@prod <span class="kw">CATALOG</span> rman_user@catdb<br/>
+<br/>
+<span class="cm">-- Method 4: With logging</span><br/>
+<span class="op">$</span> <span class="fn">rman</span> <span class="kw">TARGET</span> <span class="str">/</span> <span class="kw">LOG</span> /tmp/rman_backup.log <span class="kw">APPEND</span><br/>
+<br/>
+<span class="cm">-- Verify connection</span><br/>
+<span class="kw">RMAN&gt;</span> <span class="fn">SHOW ALL</span>;<br/>
+<span class="kw">RMAN&gt;</span> <span class="fn">REPORT SCHEMA</span>;<br/>
+      </code>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture" class="py-24 bg-gradient-to-b from-transparent via-oracle-red/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-red mb-4">How RMAN Works</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">RMAN Architecture</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">Click any component to understand its role in the backup &amp; recovery ecosystem.</p>
+    </div>
+    <!-- Interactive Architecture Diagram -->
+    <div class="glass rounded-2xl p-6 border border-oracle-red/15 reveal mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Column 1: RMAN Client -->
+        <div class="flex flex-col items-center gap-4">
+          <div class="text-neutral-500 text-xs font-semibold uppercase tracking-widest mb-1">Client Layer</div>
+          <div class="arch-comp glass rounded-xl p-4 border border-oracle-red/20 w-full text-center" data-comp="rman-client">
+            <i class="fas fa-terminal text-oracle-red text-2xl mb-2"></i>
+            <div class="text-white font-semibold text-sm">RMAN Client</div>
+            <div class="text-neutral-500 text-xs mt-1">rman binary</div>
+          </div>
+          <div class="w-0.5 h-8 bg-oracle-red/30"></div>
+          <div class="arch-comp glass rounded-xl p-4 border border-purple-500/20 w-full text-center" data-comp="recovery-catalog">
+            <i class="fas fa-book text-purple-400 text-2xl mb-2"></i>
+            <div class="text-white font-semibold text-sm">Recovery Catalog</div>
+            <div class="text-neutral-500 text-xs mt-1">Optional — separate DB</div>
+          </div>
+        </div>
+        <!-- Column 2: Target Database -->
+        <div class="flex flex-col items-center gap-4">
+          <div class="text-neutral-500 text-xs font-semibold uppercase tracking-widest mb-1">Target Database</div>
+          <div class="arch-comp glass rounded-xl p-4 border border-blue-500/20 w-full text-center" data-comp="target-db">
+            <i class="fas fa-database text-blue-400 text-2xl mb-2"></i>
+            <div class="text-white font-semibold text-sm">Target Database</div>
+            <div class="text-neutral-500 text-xs mt-1">Production DB</div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 w-full">
+            <div class="arch-comp glass rounded-xl p-3 border border-yellow-500/20 text-center" data-comp="control-file">
+              <i class="fas fa-file-code text-yellow-400 text-lg mb-1"></i>
+              <div class="text-white font-semibold text-xs">Control File</div>
+              <div class="text-neutral-500 text-xs">RMAN Repository</div>
+            </div>
+            <div class="arch-comp glass rounded-xl p-3 border border-green-500/20 text-center" data-comp="channels">
+              <i class="fas fa-sitemap text-green-400 text-lg mb-1"></i>
+              <div class="text-white font-semibold text-xs">Channels</div>
+              <div class="text-neutral-500 text-xs">Server Sessions</div>
+            </div>
+            <div class="arch-comp glass rounded-xl p-3 border border-cyan-500/20 text-center" data-comp="server-process">
+              <i class="fas fa-microchip text-cyan-400 text-lg mb-1"></i>
+              <div class="text-white font-semibold text-xs">Server Process</div>
+              <div class="text-neutral-500 text-xs">Per Channel</div>
+            </div>
+            <div class="arch-comp glass rounded-xl p-3 border border-orange-500/20 text-center" data-comp="archivelog">
+              <i class="fas fa-scroll text-orange-400 text-lg mb-1"></i>
+              <div class="text-white font-semibold text-xs">Archive Logs</div>
+              <div class="text-neutral-500 text-xs">Redo History</div>
+            </div>
+          </div>
+        </div>
+        <!-- Column 3: Storage Destinations -->
+        <div class="flex flex-col items-center gap-4">
+          <div class="text-neutral-500 text-xs font-semibold uppercase tracking-widest mb-1">Storage Layer</div>
+          <div class="arch-comp glass rounded-xl p-4 border border-green-500/20 w-full text-center" data-comp="fra">
+            <i class="fas fa-hard-drive text-green-400 text-2xl mb-2"></i>
+            <div class="text-white font-semibold text-sm">Fast Recovery Area</div>
+            <div class="text-neutral-500 text-xs mt-1">Disk — auto-managed</div>
+          </div>
+          <div class="w-0.5 h-4 bg-oracle-red/30"></div>
+          <div class="arch-comp glass rounded-xl p-4 border border-yellow-500/20 w-full text-center" data-comp="tape-sbt">
+            <i class="fas fa-tape text-yellow-400 text-2xl mb-2"></i>
+            <div class="text-white font-semibold text-sm">Tape (SBT)</div>
+            <div class="text-neutral-500 text-xs mt-1">Media Manager (MML)</div>
+          </div>
+          <div class="w-0.5 h-4 bg-oracle-red/30"></div>
+          <div class="arch-comp glass rounded-xl p-4 border border-blue-500/20 w-full text-center" data-comp="disk-backup">
+            <i class="fas fa-floppy-disk text-blue-400 text-2xl mb-2"></i>
+            <div class="text-white font-semibold text-sm">Disk Backup</div>
+            <div class="text-neutral-500 text-xs mt-1">Backup Sets / Image Copies</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Info Panel -->
+    <div id="arch-info" class="glass rounded-2xl p-6 border border-oracle-red/20 hidden reveal">
+      <div class="flex items-start gap-4">
+        <div id="ai-icon" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0"></div>
+        <div class="flex-1">
+          <h3 id="ai-title" class="font-display font-bold text-white text-xl mb-1"></h3>
+          <p id="ai-sub" class="text-oracle-red text-sm font-medium mb-3"></p>
+          <p id="ai-desc" class="text-neutral-400 text-sm leading-relaxed mb-4"></p>
+          <div id="ai-points" class="grid md:grid-cols-2 gap-2 mb-4"></div>
+          <div id="ai-code" class="terminal"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BACKUP TYPES -->
+<section id="backup-types" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-blue mb-4">Understanding Backups</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Backup Types &amp; Strategies</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">RMAN offers multiple backup types — choose the right strategy based on your RTO/RPO requirements.</p>
+  </div>
+  <!-- Backup Sets vs Image Copies -->
+  <div class="grid md:grid-cols-2 gap-6 mb-10 reveal">
+    <div class="glass rounded-2xl p-6 border border-oracle-red/20">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-oracle-red/10 flex items-center justify-center border border-oracle-red/20">
+          <i class="fas fa-boxes-stacked text-oracle-red"></i>
+        </div>
+        <div>
+          <h3 class="font-display font-semibold text-white">Backup Sets</h3>
+          <span class="badge badge-red text-xs">Default Format</span>
+        </div>
+      </div>
+      <ul class="space-y-2 text-sm text-neutral-400 mb-4">
+        <li class="flex items-start gap-2"><i class="fas fa-circle text-oracle-red text-xs mt-1.5"></i>Proprietary RMAN format — only RMAN can read</li>
+        <li class="flex items-start gap-2"><i class="fas fa-circle text-oracle-red text-xs mt-1.5"></i>Skips empty blocks — smaller backup size</li>
+        <li class="flex items-start gap-2"><i class="fas fa-circle text-oracle-red text-xs mt-1.5"></i>Supports multiplexing (multiple files per set)</li>
+        <li class="flex items-start gap-2"><i class="fas fa-circle text-oracle-red text-xs mt-1.5"></i>Supports compression and encryption</li>
+        <li class="flex items-start gap-2"><i class="fas fa-circle text-oracle-red text-xs mt-1.5"></i>Restore required before use — slightly slower recovery</li>
+      </ul>
+      <div class="terminal text-xs">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-4 font-mono text-xs"><code><span class="cm">-- Create backup set (default)</span>
+<span class="kw">BACKUP</span> <span class="fn">DATABASE</span>;
+
+<span class="cm">-- Compressed backup set</span>
+<span class="kw">BACKUP</span> <span class="fn">AS COMPRESSED BACKUPSET</span>
+  <span class="fn">DATABASE PLUS ARCHIVELOG</span>;</code></pre>
+      </div>
+    </div>
+    <div class="glass rounded-2xl p-6 border border-blue-500/20">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+          <i class="fas fa-copy text-blue-400"></i>
+        </div>
+        <div>
+          <h3 class="font-display font-semibold text-white">Image Copies</h3>
+          <span class="badge badge-blue text-xs">Bit-for-Bit Copy</span>
+        </div>
+      </div>
+      <ul class="space-y-2 text-sm text-neutral-400 mb-4">
+        <li class="flex items-start gap-2"><i class="fas fa-circle text-blue-400 text-xs mt-1.5"></i>Identical to OS-level file copy (cp, copy)</li>
+        <li class="flex items-start gap-2"><i class="fas fa-circle text-blue-400 text-xs mt-1.5"></i>Recorded in RMAN repository for tracking</li>
+        <li class="flex items-start gap-2"><i class="fas fa-circle text-blue-400 text-xs mt-1.5"></i>Usable directly — no restoration step needed</li>
+        <li class="flex items-start gap-2"><i class="fas fa-circle text-blue-400 text-xs mt-1.5"></i>Includes empty blocks — larger size</li>
+        <li class="flex items-start gap-2"><i class="fas fa-circle text-blue-400 text-xs mt-1.5"></i>Faster recovery with SWITCH DATABASE TO COPY</li>
+      </ul>
+      <div class="terminal text-xs">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-4 font-mono text-xs"><code><span class="cm">-- Create image copies</span>
+<span class="kw">BACKUP AS COPY</span> <span class="fn">DATABASE</span>;
+
+<span class="cm">-- Switch to image copy for fast recovery</span>
+<span class="kw">SWITCH DATABASE TO COPY</span>;
+<span class="kw">RECOVER DATABASE</span>;
+<span class="kw">ALTER DATABASE OPEN</span>;</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Incremental Backup Tabs -->
+  <div class="glass rounded-2xl p-6 border border-white/5 reveal">
+    <h3 class="font-display font-semibold text-white text-xl mb-6">Incremental Backup Strategy</h3>
+    <div id="incr-tabs" class="flex flex-wrap gap-2 mb-6">
+      <button class="tab-btn active" data-tab="incr-level0">Level 0 (Full)</button>
+      <button class="tab-btn" data-tab="incr-diff">Level 1 Differential</button>
+      <button class="tab-btn" data-tab="incr-cum">Level 1 Cumulative</button>
+      <button class="tab-btn" data-tab="incr-strategy">Weekly Strategy</button>
+      <button class="tab-btn" data-tab="incr-rolling">Rolling Forward</button>
+    </div>
+    <div id="incr-level0" class="tab-content active">
+      <div class="grid md:grid-cols-2 gap-6 items-start">
+        <div>
+          <h4 class="font-semibold text-white mb-3">Level 0 — Foundation Backup</h4>
+          <p class="text-neutral-400 text-sm mb-4 leading-relaxed">Level 0 is functionally a full backup but labeled as the base of an incremental strategy. It copies every used block in the database. <strong class="text-white">Required</strong> before any Level 1 incremental can be taken.</p>
+          <ul class="space-y-2 text-sm text-neutral-400">
+            <li class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i>Copies ALL used blocks from data files</li>
+            <li class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i>Creates the baseline for incremental chain</li>
+            <li class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i>Typically scheduled weekly (Sunday)</li>
+            <li class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i>Largest backup in the chain</li>
+          </ul>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Level 0 Backup</span></div>
+          <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Full incremental base backup</span>
+<span class="kw">BACKUP INCREMENTAL LEVEL</span> <span class="num">0</span>
+  <span class="fn">DATABASE PLUS ARCHIVELOG</span>
+  <span class="kw">FORMAT</span> <span class="str">'/backup/lv0_%U_%T'</span>
+  <span class="kw">TAG</span> <span class="str">'WEEKLY_FULL'</span>;
+
+<span class="cm">-- With compression</span>
+<span class="kw">BACKUP</span> <span class="fn">AS COMPRESSED BACKUPSET</span>
+  <span class="kw">INCREMENTAL LEVEL</span> <span class="num">0</span>
+  <span class="fn">DATABASE</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+    <div id="incr-diff" class="tab-content">
+      <div class="grid md:grid-cols-2 gap-6 items-start">
+        <div>
+          <h4 class="font-semibold text-white mb-3">Level 1 Differential (Default)</h4>
+          <p class="text-neutral-400 text-sm mb-4 leading-relaxed">Backs up only blocks changed since the <strong class="text-white">most recent</strong> Level 0 OR Level 1 backup. Each daily backup is small — only that day's changes.</p>
+          <div class="glass rounded-xl p-4 border border-oracle-red/15 text-sm">
+            <div class="font-semibold text-white mb-2">Recovery Chain (Mon–Sun):</div>
+            <div class="space-y-1 font-mono text-xs text-neutral-400">
+              <div>Sun: Level 0 (Full) ──────────────────┐</div>
+              <div>Mon: Level 1 Diff (since Sun L0)       │</div>
+              <div>Tue: Level 1 Diff (since Mon L1)       │</div>
+              <div>Wed: Level 1 Diff (since Tue L1) ──────┘</div>
+              <div class="text-yellow-400 mt-2">⚠ Recovery needs: L0 + all L1s in chain</div>
+            </div>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Differential Incremental</span></div>
+          <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Daily differential incremental</span>
+<span class="kw">BACKUP INCREMENTAL LEVEL</span> <span class="num">1</span>
+  <span class="fn">DATABASE PLUS ARCHIVELOG</span>
+  <span class="kw">TAG</span> <span class="str">'DAILY_DIFF'</span>;
+
+<span class="cm">-- Backup is differential by default</span>
+<span class="cm">-- equivalent to DIFFERENTIAL keyword:</span>
+<span class="kw">BACKUP INCREMENTAL LEVEL</span> <span class="num">1</span>
+  <span class="fn">DIFFERENTIAL</span>
+  <span class="fn">DATABASE</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+    <div id="incr-cum" class="tab-content">
+      <div class="grid md:grid-cols-2 gap-6 items-start">
+        <div>
+          <h4 class="font-semibold text-white mb-3">Level 1 Cumulative</h4>
+          <p class="text-neutral-400 text-sm mb-4 leading-relaxed">Backs up ALL blocks changed since the <strong class="text-white">last Level 0</strong> backup (not since the last Level 1). Each backup grows daily — but recovery only needs Level 0 + the latest Level 1.</p>
+          <div class="glass rounded-xl p-4 border border-blue-500/15 text-sm">
+            <div class="font-semibold text-white mb-2">Recovery Chain (Mon–Sun):</div>
+            <div class="space-y-1 font-mono text-xs text-neutral-400">
+              <div>Sun: Level 0 (Full) ──────────────────┐</div>
+              <div>Mon: Level 1 Cum (since Sun L0)        │ larger</div>
+              <div>Tue: Level 1 Cum (since Sun L0)        │ larger</div>
+              <div>Wed: Level 1 Cum (since Sun L0) ───────┘ largest</div>
+              <div class="text-green-400 mt-2">✓ Recovery needs: L0 + ONLY latest L1</div>
+            </div>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Cumulative Incremental</span></div>
+          <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Cumulative incremental</span>
+<span class="kw">BACKUP INCREMENTAL LEVEL</span> <span class="num">1</span>
+  <span class="fn">CUMULATIVE</span>
+  <span class="fn">DATABASE PLUS ARCHIVELOG</span>
+  <span class="kw">TAG</span> <span class="str">'DAILY_CUM'</span>;
+
+<span class="cm">-- Simpler recovery — only need L0 + last L1</span>
+<span class="cm">-- Tradeoff: larger daily backup size</span></code></pre>
+        </div>
+      </div>
+    </div>
+    <div id="incr-strategy" class="tab-content">
+      <h4 class="font-semibold text-white mb-4">Production Backup Strategy (Recommended)</h4>
+      <div class="grid md:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4 border border-oracle-red/20 text-center">
+          <div class="text-oracle-red font-bold text-lg mb-1">Sunday</div>
+          <div class="badge badge-red mb-2">Level 0</div>
+          <div class="text-neutral-400 text-xs">Full base backup<br/>+ Archivelogs</div>
+        </div>
+        <div class="glass rounded-xl p-4 border border-blue-500/20 text-center md:col-span-2">
+          <div class="text-blue-400 font-bold text-lg mb-1">Mon – Sat</div>
+          <div class="badge badge-blue mb-2">Level 1 Differential</div>
+          <div class="text-neutral-400 text-xs">Daily changed blocks<br/>+ Archivelogs + Controlfile autobackup</div>
+        </div>
+      </div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Production RMAN Script</span></div>
+        <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Sunday: Weekly Level 0</span>
+<span class="kw">BACKUP</span> <span class="fn">AS COMPRESSED BACKUPSET</span>
+  <span class="kw">INCREMENTAL LEVEL</span> <span class="num">0</span>
+  <span class="fn">DATABASE PLUS ARCHIVELOG</span>
+  <span class="kw">FORMAT</span> <span class="str">'/backup/%d_L0_%U_%T'</span>
+  <span class="kw">TAG</span> <span class="str">'WEEKLY_FULL'</span>;
+
+<span class="cm">-- Mon-Sat: Daily Level 1</span>
+<span class="kw">BACKUP</span> <span class="fn">AS COMPRESSED BACKUPSET</span>
+  <span class="kw">INCREMENTAL LEVEL</span> <span class="num">1</span>
+  <span class="fn">DATABASE PLUS ARCHIVELOG</span>
+  <span class="kw">FORMAT</span> <span class="str">'/backup/%d_L1_%U_%T'</span>
+  <span class="kw">TAG</span> <span class="str">'DAILY_INCR'</span>;
+
+<span class="cm">-- Always delete obsolete after backup</span>
+<span class="kw">DELETE NOPROMPT OBSOLETE</span>;</code></pre>
+      </div>
+    </div>
+    <div id="incr-rolling" class="tab-content">
+      <h4 class="font-semibold text-white mb-3">Rolling Forward (Optimized Incremental Merge)</h4>
+      <p class="text-neutral-400 text-sm mb-4 leading-relaxed">Advanced strategy: maintain an image copy on disk, and daily merge Level 1 incremental into it. The disk copy is always only 1 day old — enabling near-instant recovery via SWITCH DATABASE TO COPY.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Optimized Incremental Merge</span></div>
+        <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Daily job: merge incremental into base copy</span>
+<span class="kw">RUN</span> {
+  <span class="cm">-- Step 1: Apply yesterday's incremental to copy</span>
+  <span class="fn">RECOVER COPY OF DATABASE</span>
+    <span class="kw">WITH TAG</span> <span class="str">'INCR_MERGE'</span>;
+
+  <span class="cm">-- Step 2: Take new Level 1 incremental</span>
+  <span class="kw">BACKUP INCREMENTAL LEVEL</span> <span class="num">1</span>
+    <span class="kw">FOR RECOVER OF COPY WITH TAG</span> <span class="str">'INCR_MERGE'</span>
+    <span class="fn">DATABASE</span>;
+}
+
+<span class="cm">-- Fast recovery: database copy is &lt;= 1 day old</span>
+<span class="kw">SWITCH DATABASE TO COPY</span>;   <span class="cm">-- near-instant!</span>
+<span class="kw">RECOVER DATABASE</span>;
+<span class="kw">ALTER DATABASE OPEN</span>;</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONFIGURATION -->
+<section id="configuration" class="py-24 bg-gradient-to-b from-transparent via-oracle-red/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-green mb-4">RMAN Setup</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Configuration &amp; Commands</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">RMAN configuration persists across sessions and controls how backups behave — retention, compression, channels, and autobackup.</p>
+    </div>
+    <!-- Config Tabs -->
+    <div id="config-tabs" class="glass rounded-2xl p-6 border border-white/5 reveal">
+      <div class="flex flex-wrap gap-2 mb-6">
+        <button class="tab-btn active" data-tab="cfg-retention">Retention Policy</button>
+        <button class="tab-btn" data-tab="cfg-autobackup">Control File Autobackup</button>
+        <button class="tab-btn" data-tab="cfg-channels">Channels &amp; Parallelism</button>
+        <button class="tab-btn" data-tab="cfg-compression">Compression</button>
+        <button class="tab-btn" data-tab="cfg-encryption">Encryption</button>
+        <button class="tab-btn" data-tab="cfg-showall">Show All</button>
+      </div>
+
+      <div id="cfg-retention" class="tab-content active">
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h4 class="font-semibold text-white mb-3">Retention Policy Types</h4>
+            <div class="space-y-4">
+              <div class="glass rounded-xl p-4 border border-oracle-red/20">
+                <div class="flex items-center gap-2 mb-2"><span class="badge badge-red">Redundancy</span></div>
+                <p class="text-neutral-400 text-sm mb-2">Keep N full backups of each file. Oldest beyond N become obsolete.</p>
+                <code class="text-green-400 text-xs font-mono">CONFIGURE RETENTION POLICY TO REDUNDANCY 2;</code>
+              </div>
+              <div class="glass rounded-xl p-4 border border-blue-500/20">
+                <div class="flex items-center gap-2 mb-2"><span class="badge badge-blue">Recovery Window</span></div>
+                <p class="text-neutral-400 text-sm mb-2">Guarantee recovery to any point within N days. RMAN retains all necessary backups.</p>
+                <code class="text-green-400 text-xs font-mono">CONFIGURE RETENTION POLICY TO RECOVERY WINDOW OF 7 DAYS;</code>
+              </div>
+              <div class="glass rounded-xl p-4 border border-yellow-500/20">
+                <div class="flex items-center gap-2 mb-2"><span class="badge badge-yellow">Archive Log Deletion</span></div>
+                <p class="text-neutral-400 text-sm mb-2">Delete archive logs only after backed up N times to a device type.</p>
+                <code class="text-green-400 text-xs font-mono block">CONFIGURE ARCHIVELOG DELETION POLICY</code>
+                <code class="text-green-400 text-xs font-mono">  TO BACKED UP 2 TIMES TO DEVICE TYPE DISK;</code>
+              </div>
+            </div>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Retention Management</span></div>
+            <pre class="p-4 font-mono text-sm"><code><span class="cm">-- View current retention setting</span>
+<span class="kw">RMAN&gt;</span> <span class="fn">SHOW RETENTION POLICY</span>;
+
+<span class="cm">-- Set redundancy (keep 2 full backups)</span>
+<span class="kw">CONFIGURE RETENTION POLICY TO REDUNDANCY</span> <span class="num">2</span>;
+
+<span class="cm">-- Set recovery window (7 day PITR)</span>
+<span class="kw">CONFIGURE RETENTION POLICY TO</span>
+  <span class="fn">RECOVERY WINDOW OF</span> <span class="num">7</span> <span class="fn">DAYS</span>;
+
+<span class="cm">-- Check what is obsolete</span>
+<span class="kw">RMAN&gt;</span> <span class="fn">REPORT OBSOLETE</span>;
+
+<span class="cm">-- Delete obsolete backups</span>
+<span class="kw">RMAN&gt;</span> <span class="fn">DELETE NOPROMPT OBSOLETE</span>;
+
+<span class="cm">-- Files needing backup</span>
+<span class="kw">RMAN&gt;</span> <span class="fn">REPORT NEED BACKUP</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="cfg-autobackup" class="tab-content">
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h4 class="font-semibold text-white mb-3">Control File Autobackup</h4>
+            <p class="text-neutral-400 text-sm mb-4">When enabled, RMAN automatically backs up the control file and SPFILE after every structural change or backup command. <span class="text-oracle-red font-semibold">Always enable this — it's your lifeline when control files are lost.</span></p>
+            <div class="glass rounded-xl p-4 border border-oracle-red/20 mb-4">
+              <div class="text-sm font-semibold text-white mb-2">Default Autobackup Format:</div>
+              <code class="text-green-400 text-xs font-mono">c-IIIIIIIIII-YYYYMMDD-QQ</code>
+              <ul class="mt-2 space-y-1 text-xs text-neutral-500">
+                <li>IIIIIIIIII = DBID (10-digit)</li>
+                <li>YYYYMMDD = backup date</li>
+                <li>QQ = hexadecimal sequence 00-FF</li>
+              </ul>
+            </div>
+            <div class="glass rounded-xl p-4 border border-green-500/20">
+              <div class="text-sm font-semibold text-white mb-2">Triggers autobackup when:</div>
+              <ul class="space-y-1 text-xs text-neutral-400">
+                <li class="flex items-start gap-1.5"><i class="fas fa-chevron-right text-oracle-red text-xs mt-0.5"></i>Any RMAN backup/copy completes</li>
+                <li class="flex items-start gap-1.5"><i class="fas fa-chevron-right text-oracle-red text-xs mt-0.5"></i>New tablespace or datafile added</li>
+                <li class="flex items-start gap-1.5"><i class="fas fa-chevron-right text-oracle-red text-xs mt-0.5"></i>Online redo log group added</li>
+                <li class="flex items-start gap-1.5"><i class="fas fa-chevron-right text-oracle-red text-xs mt-0.5"></i>RMAN catalog changes</li>
+              </ul>
+            </div>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Autobackup Configuration</span></div>
+            <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Enable autobackup (CRITICAL!)</span>
+<span class="kw">CONFIGURE CONTROLFILE AUTOBACKUP</span> <span class="fn">ON</span>;
+
+<span class="cm">-- Custom format for disk</span>
+<span class="kw">CONFIGURE CONTROLFILE AUTOBACKUP FORMAT</span>
+  <span class="fn">FOR DEVICE TYPE DISK TO</span>
+  <span class="str">'/backup/cf_%F'</span>;
+
+<span class="cm">-- SPFILE recovery when instance is down</span>
+<span class="kw">RMAN&gt;</span> <span class="fn">SET DBID</span>=<span class="num">2968723077</span>;
+<span class="kw">RMAN&gt;</span> <span class="fn">STARTUP FORCE NOMOUNT</span>;
+<span class="kw">RMAN&gt;</span> <span class="fn">RESTORE SPFILE FROM AUTOBACKUP</span>;
+<span class="kw">RMAN&gt;</span> <span class="fn">SHUTDOWN IMMEDIATE</span>;
+<span class="kw">RMAN&gt;</span> <span class="fn">STARTUP MOUNT</span>;
+<span class="kw">RMAN&gt;</span> <span class="fn">RESTORE CONTROLFILE FROM AUTOBACKUP</span>;
+<span class="kw">RMAN&gt;</span> <span class="fn">RECOVER DATABASE</span>;
+<span class="kw">RMAN&gt;</span> <span class="fn">ALTER DATABASE OPEN RESETLOGS</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="cfg-channels" class="tab-content">
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h4 class="font-semibold text-white mb-3">Channels &amp; Parallelism</h4>
+            <p class="text-neutral-400 text-sm mb-4">A <strong class="text-white">channel</strong> = one stream of data = one server session. More channels = more parallel streams = faster backups.</p>
+            <div class="space-y-3">
+              <div class="glass rounded-xl p-3 border border-oracle-red/20 text-sm">
+                <div class="text-white font-semibold mb-1">DISK Channel</div>
+                <div class="text-neutral-400 text-xs">Writes to filesystem — no media manager needed. Path specified in FORMAT parameter.</div>
+              </div>
+              <div class="glass rounded-xl p-3 border border-yellow-500/20 text-sm">
+                <div class="text-white font-semibold mb-1">SBT Channel (Tape)</div>
+                <div class="text-neutral-400 text-xs">Writes to tape via media management library (MML). Requires Oracle Secure Backup or 3rd-party MML.</div>
+              </div>
+              <div class="glass rounded-xl p-3 border border-blue-500/20 text-sm">
+                <div class="text-white font-semibold mb-1">Automatic vs Manual</div>
+                <div class="text-neutral-400 text-xs">CONFIGURE sets persistent defaults. ALLOCATE in RUN block overrides for that session only.</div>
+              </div>
+            </div>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Channel Configuration</span></div>
+            <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Auto: 4 parallel disk channels</span>
+<span class="kw">CONFIGURE DEVICE TYPE DISK</span>
+  <span class="fn">PARALLELISM</span> <span class="num">4</span>;
+<span class="kw">CONFIGURE CHANNEL</span> <span class="num">1</span> <span class="fn">DEVICE TYPE DISK</span>
+  <span class="kw">FORMAT</span> <span class="str">'/disk1/backup_%U'</span>;
+<span class="kw">CONFIGURE CHANNEL</span> <span class="num">2</span> <span class="fn">DEVICE TYPE DISK</span>
+  <span class="kw">FORMAT</span> <span class="str">'/disk2/backup_%U'</span>;
+
+<span class="cm">-- Manual: RUN block with custom channels</span>
+<span class="kw">RUN</span> {
+  <span class="fn">ALLOCATE CHANNEL</span> ch1 <span class="kw">TYPE DISK</span>
+    <span class="fn">FORMAT</span> <span class="str">'/bkp1/%U'</span>;
+  <span class="fn">ALLOCATE CHANNEL</span> ch2 <span class="kw">TYPE DISK</span>
+    <span class="fn">FORMAT</span> <span class="str">'/bkp2/%U'</span>;
+  <span class="fn">ALLOCATE CHANNEL</span> ch3 <span class="kw">TYPE DISK</span>
+    <span class="fn">FORMAT</span> <span class="str">'/bkp3/%U'</span>;
+  <span class="fn">BACKUP DATABASE PLUS ARCHIVELOG</span>;
+  <span class="fn">RELEASE CHANNEL</span> ch1;
+  <span class="fn">RELEASE CHANNEL</span> ch2;
+  <span class="fn">RELEASE CHANNEL</span> ch3;
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="cfg-compression" class="tab-content">
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h4 class="font-semibold text-white mb-3">Backup Compression</h4>
+            <div class="overflow-x-auto mb-4">
+              <table class="w-full text-sm">
+                <thead><tr class="border-b border-white/10"><th class="text-left py-2 text-neutral-400">Algorithm</th><th class="text-center py-2 text-neutral-400">License</th><th class="text-center py-2 text-neutral-400">Ratio</th><th class="text-center py-2 text-neutral-400">CPU</th></tr></thead>
+                <tbody class="divide-y divide-white/5">
+                  <tr><td class="py-2 text-white font-mono">BASIC</td><td class="text-center py-2"><span class="badge badge-green text-xs">Free</span></td><td class="text-center py-2 text-neutral-400">Moderate</td><td class="text-center py-2 text-neutral-400">Low</td></tr>
+                  <tr><td class="py-2 text-white font-mono">LOW</td><td class="text-center py-2"><span class="badge badge-orange text-xs">ACO</span></td><td class="text-center py-2 text-neutral-400">Low</td><td class="text-center py-2 text-neutral-400">Minimal</td></tr>
+                  <tr><td class="py-2 text-white font-mono">MEDIUM</td><td class="text-center py-2"><span class="badge badge-orange text-xs">ACO</span></td><td class="text-center py-2 text-neutral-400">Good</td><td class="text-center py-2 text-neutral-400">Medium</td></tr>
+                  <tr><td class="py-2 text-white font-mono">HIGH</td><td class="text-center py-2"><span class="badge badge-orange text-xs">ACO</span></td><td class="text-center py-2 text-neutral-400">Best</td><td class="text-center py-2 text-neutral-400">High</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="text-neutral-500 text-xs">ACO = Advanced Compression Option (separately licensed). BASIC is free and available in all editions.</p>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Compression Setup</span></div>
+            <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Set default compression algorithm</span>
+<span class="kw">CONFIGURE COMPRESSION ALGORITHM</span>
+  <span class="str">'BASIC'</span>;   <span class="cm">-- free</span>
+
+<span class="cm">-- Or with ACO license:</span>
+<span class="kw">CONFIGURE COMPRESSION ALGORITHM</span>
+  <span class="str">'MEDIUM'</span>; <span class="cm">-- recommended for general use</span>
+
+<span class="cm">-- Per-backup compression</span>
+<span class="kw">BACKUP</span> <span class="fn">AS COMPRESSED BACKUPSET</span>
+  <span class="fn">DATABASE PLUS ARCHIVELOG</span>;
+
+<span class="cm">-- Check supported algorithms</span>
+<span class="kw">SELECT</span> algorithm_name
+<span class="kw">FROM</span>   v$rman_compression_algorithm;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="cfg-encryption" class="tab-content">
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h4 class="font-semibold text-white mb-3">Backup Encryption</h4>
+            <div class="space-y-3">
+              <div class="glass rounded-xl p-3 border border-oracle-red/20 text-sm">
+                <div class="text-white font-semibold mb-1">Transparent (Default)</div>
+                <div class="text-neutral-400 text-xs">Uses Oracle keystore (TDE master key). No DBA intervention needed daily. Each backup piece gets unique key stored encrypted inside it.</div>
+              </div>
+              <div class="glass rounded-xl p-3 border border-blue-500/20 text-sm">
+                <div class="text-white font-semibold mb-1">Password-Based</div>
+                <div class="text-neutral-400 text-xs">No keystore required. Must provide password during backup AND restore. Useful for off-site/transportable backups.</div>
+              </div>
+              <div class="glass rounded-xl p-3 border border-purple-500/20 text-sm">
+                <div class="text-white font-semibold mb-1">Dual Mode</div>
+                <div class="text-neutral-400 text-xs">Encrypted with BOTH password + keystore. Restorable via either method. Best for hybrid on-site/off-site strategy.</div>
+              </div>
+            </div>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Encryption Commands</span></div>
+            <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Transparent encryption (persistent)</span>
+<span class="kw">CONFIGURE ENCRYPTION FOR DATABASE</span> <span class="fn">ON</span>;
+<span class="kw">CONFIGURE ENCRYPTION ALGORITHM TO</span>
+  <span class="str">'AES256'</span>;  <span class="cm">-- default: AES128</span>
+
+<span class="cm">-- Password encryption (session only)</span>
+<span class="kw">SET ENCRYPTION ON</span>
+  <span class="fn">IDENTIFIED BY</span> <span class="str">'MyP@ssw0rd'</span> <span class="fn">ONLY</span>;
+<span class="kw">BACKUP DATABASE</span>;
+<span class="kw">SET ENCRYPTION OFF</span>;
+
+<span class="cm">-- Restore encrypted backup (pwd mode)</span>
+<span class="kw">SET DECRYPTION IDENTIFIED BY</span>
+  <span class="str">'MyP@ssw0rd'</span>;
+<span class="kw">RESTORE DATABASE</span>;
+<span class="kw">RECOVER DATABASE</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="cfg-showall" class="tab-content">
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">RMAN&gt; SHOW ALL</span></div>
+          <pre class="p-4 font-mono text-sm"><code><span class="kw">RMAN&gt;</span> <span class="fn">SHOW ALL</span>;
+
+<span class="cm">RMAN configuration parameters for database PROD:</span>
+<span class="kw">CONFIGURE</span> RETENTION POLICY <span class="fn">TO REDUNDANCY</span> <span class="num">1</span>;             <span class="cm">-- default</span>
+<span class="kw">CONFIGURE</span> BACKUP OPTIMIZATION <span class="fn">ON</span>;
+<span class="kw">CONFIGURE</span> DEFAULT DEVICE TYPE <span class="fn">TO DISK</span>;
+<span class="kw">CONFIGURE</span> CONTROLFILE AUTOBACKUP <span class="fn">ON</span>;
+<span class="kw">CONFIGURE</span> CONTROLFILE AUTOBACKUP FORMAT
+  <span class="fn">FOR DEVICE TYPE DISK TO</span> <span class="str">'%F'</span>;                          <span class="cm">-- default</span>
+<span class="kw">CONFIGURE</span> DEVICE TYPE DISK PARALLELISM <span class="num">4</span> BACKUP TYPE <span class="fn">TO</span> BACKUPSET;
+<span class="kw">CONFIGURE</span> DATAFILE BACKUP COPIES <span class="fn">FOR DEVICE TYPE DISK TO</span> <span class="num">1</span>;
+<span class="kw">CONFIGURE</span> ARCHIVELOG BACKUP COPIES <span class="fn">FOR DEVICE TYPE DISK TO</span> <span class="num">1</span>;
+<span class="kw">CONFIGURE</span> CHANNEL DEVICE TYPE DISK
+  <span class="fn">FORMAT</span> <span class="str">'/backup/%d_%U_%T'</span>
+  <span class="fn">MAXPIECESIZE</span> <span class="num">2</span>G;
+<span class="kw">CONFIGURE</span> MAXSETSIZE <span class="fn">TO UNLIMITED</span>;
+<span class="kw">CONFIGURE</span> ENCRYPTION <span class="fn">FOR DATABASE OFF</span>;
+<span class="kw">CONFIGURE</span> COMPRESSION ALGORITHM <span class="str">'BASIC'</span>;
+<span class="kw">CONFIGURE</span> ARCHIVELOG DELETION POLICY
+  <span class="fn">TO BACKED UP</span> <span class="num">2</span> <span class="fn">TIMES TO DEVICE TYPE DISK</span>;
+<span class="kw">CONFIGURE</span> SNAPSHOT CONTROLFILE NAME
+  <span class="fn">TO</span> <span class="str">'/u01/app/oracle/product/19c/db_1/dbs/snapcf_PROD.f'</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RECOVERY SCENARIOS -->
+<section id="recovery" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-purple mb-4">Real-World DBA Skills</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Recovery Scenarios</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">Step-by-step recovery procedures for every failure scenario a production DBA will encounter.</p>
+  </div>
+
+  <!-- Recovery Tabs -->
+  <div id="rec-tabs" class="glass rounded-2xl p-6 border border-white/5 reveal mb-10">
+    <div class="flex flex-wrap gap-2 mb-6">
+      <button class="tab-btn active" data-tab="rec-complete">Complete DB</button>
+      <button class="tab-btn" data-tab="rec-system-df">System Datafile</button>
+      <button class="tab-btn" data-tab="rec-nonsys-df">Non-System Datafile</button>
+      <button class="tab-btn" data-tab="rec-tablespace">Tablespace</button>
+      <button class="tab-btn" data-tab="rec-controlfile">Control File</button>
+      <button class="tab-btn" data-tab="rec-spfile">SPFILE</button>
+      <button class="tab-btn" data-tab="rec-pitr">Point-in-Time</button>
+    </div>
+
+    <div id="rec-complete" class="tab-content active">
+      <h4 class="font-semibold text-white mb-3">Complete Database Restore &amp; Recovery</h4>
+      <p class="text-neutral-400 text-sm mb-4">Used when ALL datafiles are lost (disk failure, rm -rf accident). Requires ARCHIVELOG mode and recent backup.</p>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <div class="space-y-3">
+            <div class="flow-step flex items-start gap-3">
+              <div class="w-12 h-12 rounded-xl bg-oracle-red/10 border border-oracle-red/30 flex items-center justify-center font-bold text-oracle-red flex-shrink-0">1</div>
+              <div class="pt-1"><div class="text-white font-semibold text-sm">Shut Abort (if still up)</div><div class="text-neutral-500 text-xs mt-1">Force-kill the instance</div></div>
+            </div>
+            <div class="flow-step flex items-start gap-3">
+              <div class="w-12 h-12 rounded-xl bg-oracle-red/10 border border-oracle-red/30 flex items-center justify-center font-bold text-oracle-red flex-shrink-0">2</div>
+              <div class="pt-1"><div class="text-white font-semibold text-sm">Startup MOUNT</div><div class="text-neutral-500 text-xs mt-1">Instance up, DB not open — control file exists</div></div>
+            </div>
+            <div class="flow-step flex items-start gap-3">
+              <div class="w-12 h-12 rounded-xl bg-oracle-red/10 border border-oracle-red/30 flex items-center justify-center font-bold text-oracle-red flex-shrink-0">3</div>
+              <div class="pt-1"><div class="text-white font-semibold text-sm">RESTORE DATABASE</div><div class="text-neutral-500 text-xs mt-1">Copies datafiles from backup to original locations</div></div>
+            </div>
+            <div class="flow-step flex items-start gap-3">
+              <div class="w-12 h-12 rounded-xl bg-oracle-red/10 border border-oracle-red/30 flex items-center justify-center font-bold text-oracle-red flex-shrink-0">4</div>
+              <div class="pt-1"><div class="text-white font-semibold text-sm">RECOVER DATABASE</div><div class="text-neutral-500 text-xs mt-1">Applies archive logs to bring DB to current SCN</div></div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center justify-center font-bold text-green-400 flex-shrink-0">5</div>
+              <div class="pt-1"><div class="text-white font-semibold text-sm">ALTER DATABASE OPEN</div><div class="text-neutral-500 text-xs mt-1">Database is live again</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Complete DB Restore</span></div>
+          <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Scenario: all datafiles deleted</span>
+<span class="cm">-- $ rm /u02/oradata/ORCL/*.dbf</span>
+
+<span class="kw">SQLPLUS</span> '/as sysdba'
+<span class="fn">SHUT ABORT</span>;
+<span class="fn">STARTUP NOMOUNT</span>;
+
+<span class="kw">RMAN TARGET</span> /
+
+<span class="kw">RUN</span> {
+  <span class="fn">ALTER DATABASE MOUNT</span>;
+  <span class="fn">RESTORE DATABASE</span>;
+  <span class="fn">RECOVER DATABASE</span>;
+  <span class="fn">ALTER DATABASE OPEN</span>;
+}
+
+<span class="cm">-- Verify</span>
+<span class="kw">SELECT</span> name, open_mode <span class="kw">FROM</span> v$database;
+<span class="kw">SELECT</span> <span class="fn">COUNT</span>(<span class="num">1</span>) <span class="kw">FROM</span> labdba.employees;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div id="rec-system-df" class="tab-content">
+      <h4 class="font-semibold text-white mb-3">Loss of System Datafile</h4>
+      <p class="text-neutral-400 text-sm mb-4">SYSTEM tablespace is critical — database cannot open without it. Must be recovered while DB is in MOUNT state.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">System Datafile Recovery</span></div>
+        <pre class="p-4 font-mono text-sm"><code><span class="cm">-- $ rm /u02/oradata/ORCL/system01.dbf</span>
+<span class="fn">SHUT ABORT</span>;
+<span class="fn">STARTUP MOUNT</span>;
+
+<span class="cm">-- Check file status</span>
+<span class="kw">SELECT</span> file#, name, status <span class="kw">FROM</span> v$datafile;
+
+<span class="kw">RMAN TARGET</span> /
+
+<span class="kw">RUN</span> {
+  <span class="fn">RESTORE DATAFILE</span> <span class="num">1</span>;      <span class="cm">-- file# 1 = SYSTEM</span>
+  <span class="fn">RECOVER DATAFILE</span> <span class="num">1</span>;
+  <span class="fn">ALTER DATABASE OPEN</span>;
+}
+
+<span class="cm">-- Verify SYSTEM tablespace online</span>
+<span class="kw">SELECT</span> tablespace_name, status
+<span class="kw">FROM</span>   dba_tablespaces
+<span class="kw">WHERE</span>  tablespace_name = <span class="str">'SYSTEM'</span>;</code></pre>
+      </div>
+    </div>
+
+    <div id="rec-nonsys-df" class="tab-content">
+      <h4 class="font-semibold text-white mb-3">Non-System Datafile Recovery (Online)</h4>
+      <p class="text-neutral-400 text-sm mb-4">Non-system datafiles can be recovered while the database remains OPEN. Take the datafile offline, restore, recover, bring online.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Online Datafile Recovery</span></div>
+        <pre class="p-4 font-mono text-sm"><code><span class="cm">-- $ rm /u02/oradata/ORCL/users01.dbf (file# 4)</span>
+<span class="cm">-- Database is still OPEN (READ WRITE)</span>
+
+<span class="kw">ALTER DATABASE DATAFILE</span> <span class="num">4</span> <span class="fn">OFFLINE</span>;
+
+<span class="kw">RMAN TARGET</span> /
+
+<span class="kw">RUN</span> {
+  <span class="fn">RESTORE DATAFILE</span> <span class="num">4</span>;
+  <span class="fn">RECOVER DATAFILE</span> <span class="num">4</span>;
+  <span class="fn">SQL</span> <span class="str">'ALTER DATABASE DATAFILE 4 ONLINE'</span>;
+}
+
+<span class="cm">-- Verify</span>
+<span class="kw">SELECT</span> file#, ts#, status <span class="kw">FROM</span> v$datafile <span class="kw">WHERE</span> file#=<span class="num">4</span>;
+<span class="kw">SELECT</span> <span class="fn">COUNT</span>(<span class="num">1</span>) <span class="kw">FROM</span> labdba.employees; <span class="cm">-- data still accessible</span>
+
+<span class="cm">-- Restore to different location</span>
+<span class="kw">RUN</span> {
+  <span class="fn">SET NEWNAME FOR DATAFILE</span> <span class="num">4</span>
+    <span class="fn">TO</span> <span class="str">'/new/path/users01.dbf'</span>;
+  <span class="fn">RESTORE DATAFILE</span> <span class="num">4</span>;
+  <span class="fn">SWITCH DATAFILE</span> <span class="num">4</span>;
+  <span class="fn">RECOVER DATAFILE</span> <span class="num">4</span>;
+  <span class="fn">SQL</span> <span class="str">'ALTER DATABASE DATAFILE 4 ONLINE'</span>;
+}</code></pre>
+      </div>
+    </div>
+
+    <div id="rec-tablespace" class="tab-content">
+      <h4 class="font-semibold text-white mb-3">Tablespace Recovery</h4>
+      <p class="text-neutral-400 text-sm mb-4">Recover an entire tablespace — can be done online (DB open) for non-SYSTEM tablespaces.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Tablespace Recovery</span></div>
+        <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Option 1: Online recovery (DB stays open)</span>
+<span class="kw">SQLPLUS</span> '/as sysdba'
+<span class="kw">ALTER TABLESPACE</span> users <span class="fn">OFFLINE IMMEDIATE</span>;
+
+<span class="kw">RMAN TARGET</span> /
+<span class="kw">RESTORE TABLESPACE</span> users;
+<span class="kw">RECOVER TABLESPACE</span> users;
+
+<span class="kw">SQLPLUS</span> '/as sysdba'
+<span class="kw">ALTER TABLESPACE</span> users <span class="fn">ONLINE</span>;
+
+<span class="cm">-- Option 2: Mounted recovery (DB offline)</span>
+<span class="kw">SHUT ABORT</span>;
+<span class="fn">STARTUP MOUNT</span>;
+
+<span class="kw">RMAN TARGET</span> /
+<span class="kw">RUN</span> {
+  <span class="fn">RESTORE TABLESPACE</span> users;
+  <span class="fn">RECOVER TABLESPACE</span> users;
+  <span class="fn">SQL</span> <span class="str">'ALTER DATABASE OPEN'</span>;
+}
+
+<span class="cm">-- Verify</span>
+<span class="kw">SELECT</span> tablespace_name, status
+<span class="kw">FROM</span>   dba_tablespaces
+<span class="kw">WHERE</span>  tablespace_name = <span class="str">'USERS'</span>;</code></pre>
+      </div>
+    </div>
+
+    <div id="rec-controlfile" class="tab-content">
+      <h4 class="font-semibold text-white mb-3">Control File Recovery</h4>
+      <p class="text-neutral-400 text-sm mb-4">Without control file, DB cannot mount. Use RMAN autobackup. After restore, always open with RESETLOGS.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Control File Recovery</span></div>
+        <pre class="p-4 font-mono text-sm"><code><span class="cm">-- $ rm /u02/oradata/ORCL/control0*.ctl</span>
+<span class="fn">SHUT ABORT</span>;
+
+<span class="kw">RMAN TARGET</span> /
+
+<span class="cm">-- DBID required when no catalog</span>
+<span class="kw">SET DBID</span>=<span class="num">3580177852</span>;
+
+<span class="fn">STARTUP NOMOUNT</span>;
+
+<span class="cm">-- Restore control file from autobackup</span>
+<span class="fn">RESTORE CONTROLFILE FROM AUTOBACKUP</span>;
+
+<span class="cm">-- Or from specific piece</span>
+<span class="cm">-- RESTORE CONTROLFILE FROM</span>
+<span class="cm">--   '/backup/c-3580177852-20260511-00';</span>
+
+<span class="fn">ALTER DATABASE MOUNT</span>;
+
+<span class="fn">RECOVER DATABASE</span>;
+
+<span class="fn">ALTER DATABASE OPEN RESETLOGS</span>;
+
+<span class="cm">-- CRITICAL: register new incarnation</span>
+<span class="fn">RESET DATABASE</span>;   <span class="cm">-- if using catalog</span>
+<span class="fn">LIST INCARNATION</span>; <span class="cm">-- verify</span>
+<span class="cm">-- Then take a fresh full backup immediately!</span></code></pre>
+      </div>
+    </div>
+
+    <div id="rec-spfile" class="tab-content">
+      <h4 class="font-semibold text-white mb-3">SPFILE Recovery</h4>
+      <p class="text-neutral-400 text-sm mb-4">Without SPFILE, the instance cannot start. RMAN autobackup is the standard recovery path.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">SPFILE Recovery</span></div>
+        <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Case 1: FRA configured</span>
+<span class="kw">RMAN TARGET</span> /
+<span class="kw">SET DBID</span>=<span class="num">2968723077</span>;
+<span class="fn">STARTUP FORCE NOMOUNT</span>;
+<span class="fn">RESTORE SPFILE FROM AUTOBACKUP</span>;
+<span class="fn">SHUTDOWN IMMEDIATE</span>;
+<span class="fn">STARTUP</span>;
+
+<span class="cm">-- Case 2: Non-FRA autobackup location</span>
+<span class="kw">RMAN TARGET</span> /
+<span class="kw">SET DBID</span>=<span class="num">2968723077</span>;
+<span class="fn">STARTUP FORCE NOMOUNT</span>;
+<span class="kw">RUN</span> {
+  <span class="fn">CONFIGURE CONTROLFILE AUTOBACKUP FORMAT</span>
+    <span class="fn">FOR DEVICE TYPE DISK TO</span> <span class="str">'/backup/cf_%F'</span>;
+  <span class="fn">RESTORE SPFILE FROM AUTOBACKUP</span>;
+}
+
+<span class="cm">-- Case 3: Direct file reference</span>
+<span class="fn">RESTORE SPFILE FROM</span>
+  <span class="str">'/backup/c-2968723077-20260510-00'</span>;
+
+<span class="cm">-- After SPFILE restore: generate pfile to edit paths</span>
+<span class="kw">SQL&gt;</span> <span class="fn">CREATE PFILE FROM SPFILE</span>;
+<span class="cm">-- Edit pfile, then: CREATE SPFILE FROM PFILE;</span></code></pre>
+      </div>
+    </div>
+
+    <div id="rec-pitr" class="tab-content">
+      <h4 class="font-semibold text-white mb-3">Point-in-Time Recovery (PITR)</h4>
+      <p class="text-neutral-400 text-sm mb-4">Recover to a specific time, SCN, or log sequence. Used when a logical error occurred (bad DML/DDL). Always opens with RESETLOGS — register new incarnation.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Point-in-Time Recovery</span></div>
+        <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Recover to specific TIME</span>
+<span class="kw">RMAN TARGET</span> /
+
+<span class="kw">RUN</span> {
+  <span class="fn">SET UNTIL TIME</span>
+    <span class="str">"TO_DATE('2026-05-10 12:00:00',
+             'YYYY-MM-DD HH24:MI:SS')"</span>;
+  <span class="fn">RESTORE DATABASE</span>;
+  <span class="fn">RECOVER DATABASE</span>;
+}
+<span class="kw">ALTER DATABASE OPEN RESETLOGS</span>;
+
+<span class="cm">-- Recover to specific SCN</span>
+<span class="kw">RUN</span> {
+  <span class="fn">SET UNTIL SCN</span> <span class="num">136846506</span>;
+  <span class="fn">RESTORE DATABASE</span>;
+  <span class="fn">RECOVER DATABASE</span>;
+}
+<span class="kw">ALTER DATABASE OPEN RESETLOGS</span>;
+
+<span class="cm">-- Recover to log sequence</span>
+<span class="kw">RUN</span> {
+  <span class="fn">SET UNTIL SEQUENCE</span> <span class="num">1202</span> <span class="fn">THREAD</span> <span class="num">1</span>;
+  <span class="fn">RESTORE DATABASE</span>;
+  <span class="fn">RECOVER DATABASE</span>;
+}
+<span class="kw">ALTER DATABASE OPEN RESETLOGS</span>;
+
+<span class="cm">-- Register new incarnation in catalog</span>
+<span class="fn">RESET DATABASE</span>;
+<span class="fn">LIST INCARNATION</span>;</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backup from specific TAG scenario from rman.txt -->
+  <div class="glass rounded-2xl p-6 border border-orange-500/20 reveal">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
+        <i class="fas fa-tag text-orange-400"></i>
+      </div>
+      <div>
+        <h3 class="font-display font-semibold text-white">Restore from Specific TAG (Catalog Scenario)</h3>
+        <p class="text-neutral-500 text-xs">Real-world PITR using RMAN catalog to restore from a specific backup date</p>
+      </div>
+    </div>
+    <div class="terminal">
+      <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Catalog-Based TAG Restore</span></div>
+      <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Connect to target + catalog</span>
+<span class="fn">rman</span> catalog rman_user/password@catdb target sys/password@prod
+
+<span class="cm">-- Find the backup tag for the date you need</span>
+<span class="kw">LIST BACKUP SUMMARY COMPLETED AFTER</span> <span class="str">'sysdate-2'</span>;
+
+<span class="cm">-- Restore controlfile from specific tag</span>
+<span class="kw">RUN</span> {
+  <span class="fn">ALLOCATE CHANNEL</span> ch1 <span class="kw">TYPE DISK</span>;
+  <span class="fn">RESTORE CONTROLFILE FROM TAG</span> <span class="str">'TAG20090915T182528'</span>;
+  <span class="fn">RELEASE CHANNEL</span> ch1;
+}
+
+<span class="kw">ALTER DATABASE MOUNT</span>;
+
+<span class="cm">-- Restore database from specific date tag</span>
+<span class="kw">RUN</span> {
+  <span class="fn">ALLOCATE CHANNEL</span> ch1 <span class="kw">TYPE DISK</span>;
+  <span class="fn">ALLOCATE CHANNEL</span> ch2 <span class="kw">TYPE DISK</span>;
+  <span class="fn">RESTORE DATABASE FROM TAG</span> <span class="str">'TAG20090915T182007'</span>;
+  <span class="fn">RELEASE CHANNEL</span> ch1;
+  <span class="fn">RELEASE CHANNEL</span> ch2;
+}
+
+<span class="cm">-- Recover to specific time</span>
+<span class="kw">RECOVER DATABASE UNTIL TIME</span> <span class="str">'2009-09-16:12:00:00'</span>
+  <span class="fn">USING BACKUP CONTROLFILE</span>;
+
+<span class="kw">ALTER DATABASE OPEN RESETLOGS</span>;
+
+<span class="cm">-- Add temp tablespace after RESETLOGS</span>
+<span class="kw">ALTER TABLESPACE</span> temp <span class="fn">ADD TEMPFILE</span>
+  <span class="str">'/u02/oradata/ORCL/temp01.dbf'</span> <span class="fn">SIZE</span> <span class="num">200</span>m;
+
+<span class="cm">-- Re-register incarnation in catalog</span>
+<span class="fn">RESET DATABASE</span>;</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- FAST RECOVERY AREA -->
+<section id="fra" class="py-24 bg-gradient-to-b from-transparent via-oracle-red/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-orange mb-4">FRA</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Fast Recovery Area</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">A dedicated disk location that Oracle manages automatically for all backup and recovery-related files — the cornerstone of a modern RMAN strategy.</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-8 mb-10">
+      <!-- FRA Contents -->
+      <div class="glass rounded-2xl p-6 border border-oracle-red/15 reveal">
+        <h3 class="font-display font-semibold text-white text-xl mb-6">What FRA Contains</h3>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3 glass rounded-xl p-3 border border-white/5">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 flex items-center justify-center"><i class="fas fa-file-code text-oracle-red text-sm"></i></div>
+            <div><div class="text-white text-sm font-semibold">Control Files (copies)</div><div class="text-neutral-500 text-xs">Auto-managed copies of control files</div></div>
+          </div>
+          <div class="flex items-center gap-3 glass rounded-xl p-3 border border-white/5">
+            <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center"><i class="fas fa-file-lines text-blue-400 text-sm"></i></div>
+            <div><div class="text-white text-sm font-semibold">Online Redo Logs (copies)</div><div class="text-neutral-500 text-xs">Multiplexed redo log members</div></div>
+          </div>
+          <div class="flex items-center gap-3 glass rounded-xl p-3 border border-white/5">
+            <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center"><i class="fas fa-scroll text-green-400 text-sm"></i></div>
+            <div><div class="text-white text-sm font-semibold">Archived Redo Logs</div><div class="text-neutral-500 text-xs">Auto-archived logs for recovery</div></div>
+          </div>
+          <div class="flex items-center gap-3 glass rounded-xl p-3 border border-white/5">
+            <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center"><i class="fas fa-clock-rotate-left text-purple-400 text-sm"></i></div>
+            <div><div class="text-white text-sm font-semibold">Flashback Logs</div><div class="text-neutral-500 text-xs">Required for Flashback Database</div></div>
+          </div>
+          <div class="flex items-center gap-3 glass rounded-xl p-3 border border-white/5">
+            <div class="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center"><i class="fas fa-boxes-stacked text-yellow-400 text-sm"></i></div>
+            <div><div class="text-white text-sm font-semibold">RMAN Backups</div><div class="text-neutral-500 text-xs">Backup sets and image copies</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- FRA Config -->
+      <div class="reveal">
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">FRA Configuration</span></div>
+          <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Set FRA location and size</span>
+<span class="kw">ALTER SYSTEM SET</span>
+  db_recovery_file_dest_size = <span class="num">100</span>G
+  <span class="kw">SCOPE</span>=BOTH;
+
+<span class="kw">ALTER SYSTEM SET</span>
+  db_recovery_file_dest =
+  <span class="str">'/u03/fast_recovery_area'</span>
+  <span class="kw">SCOPE</span>=BOTH;
+
+<span class="cm">-- Optional: Flashback (24 hours)</span>
+<span class="kw">ALTER SYSTEM SET</span>
+  db_flashback_retention_target = <span class="num">1440</span>
+  <span class="kw">SCOPE</span>=BOTH;
+
+<span class="cm">-- Enable flashback logging</span>
+<span class="kw">ALTER DATABASE FLASHBACK</span> <span class="fn">ON</span>;
+
+<span class="cm">-- Monitor FRA usage</span>
+<span class="kw">SELECT</span> space_limit/1024/1024/1024 total_gb,
+       space_used/1024/1024/1024  used_gb,
+       space_reclaimable/1024/1024/1024 reclaimable_gb
+<span class="kw">FROM</span>   v$recovery_file_dest;</code></pre>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">FRA Space Breakdown</span></div>
+          <pre class="p-4 font-mono text-sm"><code><span class="kw">SELECT</span> file_type,
+       <span class="fn">ROUND</span>(space_used/1024/1024,<span class="num">2</span>) used_mb,
+       <span class="fn">ROUND</span>(space_reclaimable/1024/1024,<span class="num">2</span>) reclaim_mb,
+       percent_space_used pct
+<span class="kw">FROM</span>   v$recovery_area_usage
+<span class="kw">ORDER BY</span> space_used <span class="fn">DESC</span>;
+
+<span class="cm">-- Backup FRA to remote disk (11g+)</span>
+<span class="kw">RMAN TARGET</span> /
+<span class="kw">BACKUP RECOVERY AREA TO DESTINATION</span>
+  <span class="str">'/mnt/remote/backups/FRA_BACKUP/'</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+    <!-- Sizing formula -->
+    <div class="glass rounded-2xl p-6 border border-orange-500/15 reveal">
+      <h3 class="font-display font-semibold text-white mb-4">FRA Sizing Formula</h3>
+      <div class="grid md:grid-cols-3 gap-4">
+        <div class="glass rounded-xl p-4 border border-white/5 text-center">
+          <div class="text-oracle-red font-bold text-lg mb-1">= DB Size × copies</div>
+          <div class="text-neutral-400 text-xs">Full database copy (largest component)</div>
+        </div>
+        <div class="glass rounded-xl p-4 border border-white/5 text-center">
+          <div class="text-blue-400 font-bold text-lg mb-1">+ Archive Log Space</div>
+          <div class="text-neutral-400 text-xs">(n+1) days of archive generation rate</div>
+        </div>
+        <div class="glass rounded-xl p-4 border border-white/5 text-center">
+          <div class="text-green-400 font-bold text-lg mb-1">+ Flashback Logs</div>
+          <div class="text-neutral-400 text-xs">If flashback database is enabled</div>
+        </div>
+      </div>
+      <p class="text-neutral-500 text-xs mt-4 text-center">Rule of thumb: FRA = 3× database size. Oracle automatically reclaims space per retention policy when FRA nears capacity.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ADVANCED FEATURES -->
+<section id="advanced" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-cyan mb-4">Power Features</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Advanced RMAN Features</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">Block change tracking, block recovery, table recovery, and cross-platform migration — the features that separate senior DBAs.</p>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-8 mb-10">
+    <!-- Block Change Tracking -->
+    <div class="glass rounded-2xl p-6 border border-cyan-500/20 reveal">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+          <i class="fas fa-chart-bar text-cyan-400"></i>
+        </div>
+        <div>
+          <h3 class="font-display font-semibold text-white">Block Change Tracking (BCT)</h3>
+          <span class="badge badge-cyan text-xs">Enterprise Edition</span>
+        </div>
+      </div>
+      <p class="text-neutral-400 text-sm mb-4 leading-relaxed">BCT maintains a file that tracks which blocks changed since the last RMAN Level 0 backup. Eliminates scanning the entire datafile for incremental backups — dramatically reduces backup time for large databases.</p>
+      <ul class="space-y-2 text-sm text-neutral-400 mb-4">
+        <li class="flex items-start gap-2"><i class="fas fa-bolt text-cyan-400 mt-1 text-xs"></i>File size ≈ 1/30,000 of tracked data (10MB per 300GB)</li>
+        <li class="flex items-start gap-2"><i class="fas fa-bolt text-cyan-400 mt-1 text-xs"></i>1TB database → ~40MB tracking file</li>
+        <li class="flex items-start gap-2"><i class="fas fa-bolt text-cyan-400 mt-1 text-xs"></i>Available since Oracle 10g Enterprise Edition</li>
+        <li class="flex items-start gap-2"><i class="fas fa-bolt text-cyan-400 mt-1 text-xs"></i>90%+ reduction in incremental backup scan time</li>
+      </ul>
+      <div class="terminal text-xs">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-3 font-mono text-xs"><code><span class="cm">-- Enable BCT</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">ENABLE BLOCK CHANGE TRACKING</span>
+  <span class="kw">USING FILE</span> <span class="str">'/u02/bct/bct.f'</span>;
+
+<span class="cm">-- Verify</span>
+<span class="kw">SELECT</span> status, filename,
+       <span class="fn">ROUND</span>(bytes/1024/1024,<span class="num">1</span>) size_mb
+<span class="kw">FROM</span>   v$block_change_tracking;</code></pre>
+      </div>
+    </div>
+
+    <!-- Block-Level Recovery -->
+    <div class="glass rounded-2xl p-6 border border-green-500/20 reveal">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center border border-green-500/20">
+          <i class="fas fa-cube text-green-400"></i>
+        </div>
+        <div>
+          <h3 class="font-display font-semibold text-white">Block-Level Recovery</h3>
+          <span class="badge badge-green text-xs">Database Stays Open</span>
+        </div>
+      </div>
+      <p class="text-neutral-400 text-sm mb-4 leading-relaxed">From Oracle 9i onward, RMAN can recover individual corrupted blocks without taking the database offline. Targeted block recovery is vastly faster than a full datafile restore.</p>
+      <ul class="space-y-2 text-sm text-neutral-400 mb-4">
+        <li class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i>Database remains open during recovery</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i>Only corrupted blocks restored from backup</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i>Detect corruption: ORA-01578, V$DATABASE_BLOCK_CORRUPTION</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i>Use DBVERIFY utility for full datafile scan</li>
+      </ul>
+      <div class="terminal text-xs">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-3 font-mono text-xs"><code><span class="cm">-- Identify corrupted blocks</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> v$database_block_corruption;
+
+<span class="cm">-- Verify with DBVERIFY (OS)</span>
+<span class="op">$</span> dbv file=users01.dbf BLOCKSIZE=<span class="num">8192</span>
+
+<span class="cm">-- Recover specific block</span>
+<span class="kw">BLOCKRECOVER DATAFILE</span> <span class="num">48</span>
+  <span class="fn">BLOCK</span> <span class="num">142713</span>;
+
+<span class="cm">-- Recover all from corruption list</span>
+<span class="kw">BLOCKRECOVER CORRUPTION LIST</span>;</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-8 mb-10">
+    <!-- 12c RECOVER TABLE -->
+    <div class="glass rounded-2xl p-6 border border-purple-500/20 reveal">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
+          <i class="fas fa-table text-purple-400"></i>
+        </div>
+        <div>
+          <h3 class="font-display font-semibold text-white">12c RECOVER TABLE</h3>
+          <span class="badge badge-purple text-xs">Oracle 12c+</span>
+        </div>
+      </div>
+      <p class="text-neutral-400 text-sm mb-3 leading-relaxed">Restore a single table or partition from an RMAN backup without full database downtime. RMAN creates a temporary auxiliary instance, restores the relevant tablespace to a point-in-time, exports the table via Data Pump, then imports it back.</p>
+      <ul class="space-y-2 text-sm text-neutral-400 mb-4">
+        <li class="flex items-start gap-2"><i class="fas fa-info-circle text-purple-400 mt-1 text-xs"></i>Use when FLASHBACK TABLE lacks sufficient undo</li>
+        <li class="flex items-start gap-2"><i class="fas fa-info-circle text-purple-400 mt-1 text-xs"></i>Use when FLASHBACK DATABASE would revert too much</li>
+        <li class="flex items-start gap-2"><i class="fas fa-info-circle text-purple-400 mt-1 text-xs"></i>No downtime for other tables</li>
+        <li class="flex items-start gap-2"><i class="fas fa-info-circle text-purple-400 mt-1 text-xs"></i>Works with CDB/PDB (target specific PDB)</li>
+      </ul>
+      <div class="terminal text-xs">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-3 font-mono text-xs"><code><span class="cm">-- Recover a table to 10 minutes ago</span>
+<span class="kw">RECOVER TABLE</span> sh.customers
+<span class="fn">UNTIL TIME</span> <span class="str">'sysdate-10/1440'</span>
+<span class="kw">AUXILIARY DESTINATION</span>
+  <span class="str">'/u01/app/oracle/aux_dest'</span>
+<span class="kw">DATAPUMP DESTINATION</span>
+  <span class="str">'/u01/app/oracle/dp_dest'</span>;
+
+<span class="cm">-- Process: aux instance → restore →</span>
+<span class="cm">-- recover → expdp → impdp → cleanup</span></code></pre>
+      </div>
+    </div>
+
+    <!-- Flashback Database -->
+    <div class="glass rounded-2xl p-6 border border-yellow-500/20 reveal">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20">
+          <i class="fas fa-clock-rotate-left text-yellow-400"></i>
+        </div>
+        <div>
+          <h3 class="font-display font-semibold text-white">Flashback Database</h3>
+          <span class="badge badge-yellow text-xs">Near-Instant Rewind</span>
+        </div>
+      </div>
+      <p class="text-neutral-400 text-sm mb-3 leading-relaxed">Flashback Database is NOT a restore from backup — it uses flashback logs to rewind the database to a previous point in seconds. Much faster than PITR but requires FRA and flashback logging enabled.</p>
+      <ul class="space-y-2 text-sm text-neutral-400 mb-4">
+        <li class="flex items-start gap-2"><i class="fas fa-check text-yellow-400 mt-1 text-xs"></i>Rewind entire database in seconds/minutes</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check text-yellow-400 mt-1 text-xs"></i>Requires flashback logs in FRA</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check text-yellow-400 mt-1 text-xs"></i>Limited by DB_FLASHBACK_RETENTION_TARGET</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check text-yellow-400 mt-1 text-xs"></i>Open READ ONLY first to verify before RESETLOGS</li>
+      </ul>
+      <div class="terminal text-xs">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-3 font-mono text-xs"><code><span class="kw">RMAN&gt;</span> <span class="fn">SHUTDOWN IMMEDIATE</span>;
+<span class="kw">RMAN&gt;</span> <span class="fn">STARTUP MOUNT</span>;
+
+<span class="cm">-- Flashback to SCN</span>
+<span class="kw">FLASHBACK DATABASE TO SCN</span> <span class="num">861150</span>;
+
+<span class="cm">-- Verify in READ ONLY</span>
+<span class="kw">ALTER DATABASE OPEN READ ONLY</span>;
+<span class="cm">-- run queries...</span>
+<span class="kw">SHUTDOWN IMMEDIATE</span>;
+<span class="fn">STARTUP MOUNT</span>;
+
+<span class="cm">-- Confirm if correct</span>
+<span class="kw">ALTER DATABASE OPEN RESETLOGS</span>;</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- SWITCH DATABASE TO COPY -->
+  <div class="glass rounded-2xl p-6 border border-oracle-red/20 reveal">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-xl bg-oracle-red/10 flex items-center justify-center border border-oracle-red/20">
+        <i class="fas fa-rotate text-oracle-red"></i>
+      </div>
+      <h3 class="font-display font-semibold text-white text-xl">SWITCH DATABASE TO COPY — Near-Zero RTO</h3>
+    </div>
+    <p class="text-neutral-400 text-sm mb-6 leading-relaxed">The ultimate fast recovery: maintain an always-current image copy on disk using incremental merge. When disaster strikes, switch the database to point at the disk copy — recovery completes in seconds, no tape restore needed.</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <h4 class="font-semibold text-white text-sm mb-3">Daily Merge Script (cron job):</h4>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+          <pre class="p-4 font-mono text-sm"><code><span class="cm">-- Run daily — keeps disk copy current</span>
+<span class="kw">RUN</span> {
+  <span class="cm">-- Apply yesterday's L1 to disk copy</span>
+  <span class="fn">RECOVER COPY OF DATABASE</span>
+    <span class="kw">WITH TAG</span> <span class="str">'DISK_COPY'</span>;
+
+  <span class="cm">-- Take new L1 incremental</span>
+  <span class="kw">BACKUP INCREMENTAL LEVEL</span> <span class="num">1</span>
+    <span class="kw">FOR RECOVER OF COPY</span>
+    <span class="kw">WITH TAG</span> <span class="str">'DISK_COPY'</span>
+    <span class="fn">DATABASE</span>;
+}</code></pre>
+        </div>
+      </div>
+      <div>
+        <h4 class="font-semibold text-white text-sm mb-3">When Disaster Strikes:</h4>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+          <pre class="p-4 font-mono text-sm"><code><span class="cm">-- $ rm /u02/oradata/ORCL/*.dbf</span>
+<span class="fn">STARTUP MOUNT</span>;
+
+<span class="kw">RMAN TARGET</span> /
+
+<span class="cm">-- Point control file at disk copy</span>
+<span class="fn">SWITCH DATABASE TO COPY</span>;
+
+<span class="cm">-- Apply archive logs (minimal)</span>
+<span class="fn">RECOVER DATABASE</span>;
+
+<span class="cm">-- Open — SECONDS of downtime!</span>
+<span class="kw">ALTER DATABASE OPEN</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MONITORING VIEWS -->
+<section id="monitoring" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-yellow mb-4">DBA Toolkit</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Monitoring &amp; Validation</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">Essential RMAN queries every DBA should know — from checking backup status to validating integrity and managing catalog.</p>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6 mb-8">
+    <!-- Backup Status -->
+    <div class="glass rounded-2xl p-6 border border-oracle-red/15 reveal">
+      <div class="flex items-center gap-2 mb-4"><i class="fas fa-list-check text-oracle-red"></i><h3 class="font-semibold text-white">Backup Status &amp; History</h3></div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-4 font-mono text-xs leading-6"><code><span class="cm">-- Recent backup job details</span>
+<span class="kw">SELECT</span> start_time, end_time, status,
+       input_type, output_bytes_display
+<span class="kw">FROM</span>   v$rman_backup_job_details
+<span class="kw">ORDER BY</span> start_time <span class="fn">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> <span class="kw">ROWS ONLY</span>;
+
+<span class="cm">-- Backup set contents</span>
+<span class="kw">SELECT</span> bs.recid, bs.stamp, bs.backup_type,
+       bsp.piece#, bsp.status, bsp.handle
+<span class="kw">FROM</span>   v$backup_set bs
+<span class="kw">JOIN</span>   v$backup_piece bsp
+  <span class="kw">ON</span>   bs.recid = bsp.set_stamp
+<span class="kw">ORDER BY</span> bs.stamp <span class="fn">DESC</span>;
+
+<span class="cm">-- RMAN> LIST commands</span>
+<span class="fn">LIST BACKUP SUMMARY</span>;
+<span class="fn">LIST BACKUP OF DATABASE</span>;
+<span class="fn">LIST COPY OF DATAFILE</span> <span class="num">1</span>, <span class="num">2</span>;
+<span class="fn">LIST EXPIRED BACKUP</span>;
+<span class="fn">LIST BACKUP RECOVERABLE</span>;</code></pre>
+      </div>
+    </div>
+
+    <!-- Crosscheck & Maintenance -->
+    <div class="glass rounded-2xl p-6 border border-blue-500/15 reveal">
+      <div class="flex items-center gap-2 mb-4"><i class="fas fa-wrench text-blue-400"></i><h3 class="font-semibold text-white">Crosscheck &amp; Maintenance</h3></div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-4 font-mono text-xs leading-6"><code><span class="cm">-- Sync repository with actual files</span>
+<span class="kw">CROSSCHECK BACKUP</span>;
+<span class="kw">CROSSCHECK COPY</span>;
+<span class="kw">CROSSCHECK ARCHIVELOG ALL</span>;
+
+<span class="cm">-- Report obsolete backups</span>
+<span class="fn">REPORT OBSOLETE</span>;
+<span class="fn">REPORT NEED BACKUP</span>;
+<span class="fn">REPORT UNRECOVERABLE</span>;
+<span class="fn">REPORT SCHEMA</span>;
+
+<span class="cm">-- Delete obsolete/expired</span>
+<span class="kw">DELETE NOPROMPT OBSOLETE</span>;
+<span class="kw">DELETE NOPROMPT EXPIRED BACKUP</span>;
+<span class="kw">DELETE NOPROMPT EXPIRED ARCHIVELOG ALL</span>;
+
+<span class="cm">-- Validate backup integrity</span>
+<span class="kw">RESTORE DATABASE VALIDATE</span>;
+<span class="kw">RESTORE DATABASE VALIDATE CHECK LOGICAL</span>;
+<span class="kw">VALIDATE BACKUPSET</span> <span class="num">42</span>;
+<span class="kw">RESTORE ARCHIVELOG FROM TIME</span>
+  <span class="str">'sysdate-1'</span> <span class="fn">VALIDATE</span>;</code></pre>
+      </div>
+    </div>
+
+    <!-- FRA Monitoring -->
+    <div class="glass rounded-2xl p-6 border border-orange-500/15 reveal">
+      <div class="flex items-center gap-2 mb-4"><i class="fas fa-hard-drive text-orange-400"></i><h3 class="font-semibold text-white">FRA &amp; Archive Log Monitoring</h3></div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-4 font-mono text-xs leading-6"><code><span class="cm">-- FRA space usage</span>
+<span class="kw">SELECT</span> file_type,
+  <span class="fn">ROUND</span>(space_used/1024/1024/1024,<span class="num">2</span>) used_gb,
+  percent_space_used pct_used
+<span class="kw">FROM</span>   v$recovery_area_usage;
+
+<span class="cm">-- FRA total / remaining</span>
+<span class="kw">SELECT</span>
+  <span class="fn">ROUND</span>(space_limit/1024/1024/1024,<span class="num">2</span>) limit_gb,
+  <span class="fn">ROUND</span>(space_used/1024/1024/1024,<span class="num">2</span>)  used_gb,
+  <span class="fn">ROUND</span>(space_reclaimable/1024/1024/1024,<span class="num">2</span>) reclaim_gb
+<span class="kw">FROM</span>   v$recovery_file_dest;
+
+<span class="cm">-- Archive log status &amp; location</span>
+<span class="kw">ARCHIVE LOG LIST</span>;
+<span class="kw">SELECT</span> sequence#, name, first_time,
+       status, archived
+<span class="kw">FROM</span>   v$archived_log
+<span class="kw">WHERE</span>  dest_id = <span class="num">1</span>
+<span class="kw">ORDER BY</span> sequence# <span class="fn">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">20</span> <span class="kw">ROWS ONLY</span>;</code></pre>
+      </div>
+    </div>
+
+    <!-- Datafile & BCT -->
+    <div class="glass rounded-2xl p-6 border border-cyan-500/15 reveal">
+      <div class="flex items-center gap-2 mb-4"><i class="fas fa-database text-cyan-400"></i><h3 class="font-semibold text-white">Datafile &amp; BCT Status</h3></div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-4 font-mono text-xs leading-6"><code><span class="cm">-- Datafile status check</span>
+<span class="kw">SELECT</span> file#, status, name
+<span class="kw">FROM</span>   v$datafile
+<span class="kw">ORDER BY</span> file#;
+
+<span class="kw">SELECT</span> file_name, file_id,
+       tablespace_name, status
+<span class="kw">FROM</span>   dba_data_files
+<span class="kw">ORDER BY</span> file_id;
+
+<span class="cm">-- Block Change Tracking status</span>
+<span class="kw">SELECT</span> status, filename,
+  <span class="fn">ROUND</span>(bytes/1024/1024,<span class="num">1</span>) size_mb
+<span class="kw">FROM</span>   v$block_change_tracking;
+
+<span class="cm">-- Backup mode status</span>
+<span class="kw">SELECT</span> file#, status
+<span class="kw">FROM</span>   v$backup;
+
+<span class="cm">-- RMAN configuration view</span>
+<span class="kw">SELECT</span> name, value
+<span class="kw">FROM</span>   v$rman_configuration;</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- RMAN Command Cheatsheet -->
+  <div class="glass rounded-2xl p-6 border border-white/5 reveal">
+    <h3 class="font-display font-semibold text-white text-xl mb-6">RMAN Commands Cheatsheet</h3>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div>
+        <div class="text-oracle-red text-xs font-semibold uppercase tracking-widest mb-3">Backup</div>
+        <ul class="space-y-2 text-xs font-mono text-neutral-400">
+          <li><span class="text-green-400">BACKUP DATABASE PLUS ARCHIVELOG;</span></li>
+          <li><span class="text-green-400">BACKUP INCREMENTAL LEVEL 0 DATABASE;</span></li>
+          <li><span class="text-green-400">BACKUP TABLESPACE users;</span></li>
+          <li><span class="text-green-400">BACKUP DATAFILE 1;</span></li>
+          <li><span class="text-green-400">BACKUP CURRENT CONTROLFILE;</span></li>
+          <li><span class="text-green-400">BACKUP SPFILE;</span></li>
+          <li><span class="text-green-400">BACKUP ARCHIVELOG ALL;</span></li>
+          <li><span class="text-green-400">BACKUP AS COPY DATABASE;</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="text-blue-400 text-xs font-semibold uppercase tracking-widest mb-3">Restore &amp; Recover</div>
+        <ul class="space-y-2 text-xs font-mono text-neutral-400">
+          <li><span class="text-blue-400">RESTORE DATABASE;</span></li>
+          <li><span class="text-blue-400">RECOVER DATABASE;</span></li>
+          <li><span class="text-blue-400">RESTORE TABLESPACE users;</span></li>
+          <li><span class="text-blue-400">RESTORE DATAFILE 4;</span></li>
+          <li><span class="text-blue-400">RESTORE CONTROLFILE FROM AUTOBACKUP;</span></li>
+          <li><span class="text-blue-400">RESTORE SPFILE FROM AUTOBACKUP;</span></li>
+          <li><span class="text-blue-400">RECOVER TABLE sh.sales UNTIL SCN 1234;</span></li>
+          <li><span class="text-blue-400">SWITCH DATABASE TO COPY;</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-3">Maintenance</div>
+        <ul class="space-y-2 text-xs font-mono text-neutral-400">
+          <li><span class="text-yellow-400">LIST BACKUP SUMMARY;</span></li>
+          <li><span class="text-yellow-400">REPORT OBSOLETE;</span></li>
+          <li><span class="text-yellow-400">REPORT NEED BACKUP;</span></li>
+          <li><span class="text-yellow-400">CROSSCHECK BACKUP;</span></li>
+          <li><span class="text-yellow-400">DELETE NOPROMPT OBSOLETE;</span></li>
+          <li><span class="text-yellow-400">RESTORE DATABASE VALIDATE;</span></li>
+          <li><span class="text-yellow-400">BLOCKRECOVER CORRUPTION LIST;</span></li>
+          <li><span class="text-yellow-400">SHOW ALL;</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="py-16 border-t border-white/5">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-oracle-red to-oracle-dark flex items-center justify-center">
+          <i class="fas fa-database text-white text-sm"></i>
+        </div>
+        <div>
+          <div class="font-display font-bold text-white text-sm">Oracle DBA Simplified</div>
+          <div class="text-neutral-500 text-xs">RMAN Backup &amp; Recovery Reference</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap justify-center">
+        <span class="badge badge-red">Oracle 19c</span>
+        <span class="badge badge-blue">RMAN</span>
+        <span class="badge badge-green">Production DBA</span>
+      </div>
+      <a href="index.html" class="btn-ghost text-sm py-2">
+        <i class="fas fa-arrow-left text-xs"></i> Back to Home
+      </a>
+    </div>
+    <div class="mt-8 pt-8 border-t border-white/5 text-center text-neutral-600 text-xs">
+      Content sourced from Oracle 19c Official Documentation (BRADV) and gavinsoorma.com.au
+    </div>
+  </div>
+</footer>
+
+<!-- Back to top -->
+<button id="btt" class="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-oracle-red/80 text-white flex items-center justify-center opacity-0 transition-opacity duration-300 hover:bg-oracle-red z-40">
+  <i class="fas fa-chevron-up text-sm"></i>
+</button>
+
+<script>
+// Mobile menu
+document.getElementById('mob-btn').addEventListener('click',()=>{ document.getElementById('mob-menu').classList.toggle('open'); });
+
+// Back to top
+const btt=document.getElementById('btt');
+window.addEventListener('scroll',()=>{ btt.style.opacity=window.scrollY>400?'1':'0'; });
+btt.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+// Scroll reveal
+const ro=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+// Tabs generic
+function initTabs(containerId){
+  const container=document.getElementById(containerId);
+  if(!container) return;
+  container.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      container.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      btn.classList.add('active');
+      const t=document.getElementById(btn.dataset.tab);
+      if(t) t.classList.add('active');
+    });
+  });
+}
+initTabs('incr-tabs');
+initTabs('config-tabs');
+initTabs('rec-tabs');
+
+// Architecture diagram component data
+const archData={
+  'rman-client':{icon:'fas fa-terminal',iconColor:'text-oracle-red',bg:'bg-oracle-red/10 border-oracle-red/30',title:'RMAN Client',sub:'rman binary — $ORACLE_HOME/bin/rman',desc:'The command-line executable that orchestrates all backup and recovery operations. Connects to target database (and optionally recovery catalog) via Oracle Net or OS authentication. Sends commands, receives results, and displays output.',points:[{t:'OS Authentication',d:'rman TARGET / — no password needed locally'},{t:'SYSBACKUP Privilege',d:'Dedicated privilege for backup operators (12c+)'},{t:'Command Files',d:'@script.rman — run scripts non-interactively'},{t:'Logging',d:'rman ... LOG /path/rman.log APPEND'}],code:`rman TARGET /\nrman TARGET "sys@prod AS SYSDBA"\nrman @/scripts/daily_backup.rman LOG /logs/rman.log`},
+  'recovery-catalog':{icon:'fas fa-book',iconColor:'text-purple-400',bg:'bg-purple-500/10 border-purple-500/30',title:'Recovery Catalog',sub:'Optional — separate Oracle database schema',desc:'A schema in a separate database that stores extended RMAN metadata. Unlike the control file which has limited space and retention, the catalog keeps full backup history indefinitely. Required for: Virtual Private Catalogs, stored scripts, and backing up physical standby databases.',points:[{t:'Extended History',d:'Keeps records beyond control file limits'},{t:'Multiple Databases',d:'Single catalog can manage multiple target DBs'},{t:'Stored Scripts',d:'RMAN scripts stored and shared in catalog'},{t:'Data Guard',d:'Required for standby database backups'}],code:`rman TARGET / CATALOG rman_cat/pass@catdb\nRMAN> REGISTER DATABASE;\nRMAN> RESYNC CATALOG;\nRMAN> UPGRADE CATALOG;`},
+  'target-db':{icon:'fas fa-database',iconColor:'text-blue-400',bg:'bg-blue-500/10 border-blue-500/30',title:'Target Database',sub:'The database being backed up or recovered',desc:'The production Oracle database that RMAN protects. Must be accessible with SYSDBA or SYSBACKUP privilege. RMAN metadata (RMAN repository) is always stored in its control file, regardless of whether a recovery catalog is used.',points:[{t:'ARCHIVELOG Mode',d:'Required for online (open) backups'},{t:'Control File',d:'Always stores RMAN repository metadata'},{t:'SYSDBA/SYSBACKUP',d:'Required privileges for RMAN connection'},{t:'DBID',d:'Unique identifier needed for autobackup restore'}],code:`-- Enable ARCHIVELOG mode\nSHUTDOWN IMMEDIATE;\nSTARTUP MOUNT;\nALTER DATABASE ARCHIVELOG;\nALTER DATABASE OPEN;`},
+  'control-file':{icon:'fas fa-file-code',iconColor:'text-yellow-400',bg:'bg-yellow-500/10 border-yellow-500/30',title:'Control File (RMAN Repository)',sub:'Primary metadata store for RMAN',desc:'The control file is the authoritative source of RMAN metadata. It records all backup sets, backup pieces, archived logs, data file copies, and their status. Space is limited — older records are overwritten (unlike the catalog). CONTROLFILE_RECORD_KEEP_TIME (default 7 days) controls retention.',points:[{t:'Always Present',d:'RMAN always writes metadata here'},{t:'Limited Space',d:'Older records overwritten after retention period'},{t:'Autobackup Critical',d:'If control file lost without autobackup, DBID needed'},{t:'controlfile_record_keep_time',d:'Default 7 days — increase to 30 for production'}],code:`-- Increase record retention\nALTER SYSTEM SET controlfile_record_keep_time=30;\n\n-- View backup info in control file\nSELECT * FROM v$backup_set;\nSELECT * FROM v$backup_piece;`},
+  'channels':{icon:'fas fa-sitemap',iconColor:'text-green-400',bg:'bg-green-500/10 border-green-500/30',title:'Channels',sub:'One stream of data = one server session',desc:'A channel represents a single backup/restore stream — it connects to one server process in the target database and reads/writes data to a storage device. Increasing channel count enables parallelism. File backed up by one channel (except multisection backups).',points:[{t:'DISK',d:'Writes to filesystem — no media manager'},{t:'SBT (Tape)',d:'Uses media management library (MML)'},{t:'Automatic',d:'Configured with CONFIGURE CHANNEL — persists'},{t:'Manual',d:'ALLOCATE CHANNEL in RUN block — session only'}],code:`-- 4 parallel channels\nCONFIGURE DEVICE TYPE DISK PARALLELISM 4;\nCONFIGURE CHANNEL 1 DEVICE TYPE DISK\n  FORMAT '/disk1/backup_%U';\nCONFIGURE CHANNEL 2 DEVICE TYPE DISK\n  FORMAT '/disk2/backup_%U';`},
+  'server-process':{icon:'fas fa-microchip',iconColor:'text-cyan-400',bg:'bg-cyan-500/10 border-cyan-500/30',title:'Server Process',sub:'One per channel — performs actual I/O',desc:'Each RMAN channel spawns a dedicated server process in the target database instance. This process performs the actual block reads/writes — reading data file blocks, computing checksums, formatting backup pieces, and writing to disk or passing to media manager for tape.',points:[{t:'Per Channel',d:'One server session per allocated channel'},{t:'Block Reads',d:'Reads data file blocks, skips empty blocks'},{t:'Checksum',d:'Verifies block checksums during backup'},{t:'Parallelism',d:'Multiple server processes = parallel streams'}],code:`-- Check active RMAN sessions\nSELECT sid, serial#, username, program\nFROM   v$session\nWHERE  program LIKE '%rman%'\n   OR  module = 'RMAN';`},
+  'archivelog':{icon:'fas fa-scroll',iconColor:'text-orange-400',bg:'bg-orange-500/10 border-orange-500/30',title:'Archive Logs',sub:'Required for online backup and PITR',desc:'Archived redo logs are filled copies of online redo logs saved to disk (or tape). They are the key to recovering an inconsistent (online) backup — RMAN applies archive logs to roll the database forward from the backup SCN to the desired point in time.',points:[{t:'ARCHIVELOG Mode',d:'Database must be in ARCHIVELOG mode for online backup'},{t:'PITR',d:'Archive logs enable point-in-time recovery'},{t:'Retention',d:'Keep enough logs to recover from oldest backup'},{t:'FRA',d:'FRA auto-manages archive log deletion'}],code:`-- Enable archivelog mode\nALTER DATABASE ARCHIVELOG;\n\n-- View archive destination\nARCHIVE LOG LIST;\n\n-- Backup all archive logs\nBACKUP ARCHIVELOG ALL DELETE INPUT;`},
+  'fra':{icon:'fas fa-hard-drive',iconColor:'text-green-400',bg:'bg-green-500/10 border-green-500/30',title:'Fast Recovery Area (FRA)',sub:'Auto-managed disk storage for recovery files',desc:'The FRA is a unified disk destination for all recovery-related files: control file copies, online redo log copies, archived logs, flashback logs, and RMAN backups. Oracle automatically manages space, deleting files that are no longer needed per the retention policy.',points:[{t:'Auto Space Management',d:'Oracle reclaims space when FRA nears capacity'},{t:'Flashback Database',d:'Flashback logs stored in FRA for fast rewind'},{t:'Backup to FRA',d:'Default RMAN backup destination when configured'},{t:'Remote Copy',d:'BACKUP RECOVERY AREA TO DESTINATION — 11g+'}],code:`ALTER SYSTEM SET db_recovery_file_dest_size = 100G;\nALTER SYSTEM SET db_recovery_file_dest = '/fra';\n\n-- Monitor space\nSELECT file_type, percent_space_used\nFROM   v$recovery_area_usage;`},
+  'tape-sbt':{icon:'fas fa-tape',iconColor:'text-yellow-400',bg:'bg-yellow-500/10 border-yellow-500/30',title:'Tape — SBT Channel',sub:'System Backup to Tape via Media Manager',desc:'RMAN supports backup to tape via the SBT (System Backup to Tape) interface. This requires a media management library (MML) such as Oracle Secure Backup or third-party solutions (Veritas NetBackup, IBM Tivoli, etc.). Tape is ideal for long-term/offsite retention.',points:[{t:'MML Required',d:'Oracle Secure Backup or 3rd-party (NBU, TSM)'},{t:'SBT_LIBRARY',d:'Specify media manager library path'},{t:'PARMS',d:'Pass vendor-specific parameters via PARMS clause'},{t:'Tape Pools',d:'Organize tape media into logical pools'}],code:`CONFIGURE CHANNEL DEVICE TYPE SBT\n  PARMS 'SBT_LIBRARY=/usr/local/lib/libobk.so\n         ENV=(OB_MEDIA_FAMILY=monthly_full)';\n\nBACKUP DEVICE TYPE SBT\n  DATABASE PLUS ARCHIVELOG;`},
+  'disk-backup':{icon:'fas fa-floppy-disk',iconColor:'text-blue-400',bg:'bg-blue-500/10 border-blue-500/30',title:'Disk Backup',sub:'Backup Sets and Image Copies on disk',desc:'RMAN can write directly to filesystem — no media manager required. Disk backups are faster and easier to automate for local/NAS storage. Backup sets (proprietary format) skip empty blocks. Image copies are bit-for-bit and usable directly with SWITCH DATABASE TO COPY.',points:[{t:'Backup Sets',d:'Proprietary format, skip empty blocks, support compression'},{t:'Image Copies',d:'OS-readable, larger, enable SWITCH DATABASE TO COPY'},{t:'FRA or Custom',d:'Write to FRA or explicit FORMAT path'},{t:'NFS/Remote',d:'BACKUP RECOVERY AREA TO DESTINATION for remote disk'}],code:`-- Backup set to custom path\nBACKUP DATABASE FORMAT '/backup/%d_%U_%T';\n\n-- Image copy\nBACKUP AS COPY DATABASE FORMAT '/diskb/%f';\n\n-- Duplexed (2 copies)\nBACKUP DATABASE COPIES 2\n  FORMAT '/disk1/%U' FORMAT '/disk2/%U';`}
+};
+
+document.querySelectorAll('.arch-comp').forEach(el=>{
+  el.addEventListener('click',()=>{
+    document.querySelectorAll('.arch-comp').forEach(e=>e.classList.remove('selected'));
+    el.classList.add('selected');
+    const d=archData[el.dataset.comp];
+    if(!d) return;
+    const panel=document.getElementById('arch-info');
+    panel.classList.remove('hidden');
+    document.getElementById('ai-icon').className=`w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${d.bg}`;
+    document.getElementById('ai-icon').innerHTML=`<i class="${d.icon} ${d.iconColor}"></i>`;
+    document.getElementById('ai-title').textContent=d.title;
+    document.getElementById('ai-sub').textContent=d.sub;
+    document.getElementById('ai-desc').textContent=d.desc;
+    const pts=document.getElementById('ai-points');
+    pts.innerHTML=d.points.map(p=>`<div class="glass rounded-lg p-2 border border-white/5"><div class="text-white text-xs font-semibold">${p.t}</div><div class="text-neutral-500 text-xs mt-0.5">${p.d}</div></div>`).join('');
+    const cd=document.getElementById('ai-code');
+    cd.innerHTML=`<div class="terminal"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-4 font-mono text-xs text-neutral-300 whitespace-pre-wrap leading-6">${d.code}</pre></div>`;
+    panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+});
+
+// Active nav on scroll
+const sections=document.querySelectorAll('section[id]');
+const navLinks=document.querySelectorAll('.nav-link');
+window.addEventListener('scroll',()=>{
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  navLinks.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+});
+</script>
+</body>
+</html>

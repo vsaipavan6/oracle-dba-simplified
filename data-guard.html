@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Oracle Data Guard | Oracle DBA Simplified</title>
+  <meta name="description" content="Oracle 19c Data Guard — Physical Standby creation, protection modes, switchover, failover, Active Data Guard, Broker DGMGRL, monitoring and troubleshooting."/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config={darkMode:'class',theme:{extend:{colors:{oracle:{red:'#eab308',dark:'#a16207',light:'#facc15'}},fontFamily:{display:['Sora','sans-serif'],body:['DM Sans','sans-serif'],mono:['JetBrains Mono','monospace']}}}}
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{--color-primary:#eab308;--color-primary-hover:#a16207;--color-surface:#111118;--color-border:#1e1e2e;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#0a0a0f;color:#e2e8f0;overflow-x:hidden;}
+    ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:#0a0a0f;}::-webkit-scrollbar-thumb{background:#eab308;border-radius:3px;}
+    .glass{background:rgba(255,255,255,0.04);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);}
+    .glass-strong{background:rgba(255,255,255,0.07);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);}
+    .gradient-text{background:linear-gradient(135deg,#eab308,#facc15,#fde68a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .gradient-text-w{background:linear-gradient(135deg,#fff,#cbd5e1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12;pointer-events:none;}
+    .grid-bg{background-image:linear-gradient(rgba(234,179,8,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(234,179,8,.03) 1px,transparent 1px);background-size:64px 64px;}
+    .nav-link{font-size:.875rem;color:#94a3b8;transition:color .2s;}
+    .nav-link:hover,.nav-link.active{color:#facc15;}
+    .btn-primary{background:linear-gradient(135deg,#eab308,#a16207);color:#fff;border-radius:6px;padding:10px 24px;font-weight:600;font-size:.875rem;transition:all .2s;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(234,179,8,.4);}
+    .btn-ghost{background:transparent;color:#e2e8f0;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:10px 24px;font-weight:500;font-size:.875rem;transition:all .2s;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-ghost:hover{border-color:rgba(234,179,8,.5);color:#eab308;}
+    .badge{font-size:.75rem;padding:3px 10px;border-radius:100px;font-weight:600;display:inline-block;}
+    .badge-red{background:rgba(199,70,52,.15);color:#E8604A;border:1px solid rgba(199,70,52,.25);}
+    .badge-blue{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.25);}
+    .badge-green{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);}
+    .badge-purple{background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.25);}
+    .badge-orange{background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.25);}
+    .badge-cyan{background:rgba(6,182,212,.15);color:#22d3ee;border:1px solid rgba(6,182,212,.25);}
+    .badge-yellow{background:rgba(234,179,8,.15);color:#facc15;border:1px solid rgba(234,179,8,.25);}
+    .reveal{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease;}
+    .reveal.visible{opacity:1;transform:none;}
+    .terminal{background:#0d0d14;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden;}
+    .terminal-bar{background:#1a1a25;padding:10px 16px;display:flex;align-items:center;gap:8px;}
+    .t-dot{width:11px;height:11px;border-radius:50%;}
+    code .kw{color:#ff7eb6;} code .fn{color:#78d4f4;} code .str{color:#a8ff78;} code .cm{color:#6b7280;font-style:italic;} code .num{color:#ffb347;} code .op{color:#e2e8f0;}
+    .tab-btn{padding:8px 18px;border-radius:8px;font-size:.8rem;font-weight:600;transition:all .2s;cursor:pointer;border:1px solid transparent;color:#64748b;}
+    .tab-btn.active,.tab-btn:hover{background:rgba(199,70,52,.12);color:#C74634;border-color:rgba(234,179,8,.3);}
+    .tab-content{display:none;}.tab-content.active{display:block;}
+    .proc-card{transition:transform .25s,box-shadow .25s;}
+    .proc-card:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(0,0,0,.4);}
+    .acc-content{max-height:0;overflow:hidden;transition:max-height .4s ease;}
+    .acc-content.open{max-height:2000px;}
+    .acc-icon{transition:transform .3s;}
+    .acc-btn.open .acc-icon{transform:rotate(180deg);}
+    .flow-step{position:relative;}
+    .flow-step:not(:last-child)::after{content:'';position:absolute;left:23px;top:100%;width:2px;height:28px;background:linear-gradient(to bottom,#C74634,transparent);}
+    #mob-menu{max-height:0;overflow:hidden;transition:max-height .4s;}
+    #mob-menu.open{max-height:600px;}
+    .dg-comp{transition:all .25s;cursor:pointer;}
+    .dg-comp:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(234,179,8,.3);}
+    .dg-comp.selected{box-shadow:0 0 0 2px #C74634,0 0 24px rgba(234,179,8,.4);}
+    .redo-arrow{display:flex;align-items:center;gap:0;flex-direction:column;}
+    .step-num{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;flex-shrink:0;}
+  </style>
+</head>
+<body class="dark grid-bg">
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/5">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="flex items-center gap-2 text-neutral-400 hover:text-oracle-red transition-colors text-sm font-medium">
+        <i class="fas fa-arrow-left text-xs"></i> Back to Home
+      </a>
+      <span class="text-neutral-700">|</span>
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-md bg-gradient-to-br from-oracle-red to-oracle-dark flex items-center justify-center">
+          <i class="fas fa-shield-alt text-white text-xs"></i>
+        </div>
+        <span class="font-display font-bold text-white text-sm">Oracle DBA Simplified</span>
+      </div>
+    </div>
+    <div class="hidden md:flex items-center gap-5">
+      <a href="#overview" class="nav-link">Overview</a>
+      <a href="#architecture" class="nav-link">Architecture</a>
+      <a href="#standby-types" class="nav-link">Standby Types</a>
+      <a href="#protection-modes" class="nav-link">Protection Modes</a>
+      <a href="#creation" class="nav-link">Creation</a>
+      <a href="#role-transitions" class="nav-link">Switchover/Failover</a>
+      <a href="#broker" class="nav-link">Broker</a>
+      <a href="#monitoring" class="nav-link">Monitoring</a>
+    </div>
+    <button id="mob-btn" class="md:hidden text-neutral-400 hover:text-white"><i class="fas fa-bars"></i></button>
+  </div>
+  <div id="mob-menu" class="md:hidden px-6 pb-4">
+    <div class="flex flex-col gap-3 pt-2">
+      <a href="#overview" class="nav-link">Overview</a><a href="#architecture" class="nav-link">Architecture</a>
+      <a href="#standby-types" class="nav-link">Standby Types</a><a href="#protection-modes" class="nav-link">Protection Modes</a>
+      <a href="#creation" class="nav-link">Creation</a><a href="#role-transitions" class="nav-link">Switchover/Failover</a>
+      <a href="#broker" class="nav-link">Broker</a><a href="#monitoring" class="nav-link">Monitoring</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
+  <div class="orb w-96 h-96 bg-oracle-red top-20 left-10"></div>
+  <div class="orb w-80 h-80 bg-blue-600 bottom-20 right-10"></div>
+  <div class="orb w-64 h-64 bg-purple-600 top-40 right-1/3"></div>
+  <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
+    <div class="flex justify-center mb-8">
+      <div class="relative w-40 h-40">
+        <div class="absolute inset-0 rounded-full bg-oracle-red/10 animate-ping" style="animation-duration:2.5s"></div>
+        <div class="absolute inset-4 rounded-full bg-oracle-red/15 animate-pulse"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="w-28 h-28 rounded-2xl glass-strong flex items-center justify-center border border-oracle-red/40">
+            <i class="fas fa-shield-halved text-oracle-red" style="font-size:3rem"></i>
+          </div>
+        </div>
+        <!-- satellites -->
+        <div class="absolute -top-2 -right-2 w-10 h-10 rounded-xl glass flex items-center justify-center border border-blue-500/30"><i class="fas fa-server text-blue-400 text-sm"></i></div>
+        <div class="absolute -bottom-2 -left-2 w-10 h-10 rounded-xl glass flex items-center justify-center border border-green-500/30"><i class="fas fa-rotate text-green-400 text-sm"></i></div>
+        <div class="absolute top-4 -left-4 w-9 h-9 rounded-xl glass flex items-center justify-center border border-purple-500/30"><i class="fas fa-eye text-purple-400 text-xs"></i></div>
+      </div>
+    </div>
+    <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-6 border border-oracle-red/20">
+      <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+      <span class="text-sm text-neutral-400 font-medium">Oracle 19c Data Guard Complete Guide</span>
+    </div>
+    <h1 class="font-display font-bold text-5xl md:text-7xl mb-6 leading-tight">
+      <span class="gradient-text-w">Oracle</span><br/>
+      <span class="gradient-text">Data Guard</span>
+    </h1>
+    <p class="text-neutral-400 text-xl max-w-3xl mx-auto mb-10 leading-relaxed">
+      Oracle's enterprise disaster recovery solution — maintaining synchronized standby databases, enabling zero-data-loss protection, and sub-second automated failover for 24×7 production environments.
+    </p>
+    <div class="flex flex-wrap justify-center gap-3 mb-12">
+      <a href="#architecture" class="badge badge-red cursor-pointer hover:scale-105 transition-transform py-2 px-4">Architecture</a>
+      <a href="#standby-types" class="badge badge-blue cursor-pointer hover:scale-105 transition-transform py-2 px-4">Standby Types</a>
+      <a href="#protection-modes" class="badge badge-green cursor-pointer hover:scale-105 transition-transform py-2 px-4">Protection Modes</a>
+      <a href="#creation" class="badge badge-purple cursor-pointer hover:scale-105 transition-transform py-2 px-4">Physical Standby Creation</a>
+      <a href="#role-transitions" class="badge badge-orange cursor-pointer hover:scale-105 transition-transform py-2 px-4">Switchover / Failover</a>
+      <a href="#broker" class="badge badge-cyan cursor-pointer hover:scale-105 transition-transform py-2 px-4">Data Guard Broker</a>
+      <a href="#fsfo" class="badge badge-yellow cursor-pointer hover:scale-105 transition-transform py-2 px-4">Fast-Start Failover</a>
+      <a href="#monitoring" class="badge badge-purple cursor-pointer hover:scale-105 transition-transform py-2 px-4">Monitoring</a>
+      <a href="#troubleshooting" class="badge badge-red cursor-pointer hover:scale-105 transition-transform py-2 px-4">Troubleshooting</a>
+    </div>
+    <div class="glass rounded-2xl p-6 max-w-4xl mx-auto border border-white/5 grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div class="text-center"><div class="font-display font-bold text-3xl gradient-text">0</div><div class="text-neutral-500 text-sm mt-1">Data Loss (Max Protection)</div></div>
+      <div class="text-center"><div class="font-display font-bold text-3xl gradient-text">30</div><div class="text-neutral-500 text-sm mt-1">Standby DBs Supported</div></div>
+      <div class="text-center"><div class="font-display font-bold text-3xl gradient-text">&lt;30s</div><div class="text-neutral-500 text-sm mt-1">FSFO Failover Time</div></div>
+      <div class="text-center"><div class="font-display font-bold text-3xl gradient-text">ADG</div><div class="text-neutral-500 text-sm mt-1">Read While Applying</div></div>
+    </div>
+  </div>
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-neutral-600"><i class="fas fa-chevron-down"></i></div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-red mb-4">What Is Data Guard?</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Purpose &amp; Core Concepts</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">Data Guard is not just a backup — it is a continuously synchronized, always-ready replica of your production database that can take over in seconds.</p>
+  </div>
+  <div class="grid md:grid-cols-3 gap-6 mb-10">
+    <div class="glass rounded-2xl p-6 border border-oracle-red/20 reveal">
+      <div class="w-12 h-12 rounded-xl bg-oracle-red/10 border border-oracle-red/20 flex items-center justify-center mb-4"><i class="fas fa-shield-halved text-oracle-red text-xl"></i></div>
+      <h3 class="font-display font-semibold text-white text-lg mb-2">Disaster Recovery</h3>
+      <p class="text-neutral-400 text-sm leading-relaxed">Automatic failover to standby when primary fails. Zero data loss possible with synchronous redo transport. RTO measured in seconds with Fast-Start Failover.</p>
+    </div>
+    <div class="glass rounded-2xl p-6 border border-blue-500/20 reveal">
+      <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4"><i class="fas fa-book-open text-blue-400 text-xl"></i></div>
+      <h3 class="font-display font-semibold text-white text-lg mb-2">Active Data Guard</h3>
+      <p class="text-neutral-400 text-sm leading-relaxed">Physical standby stays open READ ONLY while applying redo. Offload reporting, backups, and ad-hoc queries to standby — reducing primary workload.</p>
+    </div>
+    <div class="glass rounded-2xl p-6 border border-green-500/20 reveal">
+      <div class="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center mb-4"><i class="fas fa-rotate text-green-400 text-xl"></i></div>
+      <h3 class="font-display font-semibold text-white text-lg mb-2">Planned Switchover</h3>
+      <p class="text-neutral-400 text-sm leading-relaxed">Zero-downtime maintenance — switch primary and standby roles gracefully. Useful for patching, upgrades, and data center migrations.</p>
+    </div>
+  </div>
+  <!-- Key Terminology -->
+  <div class="glass rounded-2xl p-8 border border-white/5 reveal">
+    <h3 class="font-display font-semibold text-white text-xl mb-6">Key Terminology</h3>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-white/5">
+        <span class="badge badge-red flex-shrink-0 mt-0.5">Redo Data</span>
+        <p class="text-neutral-400 text-sm">Transaction log entries documenting every database change. The currency Data Guard uses to keep standbys in sync.</p>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-white/5">
+        <span class="badge badge-blue flex-shrink-0 mt-0.5">SRL</span>
+        <p class="text-neutral-400 text-sm">Standby Redo Logs — placeholder redo log files on the standby that receive redo from the primary before it is archived.</p>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-white/5">
+        <span class="badge badge-green flex-shrink-0 mt-0.5">MRP</span>
+        <p class="text-neutral-400 text-sm">Managed Recovery Process — background process on physical standby that applies archived/standby redo logs to keep the standby current.</p>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-white/5">
+        <span class="badge badge-purple flex-shrink-0 mt-0.5">LSP</span>
+        <p class="text-neutral-400 text-sm">LogMiner Server Process — applies SQL changes to a logical standby database via SQL Apply.</p>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-white/5">
+        <span class="badge badge-orange flex-shrink-0 mt-0.5">Switchover</span>
+        <p class="text-neutral-400 text-sm">Planned, graceful role transition. Both databases participate — zero data loss. Fully reversible.</p>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-white/5">
+        <span class="badge badge-red flex-shrink-0 mt-0.5">Failover</span>
+        <p class="text-neutral-400 text-sm">Emergency activation when primary is unavailable. May cause data loss if not fully synchronized. Old primary must be reinstated or dropped.</p>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-white/5">
+        <span class="badge badge-cyan flex-shrink-0 mt-0.5">DGMGRL</span>
+        <p class="text-neutral-400 text-sm">Data Guard Manager command-line tool — manages the broker configuration. Simplifies all DG operations with a single interface.</p>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-white/5">
+        <span class="badge badge-yellow flex-shrink-0 mt-0.5">Observer</span>
+        <p class="text-neutral-400 text-sm">Separate process that monitors the primary and triggers Fast-Start Failover automatically if the primary fails and is unreachable.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture" class="py-24 bg-gradient-to-b from-transparent via-oracle-red/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-blue mb-4">How It Works</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Data Guard Architecture</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">Click any component to understand exactly how it fits in the Data Guard ecosystem.</p>
+    </div>
+    <!-- Interactive Architecture Diagram -->
+    <div class="glass rounded-2xl p-6 border border-oracle-red/15 reveal mb-6">
+      <!-- Primary Side -->
+      <div class="grid md:grid-cols-3 gap-6 items-start mb-6">
+        <!-- PRIMARY DB column -->
+        <div class="flex flex-col gap-3">
+          <div class="text-center text-oracle-red text-xs font-bold uppercase tracking-widest mb-1">Primary Database</div>
+          <div class="dg-comp glass rounded-xl p-4 border border-oracle-red/30 text-center" data-dg="primary-db">
+            <i class="fas fa-database text-oracle-red text-2xl mb-2"></i>
+            <div class="text-white font-semibold text-sm">Primary Database</div>
+            <div class="text-neutral-500 text-xs mt-1">READ WRITE — Production</div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="dg-comp glass rounded-xl p-3 border border-yellow-500/20 text-center" data-dg="lgwr">
+              <i class="fas fa-pen-to-square text-yellow-400 text-lg mb-1"></i>
+              <div class="text-white font-semibold text-xs">LGWR</div>
+              <div class="text-neutral-500 text-xs">Log Writer</div>
+            </div>
+            <div class="dg-comp glass rounded-xl p-3 border border-orange-500/20 text-center" data-dg="arcn">
+              <i class="fas fa-scroll text-orange-400 text-lg mb-1"></i>
+              <div class="text-white font-semibold text-xs">ARCn</div>
+              <div class="text-neutral-500 text-xs">Archiver</div>
+            </div>
+          </div>
+          <div class="dg-comp glass rounded-xl p-3 border border-oracle-red/20 text-center" data-dg="online-redo">
+            <i class="fas fa-rotate text-oracle-red text-lg mb-1"></i>
+            <div class="text-white font-semibold text-xs">Online Redo Logs</div>
+            <div class="text-neutral-500 text-xs">Circular — filled by LGWR</div>
+          </div>
+        </div>
+        <!-- TRANSPORT middle column -->
+        <div class="flex flex-col items-center gap-3 pt-8">
+          <div class="text-center text-neutral-500 text-xs font-bold uppercase tracking-widest mb-1">Redo Transport</div>
+          <div class="dg-comp glass rounded-xl p-4 border border-cyan-500/20 text-center w-full" data-dg="redo-transport">
+            <i class="fas fa-paper-plane text-cyan-400 text-xl mb-2"></i>
+            <div class="text-white font-semibold text-sm">Redo Transport</div>
+            <div class="text-neutral-500 text-xs mt-1">LOG_ARCHIVE_DEST_n</div>
+            <div class="flex justify-center gap-2 mt-2">
+              <span class="badge badge-red text-xs">SYNC</span>
+              <span class="badge badge-blue text-xs">ASYNC</span>
+            </div>
+          </div>
+          <div class="text-neutral-600 text-center text-xs mt-2">Oracle Net (TCP/IP)</div>
+          <div class="w-0.5 h-8 bg-gradient-to-b from-cyan-500/50 to-oracle-red/50"></div>
+          <div class="dg-comp glass rounded-xl p-4 border border-purple-500/20 text-center w-full" data-dg="broker">
+            <i class="fas fa-sliders text-purple-400 text-xl mb-2"></i>
+            <div class="text-white font-semibold text-sm">DG Broker</div>
+            <div class="text-neutral-500 text-xs mt-1">DGMGRL — manages config</div>
+          </div>
+          <div class="dg-comp glass rounded-xl p-4 border border-yellow-500/20 text-center w-full" data-dg="observer">
+            <i class="fas fa-eye text-yellow-400 text-xl mb-2"></i>
+            <div class="text-white font-semibold text-sm">Observer</div>
+            <div class="text-neutral-500 text-xs mt-1">Fast-Start Failover trigger</div>
+          </div>
+        </div>
+        <!-- STANDBY column -->
+        <div class="flex flex-col gap-3">
+          <div class="text-center text-blue-400 text-xs font-bold uppercase tracking-widest mb-1">Standby Database</div>
+          <div class="dg-comp glass rounded-xl p-4 border border-blue-500/30 text-center" data-dg="physical-standby">
+            <i class="fas fa-server text-blue-400 text-2xl mb-2"></i>
+            <div class="text-white font-semibold text-sm">Physical Standby</div>
+            <div class="text-neutral-500 text-xs mt-1">Block-for-block copy</div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="dg-comp glass rounded-xl p-3 border border-green-500/20 text-center" data-dg="srl">
+              <i class="fas fa-file-lines text-green-400 text-lg mb-1"></i>
+              <div class="text-white font-semibold text-xs">SRL</div>
+              <div class="text-neutral-500 text-xs">Standby Redo</div>
+            </div>
+            <div class="dg-comp glass rounded-xl p-3 border border-cyan-500/20 text-center" data-dg="mrp">
+              <i class="fas fa-gears text-cyan-400 text-lg mb-1"></i>
+              <div class="text-white font-semibold text-xs">MRP</div>
+              <div class="text-neutral-500 text-xs">Apply Process</div>
+            </div>
+          </div>
+          <div class="dg-comp glass rounded-xl p-3 border border-purple-500/20 text-center" data-dg="logical-standby">
+            <i class="fas fa-table text-purple-400 text-lg mb-1"></i>
+            <div class="text-white font-semibold text-xs">Logical Standby</div>
+            <div class="text-neutral-500 text-xs">SQL Apply (LSP)</div>
+          </div>
+          <div class="dg-comp glass rounded-xl p-3 border border-orange-500/20 text-center" data-dg="snapshot-standby">
+            <i class="fas fa-camera text-orange-400 text-lg mb-1"></i>
+            <div class="text-white font-semibold text-xs">Snapshot Standby</div>
+            <div class="text-neutral-500 text-xs">Writable for testing</div>
+          </div>
+        </div>
+      </div>
+      <!-- Redo flow visualization -->
+      <div class="glass rounded-xl p-4 border border-white/5 mt-2">
+        <div class="text-xs text-neutral-500 font-semibold uppercase tracking-widest mb-3 text-center">Redo Flow</div>
+        <div class="flex items-center justify-center gap-2 flex-wrap text-xs font-mono">
+          <span class="glass px-3 py-1.5 rounded-lg border border-oracle-red/20 text-oracle-red">User Commit</span>
+          <i class="fas fa-arrow-right text-neutral-600"></i>
+          <span class="glass px-3 py-1.5 rounded-lg border border-yellow-500/20 text-yellow-400">LGWR writes Online Redo</span>
+          <i class="fas fa-arrow-right text-neutral-600"></i>
+          <span class="glass px-3 py-1.5 rounded-lg border border-cyan-500/20 text-cyan-400">Transport to Standby SRL</span>
+          <i class="fas fa-arrow-right text-neutral-600"></i>
+          <span class="glass px-3 py-1.5 rounded-lg border border-green-500/20 text-green-400">ARCn archives SRL</span>
+          <i class="fas fa-arrow-right text-neutral-600"></i>
+          <span class="glass px-3 py-1.5 rounded-lg border border-blue-500/20 text-blue-400">MRP applies to Datafiles</span>
+        </div>
+      </div>
+    </div>
+    <!-- Info Panel -->
+    <div id="dg-info" class="glass rounded-2xl p-6 border border-oracle-red/20 hidden reveal">
+      <div class="flex items-start gap-4">
+        <div id="dgi-icon" class="w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"></div>
+        <div class="flex-1">
+          <h3 id="dgi-title" class="font-display font-bold text-white text-xl mb-1"></h3>
+          <p id="dgi-sub" class="text-oracle-red text-sm font-medium mb-3"></p>
+          <p id="dgi-desc" class="text-neutral-400 text-sm leading-relaxed mb-4"></p>
+          <div id="dgi-points" class="grid md:grid-cols-2 gap-2 mb-4"></div>
+          <div id="dgi-code"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STANDBY TYPES -->
+<section id="standby-types" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-blue mb-4">Database Roles</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Types of Standby Databases</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">Three flavors of standby — choose based on your recovery objectives, reporting needs, and testing requirements.</p>
+  </div>
+  <div id="sb-tabs" class="glass rounded-2xl p-6 border border-white/5 reveal">
+    <div class="flex flex-wrap gap-2 mb-6">
+      <button class="tab-btn active" data-tab="sb-physical">Physical Standby</button>
+      <button class="tab-btn" data-tab="sb-logical">Logical Standby</button>
+      <button class="tab-btn" data-tab="sb-snapshot">Snapshot Standby</button>
+      <button class="tab-btn" data-tab="sb-compare">Comparison</button>
+    </div>
+    <div id="sb-physical" class="tab-content active">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center"><i class="fas fa-server text-blue-400"></i></div>
+            <div><h4 class="font-semibold text-white text-lg">Physical Standby</h4><span class="badge badge-blue text-xs">Most Common</span></div>
+          </div>
+          <p class="text-neutral-400 text-sm mb-4 leading-relaxed">An exact, block-for-block copy of the primary database maintained through Redo Apply (MRP process). Physically identical at the storage level — same datafiles, same block layout, same SCN. <strong class="text-white">The recommended standby type for disaster recovery.</strong></p>
+          <div class="space-y-3">
+            <div class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">Supports Active Data Guard (READ ONLY + applying redo)</div></div>
+            <div class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">Can support ALL Oracle data types and DDL</div></div>
+            <div class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">Can offload RMAN backups from primary</div></div>
+            <div class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">Simplest to create using RMAN DUPLICATE</div></div>
+            <div class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">Fast-Start Failover supported</div></div>
+            <div class="flex items-start gap-2"><i class="fas fa-xmark text-neutral-600 mt-1 text-xs"></i><div class="text-sm text-neutral-500">Cannot run DML/DDL (read-only unless ADG license)</div></div>
+          </div>
+          <div class="glass rounded-xl p-4 border border-blue-500/15 mt-4">
+            <div class="text-xs text-neutral-500 font-semibold mb-2">Key Process: MRP (Managed Recovery Process)</div>
+            <div class="space-y-1 text-xs text-neutral-400">
+              <div>• Reads archived logs / SRL on standby</div>
+              <div>• Applies changes block-by-block to datafiles</div>
+              <div>• Runs with <code class="text-green-400">ALTER DATABASE RECOVER MANAGED STANDBY DATABASE</code></div>
+            </div>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Physical Standby — Key Commands</span></div>
+          <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Start Redo Apply (MRP)</span>
+<span class="kw">ALTER DATABASE</span> <span class="fn">RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="fn">DISCONNECT FROM SESSION</span>;
+
+<span class="cm">-- Active Data Guard: read-only + apply</span>
+<span class="kw">ALTER DATABASE</span> <span class="fn">RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="fn">USING CURRENT LOGFILE DISCONNECT</span>;
+
+<span class="cm">-- Cancel Redo Apply</span>
+<span class="kw">ALTER DATABASE</span> <span class="fn">RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="fn">CANCEL</span>;
+
+<span class="cm">-- Verify apply is running</span>
+<span class="kw">SELECT</span> process, status, sequence#
+<span class="kw">FROM</span>   v$managed_standby
+<span class="kw">WHERE</span>  process = <span class="str">'MRP0'</span>;
+
+<span class="cm">-- Check apply lag</span>
+<span class="kw">SELECT</span> name, value, unit
+<span class="kw">FROM</span>   v$dataguard_stats
+<span class="kw">WHERE</span>  name <span class="kw">IN</span> (<span class="str">'apply lag'</span>,<span class="str">'transport lag'</span>);</code></pre>
+        </div>
+      </div>
+    </div>
+    <div id="sb-logical" class="tab-content">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center"><i class="fas fa-table text-purple-400"></i></div>
+            <div><h4 class="font-semibold text-white text-lg">Logical Standby</h4><span class="badge badge-purple text-xs">SQL Apply</span></div>
+          </div>
+          <p class="text-neutral-400 text-sm mb-4 leading-relaxed">Maintained via SQL Apply — redo is mined using LogMiner, converted to SQL statements, and applied to the standby. The logical standby is always open READ WRITE and can have additional objects not on the primary.</p>
+          <div class="space-y-3">
+            <div class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">Database always OPEN — run reporting queries</div></div>
+            <div class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">Additional indexes, MVs, and tables allowed</div></div>
+            <div class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">Different physical structure from primary</div></div>
+            <div class="flex items-start gap-2"><i class="fas fa-xmark text-red-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">Not all data types supported by SQL Apply</div></div>
+            <div class="flex items-start gap-2"><i class="fas fa-xmark text-red-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">More complex to set up and maintain</div></div>
+            <div class="flex items-start gap-2"><i class="fas fa-xmark text-red-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">Higher apply lag vs physical standby</div></div>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Logical Standby — SQL Apply</span></div>
+          <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Start SQL Apply</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">START LOGICAL STANDBY APPLY IMMEDIATE</span>;
+
+<span class="cm">-- Stop SQL Apply</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">STOP LOGICAL STANDBY APPLY</span>;
+
+<span class="cm">-- Monitor SQL Apply</span>
+<span class="kw">SELECT</span> status, applied_scn, latest_scn
+<span class="kw">FROM</span>   v$logstdby_progress;
+
+<span class="kw">SELECT</span> event, severity, status
+<span class="kw">FROM</span>   dba_logstdby_events
+<span class="kw">ORDER BY</span> event_time <span class="fn">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">20</span> <span class="kw">ROWS ONLY</span>;
+
+<span class="cm">-- Skip unsupported tables</span>
+<span class="kw">EXECUTE</span> <span class="fn">DBMS_LOGSTDBY.SKIP</span>(
+  <span class="str">'DML'</span>, <span class="str">'SCOTT'</span>, <span class="str">'UNSUPPORTED_TABLE'</span>);</code></pre>
+        </div>
+      </div>
+    </div>
+    <div id="sb-snapshot" class="tab-content">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center"><i class="fas fa-camera text-orange-400"></i></div>
+            <div><h4 class="font-semibold text-white text-lg">Snapshot Standby</h4><span class="badge badge-orange text-xs">Writable for Testing</span></div>
+          </div>
+          <p class="text-neutral-400 text-sm mb-4 leading-relaxed">A physical standby temporarily converted to a READ WRITE state for testing/development. Changes made during snapshot mode are discarded when converted back to physical standby — Flashback Database handles the rewind.</p>
+          <div class="space-y-3">
+            <div class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">Full READ WRITE access for testing</div></div>
+            <div class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">Continues receiving redo from primary during testing</div></div>
+            <div class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">All test changes discarded on revert</div></div>
+            <div class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-1 text-xs"></i><div class="text-sm text-neutral-300">No separate dev database needed</div></div>
+            <div class="glass rounded-xl p-3 border border-yellow-500/20 mt-2 text-xs text-neutral-400">
+              <i class="fas fa-triangle-exclamation text-yellow-400 mr-1"></i>
+              Requires Flashback Database enabled. Archivelog accumulates during snapshot period — ensure FRA has space.
+            </div>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Snapshot Standby Conversion</span></div>
+          <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Prerequisites on standby</span>
+<span class="kw">SELECT</span> flashback_on <span class="kw">FROM</span> v$database;
+<span class="cm">-- Must be YES</span>
+
+<span class="cm">-- Step 1: Stop MRP (Redo Apply)</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE CANCEL</span>;
+
+<span class="cm">-- Step 2: Convert to Snapshot Standby</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">CONVERT TO SNAPSHOT STANDBY</span>;
+<span class="kw">ALTER DATABASE OPEN</span>;
+
+<span class="cm">-- ... do testing, run DML, etc. ...</span>
+
+<span class="cm">-- Step 3: Revert back to Physical Standby</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">CONVERT TO PHYSICAL STANDBY</span>;
+<span class="fn">STARTUP MOUNT</span>;
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="fn">DISCONNECT</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+    <div id="sb-compare" class="tab-content">
+      <h4 class="font-semibold text-white mb-4 text-lg">Standby Type Comparison</h4>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="border-b border-white/10"><th class="text-left py-3 text-neutral-400 font-semibold">Feature</th><th class="text-center py-3 text-blue-400 font-semibold">Physical</th><th class="text-center py-3 text-purple-400 font-semibold">Logical</th><th class="text-center py-3 text-orange-400 font-semibold">Snapshot</th></tr></thead>
+          <tbody class="divide-y divide-white/5 text-neutral-300">
+            <tr><td class="py-3">Apply method</td><td class="text-center py-3 text-xs">Redo Apply (MRP)</td><td class="text-center py-3 text-xs">SQL Apply (LSP)</td><td class="text-center py-3 text-xs">Physical (when active)</td></tr>
+            <tr><td class="py-3">Open mode during apply</td><td class="text-center py-3"><span class="badge badge-blue text-xs">MOUNTED or ADG</span></td><td class="text-center py-3"><span class="badge badge-green text-xs">READ WRITE</span></td><td class="text-center py-3"><span class="badge badge-orange text-xs">READ WRITE</span></td></tr>
+            <tr><td class="py-3">Data type support</td><td class="text-center py-3"><i class="fas fa-check text-green-400"></i> All</td><td class="text-center py-3"><i class="fas fa-minus text-yellow-400"></i> Limited</td><td class="text-center py-3"><i class="fas fa-check text-green-400"></i> All</td></tr>
+            <tr><td class="py-3">Active Data Guard</td><td class="text-center py-3"><i class="fas fa-check text-green-400"></i></td><td class="text-center py-3">N/A</td><td class="text-center py-3"><i class="fas fa-xmark text-red-400"></i></td></tr>
+            <tr><td class="py-3">Fast-Start Failover</td><td class="text-center py-3"><i class="fas fa-check text-green-400"></i></td><td class="text-center py-3"><i class="fas fa-check text-green-400"></i></td><td class="text-center py-3"><i class="fas fa-xmark text-red-400"></i></td></tr>
+            <tr><td class="py-3">Complexity</td><td class="text-center py-3 text-green-400">Low</td><td class="text-center py-3 text-red-400">High</td><td class="text-center py-3 text-yellow-400">Medium</td></tr>
+            <tr><td class="py-3">Recommended for</td><td class="text-center py-3 text-xs">DR / HA</td><td class="text-center py-3 text-xs">Reporting / ETL</td><td class="text-center py-3 text-xs">Test / Dev</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROTECTION MODES -->
+<section id="protection-modes" class="py-24 bg-gradient-to-b from-transparent via-oracle-red/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-green mb-4">Data Protection</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Protection Modes</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">Three modes that define the balance between data protection and primary database performance. The mode is set on the primary database.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6 mb-10">
+      <!-- Maximum Protection -->
+      <div class="glass rounded-2xl p-6 border border-oracle-red/30 reveal">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-xl bg-oracle-red/10 border border-oracle-red/30 flex items-center justify-center"><i class="fas fa-lock text-oracle-red text-xl"></i></div>
+          <span class="badge badge-red">Zero Data Loss</span>
+        </div>
+        <h3 class="font-display font-semibold text-white text-xl mb-3">Maximum Protection</h3>
+        <p class="text-neutral-400 text-sm mb-4 leading-relaxed">Guarantees <strong class="text-white">zero data loss</strong> even if the primary database fails. Every transaction must be written to a standby redo log on at least one synchronized standby before the primary commits.</p>
+        <div class="space-y-2 text-sm mb-4">
+          <div class="flex items-start gap-2"><i class="fas fa-circle text-oracle-red text-xs mt-1.5"></i><div class="text-neutral-300">Redo transport: <strong>SYNC + AFFIRM</strong></div></div>
+          <div class="flex items-start gap-2"><i class="fas fa-circle text-oracle-red text-xs mt-1.5"></i><div class="text-neutral-300">If standby unavailable: <strong class="text-red-400">primary SHUTS DOWN</strong></div></div>
+          <div class="flex items-start gap-2"><i class="fas fa-circle text-oracle-red text-xs mt-1.5"></i><div class="text-neutral-300">Requires at least 1 synchronized standby</div></div>
+          <div class="flex items-start gap-2"><i class="fas fa-circle text-oracle-red text-xs mt-1.5"></i><div class="text-neutral-300">Highest availability cost — primary can stall</div></div>
+        </div>
+        <div class="terminal text-xs">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+          <pre class="p-3 font-mono text-xs"><code><span class="kw">ALTER DATABASE</span>
+  <span class="fn">SET STANDBY DATABASE TO MAXIMIZE</span>
+  <span class="fn">PROTECTION</span>;
+
+<span class="cm">-- Transport: SYNC AFFIRM</span>
+<span class="cm">LOG_ARCHIVE_DEST_2=</span>
+<span class="str">'SERVICE=stby SYNC AFFIRM
+ VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE)
+ DB_UNIQUE_NAME=stby'</span></code></pre>
+        </div>
+      </div>
+      <!-- Maximum Availability -->
+      <div class="glass rounded-2xl p-6 border border-green-500/30 reveal" style="transition-delay:.1s">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center justify-center"><i class="fas fa-star text-green-400 text-xl"></i></div>
+          <span class="badge badge-green">Recommended</span>
+        </div>
+        <h3 class="font-display font-semibold text-white text-xl mb-3">Maximum Availability</h3>
+        <p class="text-neutral-400 text-sm mb-4 leading-relaxed">Best balance of protection and availability. Zero data loss <strong class="text-white">when standby is reachable</strong>. If the standby becomes unavailable, the primary continues in Maximum Performance mode rather than shutting down.</p>
+        <div class="space-y-2 text-sm mb-4">
+          <div class="flex items-start gap-2"><i class="fas fa-circle text-green-400 text-xs mt-1.5"></i><div class="text-neutral-300">Redo transport: <strong>SYNC AFFIRM</strong> (when available)</div></div>
+          <div class="flex items-start gap-2"><i class="fas fa-circle text-green-400 text-xs mt-1.5"></i><div class="text-neutral-300">If standby fails: <strong class="text-yellow-400">primary continues</strong> (no shutdown)</div></div>
+          <div class="flex items-start gap-2"><i class="fas fa-circle text-green-400 text-xs mt-1.5"></i><div class="text-neutral-300">Zero data loss when configured correctly</div></div>
+          <div class="flex items-start gap-2"><i class="fas fa-circle text-green-400 text-xs mt-1.5"></i><div class="text-neutral-300"><strong class="text-white">Default recommendation</strong> for production</div></div>
+        </div>
+        <div class="terminal text-xs">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+          <pre class="p-3 font-mono text-xs"><code><span class="kw">ALTER DATABASE</span>
+  <span class="fn">SET STANDBY DATABASE TO MAXIMIZE</span>
+  <span class="fn">AVAILABILITY</span>;
+
+<span class="cm">-- Transport: SYNC AFFIRM</span>
+<span class="cm">-- Primary won't stall if standby unavail</span>
+<span class="cm">-- FSFO most effective in this mode</span></code></pre>
+        </div>
+      </div>
+      <!-- Maximum Performance -->
+      <div class="glass rounded-2xl p-6 border border-blue-500/30 reveal" style="transition-delay:.2s">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center"><i class="fas fa-bolt text-blue-400 text-xl"></i></div>
+          <span class="badge badge-blue">Default</span>
+        </div>
+        <h3 class="font-display font-semibold text-white text-xl mb-3">Maximum Performance</h3>
+        <p class="text-neutral-400 text-sm mb-4 leading-relaxed">Default mode. Highest primary database performance. Redo is shipped asynchronously — primary commits without waiting for standby acknowledgment. Some data loss possible if primary fails.</p>
+        <div class="space-y-2 text-sm mb-4">
+          <div class="flex items-start gap-2"><i class="fas fa-circle text-blue-400 text-xs mt-1.5"></i><div class="text-neutral-300">Redo transport: <strong>ASYNC NOAFFIRM</strong></div></div>
+          <div class="flex items-start gap-2"><i class="fas fa-circle text-blue-400 text-xs mt-1.5"></i><div class="text-neutral-300">Primary performance <strong>not impacted</strong> by network</div></div>
+          <div class="flex items-start gap-2"><i class="fas fa-circle text-blue-400 text-xs mt-1.5"></i><div class="text-neutral-300">Some data loss possible (seconds to minutes)</div></div>
+          <div class="flex items-start gap-2"><i class="fas fa-circle text-blue-400 text-xs mt-1.5"></i><div class="text-neutral-300">Best for geographically distant standbys</div></div>
+        </div>
+        <div class="terminal text-xs">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+          <pre class="p-3 font-mono text-xs"><code><span class="kw">ALTER DATABASE</span>
+  <span class="fn">SET STANDBY DATABASE TO MAXIMIZE</span>
+  <span class="fn">PERFORMANCE</span>;
+
+<span class="cm">-- Transport: ASYNC (default)</span>
+<span class="cm">LOG_ARCHIVE_DEST_2=</span>
+<span class="str">'SERVICE=stby ASYNC
+ VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE)
+ DB_UNIQUE_NAME=stby'</span></code></pre>
+        </div>
+      </div>
+    </div>
+    <!-- Mode comparison table -->
+    <div class="glass rounded-2xl p-6 border border-white/5 reveal">
+      <h3 class="font-semibold text-white mb-4">Mode Decision Matrix</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="border-b border-white/10"><th class="text-left py-3 text-neutral-400">Scenario</th><th class="text-center py-3 text-oracle-red">Max Protection</th><th class="text-center py-3 text-green-400">Max Availability</th><th class="text-center py-3 text-blue-400">Max Performance</th></tr></thead>
+          <tbody class="divide-y divide-white/5">
+            <tr><td class="py-2.5 text-neutral-300">Financial / Zero data loss mandatory</td><td class="text-center py-2.5"><i class="fas fa-check text-green-400"></i></td><td class="text-center py-2.5"><i class="fas fa-check text-green-400"></i></td><td class="text-center py-2.5"><i class="fas fa-xmark text-red-400"></i></td></tr>
+            <tr><td class="py-2.5 text-neutral-300">Primary must not stall on network issues</td><td class="text-center py-2.5"><i class="fas fa-xmark text-red-400"></i></td><td class="text-center py-2.5"><i class="fas fa-check text-green-400"></i></td><td class="text-center py-2.5"><i class="fas fa-check text-green-400"></i></td></tr>
+            <tr><td class="py-2.5 text-neutral-300">WAN / Remote DR site (&gt;100ms latency)</td><td class="text-center py-2.5"><i class="fas fa-xmark text-red-400"></i></td><td class="text-center py-2.5"><i class="fas fa-minus text-yellow-400"></i></td><td class="text-center py-2.5"><i class="fas fa-check text-green-400"></i></td></tr>
+            <tr><td class="py-2.5 text-neutral-300">Fast-Start Failover (FSFO)</td><td class="text-center py-2.5">Not typical</td><td class="text-center py-2.5"><i class="fas fa-check text-green-400"></i> Best</td><td class="text-center py-2.5"><i class="fas fa-check text-yellow-400"></i> With lag</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PHYSICAL STANDBY CREATION -->
+<section id="creation" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-purple mb-4">Step-by-Step</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Physical Standby Creation</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">Complete walkthrough using RMAN DUPLICATE — the recommended and simplest method for creating a physical standby database in Oracle 19c.</p>
+  </div>
+
+  <div id="create-tabs" class="glass rounded-2xl p-6 border border-white/5 reveal mb-8">
+    <div class="flex flex-wrap gap-2 mb-6">
+      <button class="tab-btn active" data-tab="cr-prereq">1. Prerequisites</button>
+      <button class="tab-btn" data-tab="cr-primary">2. Configure Primary</button>
+      <button class="tab-btn" data-tab="cr-network">3. Network &amp; Listeners</button>
+      <button class="tab-btn" data-tab="cr-standby-init">4. Standby Init</button>
+      <button class="tab-btn" data-tab="cr-duplicate">5. RMAN Duplicate</button>
+      <button class="tab-btn" data-tab="cr-start-apply">6. Start Apply</button>
+      <button class="tab-btn" data-tab="cr-verify">7. Verify</button>
+    </div>
+
+    <div id="cr-prereq" class="tab-content active">
+      <h4 class="font-semibold text-white mb-3 text-lg">Prerequisites Checklist</h4>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="space-y-3">
+          <div class="flex items-start gap-3 glass rounded-xl p-3 border border-green-500/15">
+            <i class="fas fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+            <div><div class="text-white text-sm font-semibold">ARCHIVELOG Mode on Primary</div><div class="text-neutral-500 text-xs">SELECT log_mode FROM v$database; — must show ARCHIVELOG</div></div>
+          </div>
+          <div class="flex items-start gap-3 glass rounded-xl p-3 border border-green-500/15">
+            <i class="fas fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+            <div><div class="text-white text-sm font-semibold">FORCE LOGGING Enabled</div><div class="text-neutral-500 text-xs">ALTER DATABASE FORCE LOGGING; — ensures all changes generate redo</div></div>
+          </div>
+          <div class="flex items-start gap-3 glass rounded-xl p-3 border border-green-500/15">
+            <i class="fas fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+            <div><div class="text-white text-sm font-semibold">Password File on Both Servers</div><div class="text-neutral-500 text-xs">orapwd file=$ORACLE_HOME/dbs/orapwSID — SYSDG and SYSDBA entries</div></div>
+          </div>
+          <div class="flex items-start gap-3 glass rounded-xl p-3 border border-green-500/15">
+            <i class="fas fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+            <div><div class="text-white text-sm font-semibold">Same Oracle Version</div><div class="text-neutral-500 text-xs">Primary and standby must have same major release (e.g., 19.3.0.0)</div></div>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3 glass rounded-xl p-3 border border-blue-500/15">
+            <i class="fas fa-info-circle text-blue-400 mt-0.5 flex-shrink-0"></i>
+            <div><div class="text-white text-sm font-semibold">DB_UNIQUE_NAME Must Differ</div><div class="text-neutral-500 text-xs">Primary: DB_NAME=PROD, DB_UNIQUE_NAME=PROD<br/>Standby: DB_NAME=PROD, DB_UNIQUE_NAME=STBY</div></div>
+          </div>
+          <div class="flex items-start gap-3 glass rounded-xl p-3 border border-blue-500/15">
+            <i class="fas fa-info-circle text-blue-400 mt-0.5 flex-shrink-0"></i>
+            <div><div class="text-white text-sm font-semibold">Standby Redo Logs (SRL) Required</div><div class="text-neutral-500 text-xs">At least (max online redo log groups + 1) per thread. Same or larger size as online redo logs.</div></div>
+          </div>
+          <div class="flex items-start gap-3 glass rounded-xl p-3 border border-blue-500/15">
+            <i class="fas fa-info-circle text-blue-400 mt-0.5 flex-shrink-0"></i>
+            <div><div class="text-white text-sm font-semibold">Static Listener on Standby</div><div class="text-neutral-500 text-xs">Standby listener.ora must have static entry — DB not running during RMAN duplicate</div></div>
+          </div>
+          <div class="flex items-start gap-3 glass rounded-xl p-3 border border-blue-500/15">
+            <i class="fas fa-info-circle text-blue-400 mt-0.5 flex-shrink-0"></i>
+            <div><div class="text-white text-sm font-semibold">tnsnames.ora on Both Sides</div><div class="text-neutral-500 text-xs">TNS entries for both PROD (primary) and STBY (standby) on both servers</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="cr-primary" class="tab-content">
+      <h4 class="font-semibold text-white mb-3 text-lg">Configure Primary Database</h4>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Primary — SPFILE Parameters &amp; SRL</span></div>
+        <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Step 1: Enable ARCHIVELOG mode (if not already)</span>
+<span class="kw">SHUTDOWN IMMEDIATE</span>;
+<span class="fn">STARTUP MOUNT</span>;
+<span class="kw">ALTER DATABASE ARCHIVELOG</span>;
+<span class="kw">ALTER DATABASE OPEN</span>;
+
+<span class="cm">-- Step 2: Enable FORCE LOGGING</span>
+<span class="kw">ALTER DATABASE FORCE LOGGING</span>;
+
+<span class="cm">-- Step 3: Set mandatory parameters via SPFILE</span>
+<span class="kw">ALTER SYSTEM SET</span> db_unique_name=<span class="str">'PROD'</span>         <span class="kw">SCOPE</span>=SPFILE;
+<span class="kw">ALTER SYSTEM SET</span> log_archive_config=
+  <span class="str">'DG_CONFIG=(PROD,STBY)'</span>                      <span class="kw">SCOPE</span>=BOTH;
+<span class="kw">ALTER SYSTEM SET</span> log_archive_dest_1=
+  <span class="str">'LOCATION=USE_DB_RECOVERY_FILE_DEST
+   VALID_FOR=(ALL_LOGFILES,ALL_ROLES)'</span>         <span class="kw">SCOPE</span>=BOTH;
+<span class="kw">ALTER SYSTEM SET</span> log_archive_dest_2=
+  <span class="str">'SERVICE=STBY ASYNC
+   VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE)
+   DB_UNIQUE_NAME=STBY'</span>                        <span class="kw">SCOPE</span>=BOTH;
+<span class="kw">ALTER SYSTEM SET</span> log_archive_dest_state_1=<span class="str">'ENABLE'</span> <span class="kw">SCOPE</span>=BOTH;
+<span class="kw">ALTER SYSTEM SET</span> log_archive_dest_state_2=<span class="str">'ENABLE'</span> <span class="kw">SCOPE</span>=BOTH;
+<span class="kw">ALTER SYSTEM SET</span> log_archive_format=<span class="str">'%t_%s_%r.arc'</span> <span class="kw">SCOPE</span>=SPFILE;
+<span class="kw">ALTER SYSTEM SET</span> fal_server=<span class="str">'STBY'</span>              <span class="kw">SCOPE</span>=BOTH;
+<span class="kw">ALTER SYSTEM SET</span> fal_client=<span class="str">'PROD'</span>              <span class="kw">SCOPE</span>=BOTH;
+<span class="kw">ALTER SYSTEM SET</span> standby_file_management=<span class="str">'AUTO'</span> <span class="kw">SCOPE</span>=BOTH;
+<span class="kw">ALTER SYSTEM SET</span> db_file_name_convert=
+  <span class="str">'/u02/oradata/STBY/','/u02/oradata/PROD/'</span>    <span class="kw">SCOPE</span>=SPFILE;
+<span class="kw">ALTER SYSTEM SET</span> log_file_name_convert=
+  <span class="str">'/u02/oradata/STBY/','/u02/oradata/PROD/'</span>    <span class="kw">SCOPE</span>=SPFILE;
+
+<span class="cm">-- Step 4: Add Standby Redo Logs on PRIMARY</span>
+<span class="cm">-- (Needed for primary to become standby after switchover)</span>
+<span class="cm">-- Count online redo log groups first:</span>
+<span class="kw">SELECT</span> group#, bytes/1024/1024 mb <span class="kw">FROM</span> v$log;
+<span class="cm">-- Add (groups + 1) SRL groups, same size</span>
+<span class="kw">ALTER DATABASE ADD STANDBY LOGFILE GROUP</span> <span class="num">4</span>
+  (<span class="str">'/u02/oradata/PROD/srl01.log'</span>) <span class="fn">SIZE</span> <span class="num">200</span>M;
+<span class="kw">ALTER DATABASE ADD STANDBY LOGFILE GROUP</span> <span class="num">5</span>
+  (<span class="str">'/u02/oradata/PROD/srl02.log'</span>) <span class="fn">SIZE</span> <span class="num">200</span>M;
+<span class="kw">ALTER DATABASE ADD STANDBY LOGFILE GROUP</span> <span class="num">6</span>
+  (<span class="str">'/u02/oradata/PROD/srl03.log'</span>) <span class="fn">SIZE</span> <span class="num">200</span>M;
+<span class="kw">ALTER DATABASE ADD STANDBY LOGFILE GROUP</span> <span class="num">7</span>
+  (<span class="str">'/u02/oradata/PROD/srl04.log'</span>) <span class="fn">SIZE</span> <span class="num">200</span>M;</code></pre>
+      </div>
+    </div>
+
+    <div id="cr-network" class="tab-content">
+      <h4 class="font-semibold text-white mb-3 text-lg">Network &amp; Listener Configuration</h4>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <div class="text-oracle-red text-xs font-semibold uppercase tracking-widest mb-2">tnsnames.ora — BOTH servers</div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+            <pre class="p-4 font-mono text-xs leading-6"><code>PROD =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)
+               (HOST = primary-server)
+               (PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = PROD)))
+
+STBY =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)
+               (HOST = standby-server)
+               (PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = STBY)))</code></pre>
+          </div>
+        </div>
+        <div>
+          <div class="text-blue-400 text-xs font-semibold uppercase tracking-widest mb-2">listener.ora — STANDBY server (static entry)</div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+            <pre class="p-4 font-mono text-xs leading-6"><code>LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)
+                 (HOST = standby-server)
+                 (PORT = 1521))))
+
+SID_LIST_LISTENER =
+  (SID_LIST =
+    (SID_DESC =
+      (GLOBAL_DBNAME = STBY)
+      (ORACLE_HOME = /u01/app/oracle/product/19c/db)
+      (SID_NAME = STBY)))
+
+<span class="cm"># Restart listener after editing:</span>
+<span class="op">$</span> lsnrctl stop
+<span class="op">$</span> lsnrctl start
+<span class="op">$</span> lsnrctl status</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="cr-standby-init" class="tab-content">
+      <h4 class="font-semibold text-white mb-3 text-lg">Standby Initialization</h4>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Standby PFILE &amp; Startup NOMOUNT</span></div>
+        <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Create minimal init.ora on standby server</span>
+<span class="cm">-- File: $ORACLE_HOME/dbs/initSTBY.ora</span>
+
+db_name=<span class="str">'PROD'</span>
+db_unique_name=<span class="str">'STBY'</span>
+db_file_name_convert=<span class="str">'/u02/oradata/PROD/','/u02/oradata/STBY/'</span>
+log_file_name_convert=<span class="str">'/u02/oradata/PROD/','/u02/oradata/STBY/'</span>
+fal_server=<span class="str">'PROD'</span>
+fal_client=<span class="str">'STBY'</span>
+log_archive_dest_1=<span class="str">'LOCATION=/u03/fra/STBY'</span>
+log_archive_dest_2=<span class="str">'SERVICE=PROD ASYNC
+  VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE)
+  DB_UNIQUE_NAME=PROD'</span>
+log_archive_config=<span class="str">'DG_CONFIG=(PROD,STBY)'</span>
+standby_file_management=<span class="str">'AUTO'</span>
+
+<span class="cm">-- Create necessary directories on standby</span>
+<span class="op">$</span> mkdir -p /u02/oradata/STBY
+<span class="op">$</span> mkdir -p /u03/fra/STBY
+<span class="op">$</span> mkdir -p /u01/app/oracle/admin/STBY/adump
+
+<span class="cm">-- Copy password file from primary to standby</span>
+<span class="op">$</span> scp primary:/u01/app/oracle/product/19c/db/dbs/orapwPROD \
+       standby:/u01/app/oracle/product/19c/db/dbs/orapwSTBY
+
+<span class="cm">-- Start standby instance in NOMOUNT state</span>
+<span class="kw">SQLPLUS</span> / as sysdba
+<span class="fn">STARTUP NOMOUNT</span> pfile=<span class="str">'$ORACLE_HOME/dbs/initSTBY.ora'</span>;</code></pre>
+      </div>
+    </div>
+
+    <div id="cr-duplicate" class="tab-content">
+      <h4 class="font-semibold text-white mb-3 text-lg">RMAN DUPLICATE to Create Standby</h4>
+      <p class="text-neutral-400 text-sm mb-4">Run this from the <strong class="text-white">primary server</strong> (or from a third host that can reach both). RMAN connects to both primary (TARGET) and standby (AUXILIARY) simultaneously.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">RMAN DUPLICATE FOR STANDBY</span></div>
+        <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Method 1: Active duplicate (over network — no backup needed)</span>
+<span class="op">$</span> <span class="fn">rman</span> <span class="kw">TARGET</span> sys/pass@PROD <span class="kw">AUXILIARY</span> sys/pass@STBY
+
+<span class="kw">RMAN&gt;</span> <span class="fn">DUPLICATE TARGET DATABASE</span>
+        <span class="fn">FOR STANDBY</span>
+        <span class="fn">FROM ACTIVE DATABASE</span>
+        <span class="kw">DORECOVER</span>
+        <span class="fn">SPFILE</span>
+          <span class="kw">SET</span> db_unique_name=<span class="str">'STBY'</span>
+          <span class="kw">SET</span> fal_server=<span class="str">'PROD'</span>
+          <span class="kw">SET</span> fal_client=<span class="str">'STBY'</span>
+          <span class="kw">SET</span> log_archive_dest_2=<span class="str">'SERVICE=PROD ASYNC
+               VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE)
+               DB_UNIQUE_NAME=PROD'</span>
+        <span class="fn">NOFILENAMECHECK</span>;
+
+<span class="cm">-- Method 2: From backup (if backup exists on standby)</span>
+<span class="kw">RMAN&gt;</span> <span class="fn">DUPLICATE TARGET DATABASE</span>
+        <span class="fn">FOR STANDBY</span>
+        <span class="kw">DORECOVER</span>
+        <span class="fn">SPFILE</span>
+          <span class="kw">SET</span> db_unique_name=<span class="str">'STBY'</span>
+          <span class="kw">SET</span> db_file_name_convert=
+            <span class="str">'/u02/oradata/PROD/','/u02/oradata/STBY/'</span>
+          <span class="kw">SET</span> log_file_name_convert=
+            <span class="str">'/u02/oradata/PROD/','/u02/oradata/STBY/'</span>;
+
+<span class="cm">-- RMAN will copy all datafiles, redo logs, and</span>
+<span class="cm">-- automatically mount the standby database when done</span></code></pre>
+      </div>
+    </div>
+
+    <div id="cr-start-apply" class="tab-content">
+      <h4 class="font-semibold text-white mb-3 text-lg">Add SRL on Standby &amp; Start Redo Apply</h4>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Standby — SRL &amp; Apply</span></div>
+        <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- On STANDBY — Add Standby Redo Log groups</span>
+<span class="cm">-- (Same count and size as primary online redo logs + 1 extra)</span>
+<span class="kw">ALTER DATABASE ADD STANDBY LOGFILE GROUP</span> <span class="num">4</span>
+  (<span class="str">'/u02/oradata/STBY/srl01.log'</span>) <span class="fn">SIZE</span> <span class="num">200</span>M;
+<span class="kw">ALTER DATABASE ADD STANDBY LOGFILE GROUP</span> <span class="num">5</span>
+  (<span class="str">'/u02/oradata/STBY/srl02.log'</span>) <span class="fn">SIZE</span> <span class="num">200</span>M;
+<span class="kw">ALTER DATABASE ADD STANDBY LOGFILE GROUP</span> <span class="num">6</span>
+  (<span class="str">'/u02/oradata/STBY/srl03.log'</span>) <span class="fn">SIZE</span> <span class="num">200</span>M;
+<span class="kw">ALTER DATABASE ADD STANDBY LOGFILE GROUP</span> <span class="num">7</span>
+  (<span class="str">'/u02/oradata/STBY/srl04.log'</span>) <span class="fn">SIZE</span> <span class="num">200</span>M;
+
+<span class="cm">-- Verify SRL groups</span>
+<span class="kw">SELECT</span> group#, sequence#, archived, status
+<span class="kw">FROM</span>   v$standby_log;
+
+<span class="cm">-- Start Managed Recovery Process (MRP)</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="fn">DISCONNECT FROM SESSION</span>;
+
+<span class="cm">-- Active Data Guard: read-only + real-time apply</span>
+<span class="cm">-- (Requires Active Data Guard license)</span>
+<span class="kw">ALTER DATABASE OPEN</span> <span class="fn">READ ONLY</span>;
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="fn">USING CURRENT LOGFILE DISCONNECT</span>;</code></pre>
+      </div>
+    </div>
+
+    <div id="cr-verify" class="tab-content">
+      <h4 class="font-semibold text-white mb-3 text-lg">Verify Data Guard Configuration</h4>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Verification Queries</span></div>
+        <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- On PRIMARY: Check redo transport to standby</span>
+<span class="kw">SELECT</span> dest_id, dest_name, status, target, archiver,
+       schedule, destination, error
+<span class="kw">FROM</span>   v$archive_dest_status
+<span class="kw">WHERE</span>  status != <span class="str">'INACTIVE'</span>;
+
+<span class="cm">-- On STANDBY: Check MRP is running</span>
+<span class="kw">SELECT</span> process, status, sequence#, block#, delay_mins
+<span class="kw">FROM</span>   v$managed_standby;
+
+<span class="cm">-- On STANDBY: Verify standby role and mode</span>
+<span class="kw">SELECT</span> db_unique_name, database_role,
+       open_mode, protection_mode
+<span class="kw">FROM</span>   v$database;
+
+<span class="cm">-- Check apply and transport lag</span>
+<span class="kw">SELECT</span> name, value, unit, time_computed
+<span class="kw">FROM</span>   v$dataguard_stats
+<span class="kw">WHERE</span>  name <span class="kw">IN</span> (
+         <span class="str">'apply lag'</span>,
+         <span class="str">'transport lag'</span>,
+         <span class="str">'apply finish time'</span>);
+
+<span class="cm">-- On PRIMARY: Test redo shipping</span>
+<span class="kw">ALTER SYSTEM SWITCH LOGFILE</span>;
+<span class="kw">ALTER SYSTEM ARCHIVE LOG CURRENT</span>;
+
+<span class="cm">-- On STANDBY: Confirm new sequence received</span>
+<span class="kw">SELECT</span> sequence#, applied <span class="kw">FROM</span> v$archived_log
+<span class="kw">ORDER BY</span> sequence# <span class="fn">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">5</span> <span class="kw">ROWS ONLY</span>;</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Redo Transport Parameters deep-dive -->
+  <div class="glass rounded-2xl p-6 border border-cyan-500/20 reveal">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center"><i class="fas fa-paper-plane text-cyan-400"></i></div>
+      <h3 class="font-display font-semibold text-white text-xl">Redo Transport Parameters Reference</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead><tr class="border-b border-white/10"><th class="text-left py-3 text-neutral-400 font-semibold">Parameter</th><th class="text-left py-3 text-neutral-400 font-semibold">Values</th><th class="text-left py-3 text-neutral-400 font-semibold">Purpose</th></tr></thead>
+        <tbody class="divide-y divide-white/5 text-neutral-300">
+          <tr><td class="py-3 font-mono text-oracle-red">SERVICE</td><td class="py-3 text-green-400 font-mono text-xs">TNS_alias</td><td class="py-3 text-sm text-neutral-400">TNS alias for the standby destination</td></tr>
+          <tr><td class="py-3 font-mono text-oracle-red">SYNC</td><td class="py-3 text-green-400 font-mono text-xs">SYNC | ASYNC</td><td class="py-3 text-sm text-neutral-400">SYNC waits for standby ack before commit (zero data loss). ASYNC does not wait (better perf)</td></tr>
+          <tr><td class="py-3 font-mono text-oracle-red">AFFIRM</td><td class="py-3 text-green-400 font-mono text-xs">AFFIRM | NOAFFIRM</td><td class="py-3 text-sm text-neutral-400">AFFIRM: standby writes to disk before ack. NOAFFIRM: ack on receive only (buffered). Use AFFIRM with SYNC for Max Protection/Availability</td></tr>
+          <tr><td class="py-3 font-mono text-oracle-red">VALID_FOR</td><td class="py-3 text-green-400 font-mono text-xs">(logfile_type,db_role)</td><td class="py-3 text-sm text-neutral-400">Controls when destination is active. ONLINE_LOGFILES,PRIMARY_ROLE = only ship from primary online logs</td></tr>
+          <tr><td class="py-3 font-mono text-oracle-red">DB_UNIQUE_NAME</td><td class="py-3 text-green-400 font-mono text-xs">standby_name</td><td class="py-3 text-sm text-neutral-400">Associates destination with a specific DB in DG_CONFIG. Required for broker</td></tr>
+          <tr><td class="py-3 font-mono text-oracle-red">REOPEN</td><td class="py-3 text-green-400 font-mono text-xs">N seconds</td><td class="py-3 text-sm text-neutral-400">Seconds before retrying failed destination. Default 300</td></tr>
+          <tr><td class="py-3 font-mono text-oracle-red">NET_TIMEOUT</td><td class="py-3 text-green-400 font-mono text-xs">N seconds</td><td class="py-3 text-sm text-neutral-400">Network send timeout. Default 30 seconds. Relevant for SYNC transport</td></tr>
+          <tr><td class="py-3 font-mono text-oracle-red">COMPRESSION</td><td class="py-3 text-green-400 font-mono text-xs">ENABLE | DISABLE | ZLIB | LZO</td><td class="py-3 text-sm text-neutral-400">Compress redo before network transfer — reduces bandwidth at cost of CPU</td></tr>
+          <tr><td class="py-3 font-mono text-oracle-red">FAL_SERVER</td><td class="py-3 text-green-400 font-mono text-xs">TNS_alias</td><td class="py-3 text-sm text-neutral-400">Fetch Archive Log server — standby requests missing archive logs from this destination when gap detected</td></tr>
+          <tr><td class="py-3 font-mono text-oracle-red">FAL_CLIENT</td><td class="py-3 text-green-400 font-mono text-xs">TNS_alias</td><td class="py-3 text-sm text-neutral-400">Standby's own TNS name — tells FAL_SERVER where to send the requested logs</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ROLE TRANSITIONS -->
+<section id="role-transitions" class="py-24 bg-gradient-to-b from-transparent via-oracle-red/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-orange mb-4">Role Transitions</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Switchover &amp; Failover</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">Two ways to change the primary role — planned (switchover) and emergency (failover). Know both inside out.</p>
+    </div>
+    <div id="role-tabs" class="glass rounded-2xl p-6 border border-white/5 reveal">
+      <div class="flex flex-wrap gap-2 mb-6">
+        <button class="tab-btn active" data-tab="rt-switchover-sql">Switchover (SQL)</button>
+        <button class="tab-btn" data-tab="rt-switchover-dgmgrl">Switchover (DGMGRL)</button>
+        <button class="tab-btn" data-tab="rt-failover-graceful">Failover — Graceful</button>
+        <button class="tab-btn" data-tab="rt-failover-immediate">Failover — Immediate</button>
+        <button class="tab-btn" data-tab="rt-reinstate">Reinstate Old Primary</button>
+      </div>
+
+      <div id="rt-switchover-sql" class="tab-content active">
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h4 class="font-semibold text-white mb-3">Switchover — Planned, Zero Data Loss</h4>
+            <p class="text-neutral-400 text-sm mb-4 leading-relaxed">A switchover is a <strong class="text-white">controlled role reversal</strong> — the primary becomes a standby and the standby becomes the new primary. No data loss. The original primary can be switched back later.</p>
+            <div class="space-y-3">
+              <div class="flow-step flex items-start gap-3"><div class="step-num bg-oracle-red/10 border border-oracle-red/30 text-oracle-red text-sm">1</div><div class="pt-1"><div class="text-white font-semibold text-sm">Verify switchover readiness</div><div class="text-neutral-500 text-xs mt-0.5">Check switchover_status on primary</div></div></div>
+              <div class="flow-step flex items-start gap-3"><div class="step-num bg-oracle-red/10 border border-oracle-red/30 text-oracle-red text-sm">2</div><div class="pt-1"><div class="text-white font-semibold text-sm">Initiate switchover on primary</div><div class="text-neutral-500 text-xs mt-0.5">ALTER DATABASE COMMIT TO SWITCHOVER TO STANDBY</div></div></div>
+              <div class="flow-step flex items-start gap-3"><div class="step-num bg-oracle-red/10 border border-oracle-red/30 text-oracle-red text-sm">3</div><div class="pt-1"><div class="text-white font-semibold text-sm">Mount new standby (old primary)</div><div class="text-neutral-500 text-xs mt-0.5">Old primary now in standby role</div></div></div>
+              <div class="flow-step flex items-start gap-3"><div class="step-num bg-oracle-red/10 border border-oracle-red/30 text-oracle-red text-sm">4</div><div class="pt-1"><div class="text-white font-semibold text-sm">Complete switchover on new primary</div><div class="text-neutral-500 text-xs mt-0.5">ALTER DATABASE COMMIT TO SWITCHOVER TO PRIMARY</div></div></div>
+              <div class="flex items-start gap-3"><div class="step-num bg-green-500/10 border border-green-500/30 text-green-400 text-sm">5</div><div class="pt-1"><div class="text-white font-semibold text-sm">Start MRP on new standby</div><div class="text-neutral-500 text-xs mt-0.5">Old primary now receiving redo from new primary</div></div></div>
+            </div>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Switchover via SQL</span></div>
+            <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">====== ON PRIMARY (PROD) ======</span>
+
+<span class="cm">-- Verify readiness</span>
+<span class="kw">SELECT</span> switchover_status <span class="kw">FROM</span> v$database;
+<span class="cm">-- Must show: TO STANDBY or SESSIONS ACTIVE</span>
+
+<span class="cm">-- If SESSIONS ACTIVE disconnect users first, then:</span>
+<span class="kw">ALTER DATABASE COMMIT TO SWITCHOVER TO STANDBY</span>
+  <span class="fn">WITH SESSION SHUTDOWN</span>;
+
+<span class="cm">-- OR if TO STANDBY (no active sessions):</span>
+<span class="kw">ALTER DATABASE COMMIT TO SWITCHOVER TO STANDBY</span>;
+
+<span class="cm">-- Shut and mount old primary as standby</span>
+<span class="fn">SHUTDOWN IMMEDIATE</span>;
+<span class="fn">STARTUP MOUNT</span>;
+
+<span class="cm">====== ON NEW PRIMARY (STBY) ======</span>
+
+<span class="cm">-- Check readiness on standby</span>
+<span class="kw">SELECT</span> switchover_status <span class="kw">FROM</span> v$database;
+<span class="cm">-- Must show: TO PRIMARY or SESSIONS ACTIVE</span>
+
+<span class="kw">ALTER DATABASE COMMIT TO SWITCHOVER TO PRIMARY</span>
+  <span class="fn">WITH SESSION SHUTDOWN</span>;
+<span class="kw">ALTER DATABASE OPEN</span>;
+
+<span class="cm">====== ON OLD PRIMARY (now standby) ======</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="fn">DISCONNECT FROM SESSION</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="rt-switchover-dgmgrl" class="tab-content">
+        <h4 class="font-semibold text-white mb-3">Switchover using DGMGRL (Recommended)</h4>
+        <p class="text-neutral-400 text-sm mb-4">DGMGRL automates all steps — far simpler and less error-prone than manual SQL. Requires Data Guard Broker to be configured.</p>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">DGMGRL Switchover</span></div>
+          <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Connect to broker</span>
+<span class="op">$</span> <span class="fn">dgmgrl</span> sys/password@PROD
+
+<span class="cm">-- Check configuration health</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">SHOW CONFIGURATION</span>;
+<span class="kw">DGMGRL&gt;</span> <span class="fn">SHOW DATABASE</span> <span class="str">'PROD'</span>;
+<span class="kw">DGMGRL&gt;</span> <span class="fn">SHOW DATABASE</span> <span class="str">'STBY'</span>;
+
+<span class="cm">-- Validate switchover</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">VALIDATE DATABASE</span> <span class="str">'STBY'</span>;
+
+<span class="cm">-- Execute switchover (single command!)</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">SWITCHOVER TO</span> <span class="str">'STBY'</span>;
+
+<span class="cm">-- Verify new configuration</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">SHOW CONFIGURATION</span>;
+
+<span class="cm">-- Expected output after switchover:</span>
+<span class="cm">-- Configuration - PROD_DG</span>
+<span class="cm">--   Protection Mode: MaxAvailability</span>
+<span class="cm">--   Members:</span>
+<span class="cm">--   STBY - Primary database</span>
+<span class="cm">--   PROD - Physical standby database</span>
+<span class="cm">-- Fast-Start Failover: Disabled</span>
+<span class="cm">-- Configuration Status: SUCCESS</span></code></pre>
+        </div>
+      </div>
+
+      <div id="rt-failover-graceful" class="tab-content">
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h4 class="font-semibold text-white mb-3">Graceful Failover</h4>
+            <div class="glass rounded-xl p-3 border border-yellow-500/20 mb-4 text-sm text-neutral-300">
+              <i class="fas fa-triangle-exclamation text-yellow-400 mr-2"></i>
+              Used when primary is <strong>still accessible</strong> but must be decommissioned urgently. Allows final log flush before switching — <strong>zero data loss possible.</strong>
+            </div>
+            <div class="space-y-3">
+              <div class="flow-step flex items-start gap-3"><div class="step-num bg-oracle-red/10 border border-oracle-red/30 text-oracle-red text-sm">1</div><div class="pt-1"><div class="text-white font-semibold text-sm">Flush final redo from primary</div><div class="text-neutral-500 text-xs mt-0.5">ALTER SYSTEM FLUSH REDO TO standby</div></div></div>
+              <div class="flow-step flex items-start gap-3"><div class="step-num bg-oracle-red/10 border border-oracle-red/30 text-oracle-red text-sm">2</div><div class="pt-1"><div class="text-white font-semibold text-sm">Verify standby fully applied</div><div class="text-neutral-500 text-xs mt-0.5">Check V$DATAGUARD_STATS apply lag = 0</div></div></div>
+              <div class="flow-step flex items-start gap-3"><div class="step-num bg-oracle-red/10 border border-oracle-red/30 text-oracle-red text-sm">3</div><div class="pt-1"><div class="text-white font-semibold text-sm">Cancel MRP on standby</div><div class="text-neutral-500 text-xs mt-0.5">Stop apply before activating</div></div></div>
+              <div class="flow-step flex items-start gap-3"><div class="step-num bg-oracle-red/10 border border-oracle-red/30 text-oracle-red text-sm">4</div><div class="pt-1"><div class="text-white font-semibold text-sm">Activate standby as new primary</div><div class="text-neutral-500 text-xs mt-0.5">ACTIVATE STANDBY DATABASE</div></div></div>
+              <div class="flex items-start gap-3"><div class="step-num bg-green-500/10 border border-green-500/30 text-green-400 text-sm">5</div><div class="pt-1"><div class="text-white font-semibold text-sm">Open new primary</div><div class="text-neutral-500 text-xs mt-0.5">RESETLOGS if required</div></div></div>
+            </div>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Graceful Failover — SQL</span></div>
+            <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">====== ON PRIMARY (if still accessible) ======</span>
+<span class="cm">-- Flush remaining redo to standby</span>
+<span class="kw">ALTER SYSTEM FLUSH REDO TO</span> <span class="str">'STBY'</span>;
+
+<span class="cm">====== ON STANDBY ======</span>
+<span class="cm">-- Verify apply lag is 0</span>
+<span class="kw">SELECT</span> name, value <span class="kw">FROM</span> v$dataguard_stats
+<span class="kw">WHERE</span>  name = <span class="str">'apply lag'</span>;
+
+<span class="cm">-- Cancel MRP</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE CANCEL</span>;
+
+<span class="cm">-- Apply remaining logs</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER STANDBY DATABASE</span>;
+
+<span class="cm">-- Activate standby as primary</span>
+<span class="kw">ALTER DATABASE ACTIVATE STANDBY DATABASE</span>;
+
+<span class="cm">-- Open new primary</span>
+<span class="kw">ALTER DATABASE OPEN</span>;
+
+<span class="cm">-- If RESETLOGS needed:</span>
+<span class="kw">ALTER DATABASE OPEN RESETLOGS</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="rt-failover-immediate" class="tab-content">
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h4 class="font-semibold text-white mb-3">Immediate Failover (Emergency)</h4>
+            <div class="glass rounded-xl p-3 border border-red-500/30 mb-4 text-sm text-neutral-300">
+              <i class="fas fa-circle-exclamation text-red-400 mr-2"></i>
+              Primary is <strong>completely unavailable</strong>. Cannot flush redo — some data loss expected if not in Max Protection/Availability mode. Activate immediately.
+            </div>
+            <div class="glass rounded-xl p-3 border border-orange-500/20 mb-4 text-xs text-neutral-400">
+              <strong class="text-orange-400">After failover:</strong> The old primary database MUST be reinstated or dropped from the DG configuration before it can be used again. Never try to open old primary as primary.
+            </div>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Immediate Failover</span></div>
+            <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">====== ON STANDBY ONLY ======</span>
+
+<span class="cm">-- Cancel MRP</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE CANCEL</span>;
+
+<span class="cm">-- Finish applying received logs</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER STANDBY DATABASE</span>;
+
+<span class="cm">-- Activate as primary</span>
+<span class="kw">ALTER DATABASE ACTIVATE STANDBY DATABASE</span>;
+
+<span class="cm">-- Open new primary</span>
+<span class="kw">ALTER DATABASE OPEN</span>;
+
+<span class="cm">-- Via DGMGRL (recommended):</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">FAILOVER TO</span> <span class="str">'STBY'</span>;
+
+<span class="cm">-- Or immediate failover:</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">FAILOVER TO</span> <span class="str">'STBY'</span> <span class="fn">IMMEDIATE</span>;
+
+<span class="cm">-- Old primary CANNOT be reused without</span>
+<span class="cm">-- reinstating it via RMAN or DGMGRL</span></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="rt-reinstate" class="tab-content">
+        <h4 class="font-semibold text-white mb-3">Reinstate Old Primary After Failover</h4>
+        <p class="text-neutral-400 text-sm mb-4 leading-relaxed">After failover, the old primary is orphaned. You can reinstate it as a new standby using Flashback Database (fastest) or by re-creating it with RMAN DUPLICATE. <strong class="text-white">DGMGRL REINSTATE makes this a single command.</strong></p>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Reinstate Old Primary</span></div>
+          <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Method 1: DGMGRL REINSTATE (requires Flashback DB)</span>
+<span class="cm">-- On old primary — start in MOUNT state</span>
+<span class="fn">STARTUP MOUNT</span>;
+
+<span class="cm">-- From DGMGRL on new primary</span>
+<span class="op">$</span> <span class="fn">dgmgrl</span> sys/pass@STBY   <span class="cm">-- connect to new primary</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">REINSTATE DATABASE</span> <span class="str">'PROD'</span>;
+
+<span class="cm">-- DGMGRL will automatically:</span>
+<span class="cm">-- 1. Flashback old primary to failover SCN</span>
+<span class="cm">-- 2. Mount it as physical standby</span>
+<span class="cm">-- 3. Start redo apply</span>
+
+<span class="cm">-- Method 2: Manual Flashback (if Flashback DB enabled)</span>
+<span class="cm">-- On old primary:</span>
+<span class="fn">STARTUP MOUNT</span>;
+<span class="kw">FLASHBACK DATABASE TO SCN</span> <span class="num">&lt;failover_scn&gt;</span>;
+<span class="kw">ALTER DATABASE CONVERT TO PHYSICAL STANDBY</span>;
+<span class="fn">SHUTDOWN IMMEDIATE</span>;
+<span class="fn">STARTUP MOUNT</span>;
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="fn">DISCONNECT</span>;
+
+<span class="cm">-- Method 3: RMAN DUPLICATE (if Flashback not available)</span>
+<span class="cm">-- Re-create old primary as standby using RMAN duplicate</span>
+<span class="cm">-- (same as initial creation steps)</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DATA GUARD BROKER -->
+<section id="broker" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-cyan mb-4">Management Interface</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Data Guard Broker (DGMGRL)</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">The broker automates and centralizes all Data Guard management — configuration, monitoring, role transitions, and health checks — from a single command-line interface.</p>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-8 mb-10">
+    <!-- Broker Setup -->
+    <div class="glass rounded-2xl p-6 border border-cyan-500/20 reveal">
+      <h3 class="font-display font-semibold text-white text-xl mb-4">Broker Configuration Setup</h3>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Enable &amp; Configure Broker</span></div>
+        <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Step 1: Enable broker on BOTH primary and standby</span>
+<span class="kw">ALTER SYSTEM SET</span> dg_broker_start=<span class="fn">TRUE</span> <span class="kw">SCOPE</span>=BOTH;
+
+<span class="cm">-- Step 2: Set broker config file locations (optional)</span>
+<span class="kw">ALTER SYSTEM SET</span>
+  dg_broker_config_file1=
+    <span class="str">'/u01/app/oracle/product/19c/db/dbs/dr1PROD.dat'</span>
+  <span class="kw">SCOPE</span>=BOTH;
+<span class="kw">ALTER SYSTEM SET</span>
+  dg_broker_config_file2=
+    <span class="str">'/u02/oradata/PROD/dr2PROD.dat'</span>
+  <span class="kw">SCOPE</span>=BOTH;
+
+<span class="cm">-- Step 3: Connect to DGMGRL from primary</span>
+<span class="op">$</span> <span class="fn">dgmgrl</span> sys/password@PROD
+
+<span class="cm">-- Step 4: Create configuration</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">CREATE CONFIGURATION</span> <span class="str">'PROD_DG'</span>
+          <span class="fn">AS PRIMARY DATABASE IS</span> <span class="str">'PROD'</span>
+          <span class="fn">CONNECT IDENTIFIER IS</span> PROD;
+
+<span class="cm">-- Step 5: Add standby to configuration</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">ADD DATABASE</span> <span class="str">'STBY'</span>
+          <span class="fn">AS CONNECT IDENTIFIER IS</span> STBY
+          <span class="fn">MAINTAINED AS PHYSICAL</span>;
+
+<span class="cm">-- Step 6: Enable configuration</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">ENABLE CONFIGURATION</span>;
+
+<span class="cm">-- Verify</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">SHOW CONFIGURATION</span>;</code></pre>
+      </div>
+    </div>
+    <!-- Broker Commands -->
+    <div class="glass rounded-2xl p-6 border border-purple-500/20 reveal">
+      <h3 class="font-display font-semibold text-white text-xl mb-4">Essential DGMGRL Commands</h3>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">DGMGRL Reference</span></div>
+        <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- === STATUS COMMANDS ===</span>
+<span class="fn">SHOW CONFIGURATION</span>;
+<span class="fn">SHOW CONFIGURATION VERBOSE</span>;
+<span class="fn">SHOW DATABASE</span> <span class="str">'PROD'</span>;
+<span class="fn">SHOW DATABASE VERBOSE</span> <span class="str">'STBY'</span>;
+<span class="fn">SHOW INSTANCE</span> <span class="str">'STBY'</span> <span class="kw">ON DATABASE</span> <span class="str">'STBY'</span>;
+<span class="fn">SHOW ALL</span>;
+
+<span class="cm">-- === ROLE TRANSITIONS ===</span>
+<span class="fn">SWITCHOVER TO</span> <span class="str">'STBY'</span>;
+<span class="fn">FAILOVER TO</span> <span class="str">'STBY'</span>;
+<span class="fn">FAILOVER TO</span> <span class="str">'STBY'</span> <span class="fn">IMMEDIATE</span>;
+<span class="fn">REINSTATE DATABASE</span> <span class="str">'PROD'</span>;
+
+<span class="cm">-- === MAINTENANCE ===</span>
+<span class="fn">ENABLE DATABASE</span> <span class="str">'STBY'</span>;
+<span class="fn">DISABLE DATABASE</span> <span class="str">'STBY'</span>;
+<span class="fn">REMOVE DATABASE</span> <span class="str">'STBY'</span>;
+<span class="fn">REMOVE CONFIGURATION</span>;
+
+<span class="cm">-- === PROPERTIES ===</span>
+<span class="fn">EDIT DATABASE</span> <span class="str">'PROD'</span>
+  <span class="kw">SET PROPERTY</span> LogShipping=<span class="str">'ON'</span>;
+<span class="fn">EDIT CONFIGURATION</span>
+  <span class="kw">SET PROTECTION MODE AS</span> MaxAvailability;
+
+<span class="cm">-- === VALIDATION ===</span>
+<span class="fn">VALIDATE DATABASE</span> <span class="str">'STBY'</span>;
+<span class="fn">VALIDATE DATABASE VERBOSE</span> <span class="str">'STBY'</span>;</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Broker Properties -->
+  <div class="glass rounded-2xl p-6 border border-white/5 reveal">
+    <h3 class="font-display font-semibold text-white text-xl mb-4">Important Broker Properties</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead><tr class="border-b border-white/10"><th class="text-left py-3 text-neutral-400 font-semibold">Property</th><th class="text-left py-3 text-neutral-400 font-semibold">Applied To</th><th class="text-left py-3 text-neutral-400 font-semibold">Description</th><th class="text-left py-3 text-neutral-400 font-semibold">Example</th></tr></thead>
+        <tbody class="divide-y divide-white/5">
+          <tr><td class="py-2.5 font-mono text-oracle-red text-xs">LogShipping</td><td class="py-2.5 text-neutral-400 text-xs">Primary</td><td class="py-2.5 text-neutral-400 text-xs">Enable/disable redo shipping</td><td class="py-2.5 font-mono text-green-400 text-xs">ON | OFF</td></tr>
+          <tr><td class="py-2.5 font-mono text-oracle-red text-xs">LogXptMode</td><td class="py-2.5 text-neutral-400 text-xs">Standby</td><td class="py-2.5 text-neutral-400 text-xs">Transport mode for this standby</td><td class="py-2.5 font-mono text-green-400 text-xs">SYNC | ASYNC</td></tr>
+          <tr><td class="py-2.5 font-mono text-oracle-red text-xs">RedoCompression</td><td class="py-2.5 text-neutral-400 text-xs">Standby</td><td class="py-2.5 text-neutral-400 text-xs">Compress redo in transit</td><td class="py-2.5 font-mono text-green-400 text-xs">ENABLE | DISABLE</td></tr>
+          <tr><td class="py-2.5 font-mono text-oracle-red text-xs">DelayMins</td><td class="py-2.5 text-neutral-400 text-xs">Standby</td><td class="py-2.5 text-neutral-400 text-xs">Apply redo with intentional delay</td><td class="py-2.5 font-mono text-green-400 text-xs">0 | 60 | 240</td></tr>
+          <tr><td class="py-2.5 font-mono text-oracle-red text-xs">ApplyInstances</td><td class="py-2.5 text-neutral-400 text-xs">Standby</td><td class="py-2.5 text-neutral-400 text-xs">Number of parallel apply instances</td><td class="py-2.5 font-mono text-green-400 text-xs">1 | 2 | 4</td></tr>
+          <tr><td class="py-2.5 font-mono text-oracle-red text-xs">FastStartFailoverThreshold</td><td class="py-2.5 text-neutral-400 text-xs">Config</td><td class="py-2.5 text-neutral-400 text-xs">Seconds before FSFO triggers</td><td class="py-2.5 font-mono text-green-400 text-xs">30 (default)</td></tr>
+          <tr><td class="py-2.5 font-mono text-oracle-red text-xs">ObserverConnectIdentifier</td><td class="py-2.5 text-neutral-400 text-xs">Standby</td><td class="py-2.5 text-neutral-400 text-xs">TNS for observer to connect to standby</td><td class="py-2.5 font-mono text-green-400 text-xs">TNS_alias</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- FAST-START FAILOVER -->
+<section id="fsfo" class="py-24 bg-gradient-to-b from-transparent via-oracle-red/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-yellow mb-4">Automated HA</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Fast-Start Failover (FSFO)</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">FSFO enables automatic failover without DBA intervention. An Observer process continuously monitors the primary and triggers failover if it becomes unreachable.</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-8 mb-8">
+      <div class="glass rounded-2xl p-6 border border-yellow-500/20 reveal">
+        <h3 class="font-display font-semibold text-white text-xl mb-4">How FSFO Works</h3>
+        <div class="space-y-4">
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center flex-shrink-0"><span class="text-yellow-400 font-bold text-sm">1</span></div>
+            <div><div class="text-white font-semibold text-sm">Observer installed on 3rd host</div><div class="text-neutral-500 text-xs mt-0.5">Separate from both primary and standby servers. Connected to both via Oracle Net.</div></div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center flex-shrink-0"><span class="text-yellow-400 font-bold text-sm">2</span></div>
+            <div><div class="text-white font-semibold text-sm">Observer pings primary every few seconds</div><div class="text-neutral-500 text-xs mt-0.5">Default threshold: 30 seconds of unresponsiveness before FSFO triggers.</div></div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center flex-shrink-0"><span class="text-yellow-400 font-bold text-sm">3</span></div>
+            <div><div class="text-white font-semibold text-sm">Observer verifies standby is synchronized</div><div class="text-neutral-500 text-xs mt-0.5">Only triggers failover if standby is healthy and has applied all available redo.</div></div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center flex-shrink-0"><span class="text-green-400 font-bold text-sm">4</span></div>
+            <div><div class="text-white font-semibold text-sm">Automatic failover executes</div><div class="text-neutral-500 text-xs mt-0.5">Standby becomes new primary. Applications reconnect via FCF (Fast Connection Failover) or TAF.</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-3 border border-yellow-500/20 mt-4 text-xs">
+          <div class="text-yellow-400 font-semibold mb-1">Requirements for FSFO</div>
+          <ul class="space-y-1 text-neutral-400">
+            <li>• Broker must be enabled and configured</li>
+            <li>• Protection mode: Max Availability or Max Performance</li>
+            <li>• Observer running on 3rd server</li>
+            <li>• Flashback Database recommended (for reinstatement)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="glass rounded-2xl p-6 border border-white/5 reveal">
+        <h3 class="font-display font-semibold text-white text-xl mb-4">FSFO Configuration</h3>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">DGMGRL — FSFO Setup</span></div>
+          <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Set protection mode to MaxAvailability</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">EDIT CONFIGURATION SET PROTECTION MODE</span>
+          <span class="fn">AS MaxAvailability</span>;
+
+<span class="cm">-- Configure transport mode for standby</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">EDIT DATABASE</span> <span class="str">'STBY'</span>
+          <span class="kw">SET PROPERTY</span> LogXptMode=<span class="str">'SYNC'</span>;
+
+<span class="cm">-- Set FSFO threshold (seconds)</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">EDIT CONFIGURATION</span>
+          <span class="kw">SET PROPERTY</span>
+          FastStartFailoverThreshold=<span class="num">30</span>;
+
+<span class="cm">-- Enable FSFO</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">ENABLE FAST_START FAILOVER</span>;
+
+<span class="cm">-- Start Observer (on 3rd server)</span>
+<span class="op">$</span> <span class="fn">dgmgrl</span> sys/password@PROD
+
+<span class="kw">DGMGRL&gt;</span> <span class="fn">START OBSERVER</span>;
+<span class="cm">-- Observer process stays running in foreground</span>
+<span class="cm">-- or use: START OBSERVER FILE='observer.dat'</span>
+
+<span class="cm">-- Check Observer and FSFO status</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">SHOW FAST_START FAILOVER</span>;
+<span class="kw">DGMGRL&gt;</span> <span class="fn">SHOW OBSERVERS</span>;
+
+<span class="cm">-- Disable FSFO</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">DISABLE FAST_START FAILOVER</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+    <!-- Active Data Guard -->
+    <div class="glass rounded-2xl p-6 border border-blue-500/20 reveal">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center"><i class="fas fa-book-open text-blue-400 text-xl"></i></div>
+        <div>
+          <h3 class="font-display font-semibold text-white text-xl">Active Data Guard (ADG)</h3>
+          <span class="badge badge-blue text-xs">Separately Licensed</span>
+        </div>
+      </div>
+      <p class="text-neutral-400 text-sm mb-4 leading-relaxed">Active Data Guard allows the physical standby to remain open in READ ONLY mode while simultaneously applying redo. This means you can run <strong class="text-white">reporting queries, backups, and ad-hoc analysis</strong> on the standby without impacting the primary — reducing primary workload and maximizing hardware ROI.</p>
+      <div class="grid md:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4 border border-blue-500/15 text-center"><i class="fas fa-chart-bar text-blue-400 text-xl mb-2"></i><div class="text-white text-sm font-semibold">Reporting Queries</div><div class="text-neutral-500 text-xs mt-1">Run BI/analytics on standby — offload primary</div></div>
+        <div class="glass rounded-xl p-4 border border-green-500/15 text-center"><i class="fas fa-shield-halved text-green-400 text-xl mb-2"></i><div class="text-white text-sm font-semibold">RMAN Backups</div><div class="text-neutral-500 text-xs mt-1">Take backups from standby — zero primary impact</div></div>
+        <div class="glass rounded-xl p-4 border border-purple-500/15 text-center"><i class="fas fa-rotate text-purple-400 text-xl mb-2"></i><div class="text-white text-sm font-semibold">Real-Time Query</div><div class="text-neutral-500 text-xs mt-1">See near-real-time data (seconds lag)</div></div>
+      </div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Enable Active Data Guard</span></div>
+        <pre class="p-4 font-mono text-xs leading-6"><code><span class="cm">-- On STANDBY: Open read-only then start real-time apply</span>
+<span class="kw">ALTER DATABASE OPEN</span> <span class="fn">READ ONLY</span>;
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="fn">USING CURRENT LOGFILE DISCONNECT FROM SESSION</span>;
+
+<span class="cm">-- Verify ADG is active</span>
+<span class="kw">SELECT</span> db_unique_name, open_mode, database_role
+<span class="kw">FROM</span>   v$database;
+<span class="cm">-- open_mode = READ ONLY WITH APPLY</span>
+
+<span class="cm">-- Via DGMGRL:</span>
+<span class="kw">DGMGRL&gt;</span> <span class="fn">EDIT DATABASE</span> <span class="str">'STBY'</span>
+          <span class="kw">SET STATE</span>=<span class="str">'APPLY-ON'</span>;</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MONITORING -->
+<section id="monitoring" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-green mb-4">DBA Toolkit</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Monitoring Data Guard</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">Critical V$ views and queries every Data Guard DBA must run daily to verify health, lag, and transport status.</p>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6 mb-8">
+    <div class="glass rounded-2xl p-6 border border-oracle-red/15 reveal">
+      <div class="flex items-center gap-2 mb-4"><i class="fas fa-heartbeat text-oracle-red"></i><h3 class="font-semibold text-white">Health &amp; Status</h3></div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-4 font-mono text-xs leading-6"><code><span class="cm">-- Database role and mode</span>
+<span class="kw">SELECT</span> name, db_unique_name,
+       database_role, open_mode,
+       protection_mode, switchover_status
+<span class="kw">FROM</span>   v$database;
+
+<span class="cm">-- Data Guard configuration status</span>
+<span class="kw">SELECT</span> message, severity, timestamp
+<span class="kw">FROM</span>   v$dataguard_status
+<span class="kw">WHERE</span>  severity <span class="kw">IN</span> (<span class="str">'Error'</span>,<span class="str">'Warning'</span>)
+<span class="kw">ORDER BY</span> timestamp <span class="fn">DESC</span>;
+
+<span class="cm">-- Managed standby processes</span>
+<span class="kw">SELECT</span> process, status, thread#,
+       sequence#, block#, delay_mins
+<span class="kw">FROM</span>   v$managed_standby
+<span class="kw">ORDER BY</span> process;
+
+<span class="cm">-- Archive dest status (transport)</span>
+<span class="kw">SELECT</span> dest_id, dest_name, status,
+       error, target, archiver,
+       schedule, destination
+<span class="kw">FROM</span>   v$archive_dest_status
+<span class="kw">WHERE</span>  status != <span class="str">'INACTIVE'</span>;</code></pre>
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6 border border-blue-500/15 reveal">
+      <div class="flex items-center gap-2 mb-4"><i class="fas fa-clock text-blue-400"></i><h3 class="font-semibold text-white">Lag &amp; Apply Progress</h3></div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-4 font-mono text-xs leading-6"><code><span class="cm">-- Apply and transport lag (STANDBY)</span>
+<span class="kw">SELECT</span> name, value, unit, time_computed
+<span class="kw">FROM</span>   v$dataguard_stats
+<span class="kw">WHERE</span>  name <span class="kw">IN</span> (
+  <span class="str">'apply lag'</span>,
+  <span class="str">'transport lag'</span>,
+  <span class="str">'apply finish time'</span>,
+  <span class="str">'estimated startup time'</span>);
+
+<span class="cm">-- Sequence received vs applied (STANDBY)</span>
+<span class="kw">SELECT</span>
+  <span class="fn">MAX</span>(sequence#) received_seq,
+  <span class="fn">MAX</span>(<span class="kw">CASE WHEN</span> applied=<span class="str">'YES'</span>
+       <span class="kw">THEN</span> sequence# <span class="kw">END</span>) applied_seq
+<span class="kw">FROM</span>   v$archived_log
+<span class="kw">WHERE</span>  dest_id=<span class="num">1</span>;
+
+<span class="cm">-- Recent archive logs applied</span>
+<span class="kw">SELECT</span> sequence#, first_time,
+       next_time, applied
+<span class="kw">FROM</span>   v$archived_log
+<span class="kw">WHERE</span>  dest_id=<span class="num">1</span>
+<span class="kw">ORDER BY</span> sequence# <span class="fn">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> <span class="kw">ROWS ONLY</span>;</code></pre>
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6 border border-green-500/15 reveal">
+      <div class="flex items-center gap-2 mb-4"><i class="fas fa-scroll text-green-400"></i><h3 class="font-semibold text-white">Redo Transport Monitoring</h3></div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-4 font-mono text-xs leading-6"><code><span class="cm">-- Redo transport mode per destination</span>
+<span class="kw">SELECT</span> dest_id, target, archiver,
+       transmit_mode, async_blocks,
+       net_timeout, delay_mins,
+       reopen_secs, destination
+<span class="kw">FROM</span>   v$archive_dest
+<span class="kw">WHERE</span>  status=<span class="str">'VALID'</span>;
+
+<span class="cm">-- Standby redo log status</span>
+<span class="kw">SELECT</span> group#, sequence#, bytes/1024/1024 mb,
+       used, archived, status
+<span class="kw">FROM</span>   v$standby_log;
+
+<span class="cm">-- Check for gaps (PRIMARY)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> v$archive_gap;
+
+<span class="cm">-- Archive generation rate (PRIMARY)</span>
+<span class="kw">SELECT</span>
+  <span class="fn">TRUNC</span>(completion_time) log_date,
+  <span class="fn">COUNT</span>(*) logs_generated,
+  <span class="fn">ROUND</span>(<span class="fn">SUM</span>(blocks*block_size)/1024/1024/1024,<span class="num">2</span>) gb
+<span class="kw">FROM</span>   v$archived_log
+<span class="kw">WHERE</span>  dest_id=<span class="num">1</span>
+<span class="kw">AND</span>    completion_time &gt; <span class="fn">SYSDATE</span>-<span class="num">7</span>
+<span class="kw">GROUP BY</span> <span class="fn">TRUNC</span>(completion_time)
+<span class="kw">ORDER BY</span> log_date;</code></pre>
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6 border border-purple-500/15 reveal">
+      <div class="flex items-center gap-2 mb-4"><i class="fas fa-sliders text-purple-400"></i><h3 class="font-semibold text-white">DGMGRL Monitoring</h3></div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+        <pre class="p-4 font-mono text-xs leading-6"><code><span class="cm">-- Full config health</span>
+<span class="fn">SHOW CONFIGURATION</span>;
+
+<span class="cm">-- Per-database status</span>
+<span class="fn">SHOW DATABASE VERBOSE</span> <span class="str">'PROD'</span>;
+<span class="fn">SHOW DATABASE VERBOSE</span> <span class="str">'STBY'</span>;
+
+<span class="cm">-- Check all properties</span>
+<span class="fn">SHOW DATABASE</span> <span class="str">'STBY'</span> <span class="str">'ApplyLag'</span>;
+<span class="fn">SHOW DATABASE</span> <span class="str">'STBY'</span> <span class="str">'TransportLag'</span>;
+<span class="fn">SHOW DATABASE</span> <span class="str">'STBY'</span> <span class="str">'LogXptMode'</span>;
+
+<span class="cm">-- FSFO status</span>
+<span class="fn">SHOW FAST_START FAILOVER</span>;
+<span class="fn">SHOW OBSERVERS</span>;
+
+<span class="cm">-- Validate standby (pre-switchover)</span>
+<span class="fn">VALIDATE DATABASE</span> <span class="str">'STBY'</span>;
+<span class="fn">VALIDATE DATABASE VERBOSE</span> <span class="str">'STBY'</span>;</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key V$ views reference table -->
+  <div class="glass rounded-2xl p-6 border border-white/5 reveal">
+    <h3 class="font-display font-semibold text-white text-xl mb-4">Data Guard V$ Views Quick Reference</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead><tr class="border-b border-white/10"><th class="text-left py-3 text-neutral-400 font-semibold">View</th><th class="text-left py-3 text-neutral-400 font-semibold">Where</th><th class="text-left py-3 text-neutral-400 font-semibold">What it Shows</th></tr></thead>
+        <tbody class="divide-y divide-white/5">
+          <tr><td class="py-2 font-mono text-oracle-red text-xs">V$DATABASE</td><td class="py-2 text-xs badge badge-blue">Both</td><td class="py-2 text-xs text-neutral-400">DATABASE_ROLE, OPEN_MODE, PROTECTION_MODE, SWITCHOVER_STATUS</td></tr>
+          <tr><td class="py-2 font-mono text-oracle-red text-xs">V$DATAGUARD_STATUS</td><td class="py-2 text-xs badge badge-blue">Both</td><td class="py-2 text-xs text-neutral-400">Error/Warning messages from DG processes</td></tr>
+          <tr><td class="py-2 font-mono text-oracle-red text-xs">V$DATAGUARD_STATS</td><td class="py-2 text-xs badge badge-green">Standby</td><td class="py-2 text-xs text-neutral-400">Apply lag, transport lag, apply finish time</td></tr>
+          <tr><td class="py-2 font-mono text-oracle-red text-xs">V$MANAGED_STANDBY</td><td class="py-2 text-xs badge badge-green">Standby</td><td class="py-2 text-xs text-neutral-400">MRP/RFS/ARCH process status and sequence numbers</td></tr>
+          <tr><td class="py-2 font-mono text-oracle-red text-xs">V$ARCHIVE_DEST_STATUS</td><td class="py-2 text-xs badge badge-red">Primary</td><td class="py-2 text-xs text-neutral-400">Transport destination status, errors, schedule</td></tr>
+          <tr><td class="py-2 font-mono text-oracle-red text-xs">V$ARCHIVE_DEST</td><td class="py-2 text-xs badge badge-blue">Both</td><td class="py-2 text-xs text-neutral-400">LOG_ARCHIVE_DEST_n parameters and current state</td></tr>
+          <tr><td class="py-2 font-mono text-oracle-red text-xs">V$ARCHIVED_LOG</td><td class="py-2 text-xs badge badge-blue">Both</td><td class="py-2 text-xs text-neutral-400">Archive log history — sequence, applied status, timestamps</td></tr>
+          <tr><td class="py-2 font-mono text-oracle-red text-xs">V$STANDBY_LOG</td><td class="py-2 text-xs badge badge-green">Standby</td><td class="py-2 text-xs text-neutral-400">SRL group status, sequence, bytes used/archived</td></tr>
+          <tr><td class="py-2 font-mono text-oracle-red text-xs">V$ARCHIVE_GAP</td><td class="py-2 text-xs badge badge-green">Standby</td><td class="py-2 text-xs text-neutral-400">Archive log gaps — missing sequences on standby</td></tr>
+          <tr><td class="py-2 font-mono text-oracle-red text-xs">V$LOG_HISTORY</td><td class="py-2 text-xs badge badge-blue">Both</td><td class="py-2 text-xs text-neutral-400">Redo log switch history</td></tr>
+          <tr><td class="py-2 font-mono text-oracle-red text-xs">DBA_LOGSTDBY_EVENTS</td><td class="py-2 text-xs badge badge-purple">Logical</td><td class="py-2 text-xs text-neutral-400">SQL Apply events and errors</td></tr>
+          <tr><td class="py-2 font-mono text-oracle-red text-xs">V$LOGSTDBY_PROGRESS</td><td class="py-2 text-xs badge badge-purple">Logical</td><td class="py-2 text-xs text-neutral-400">SQL Apply progress — applied/latest SCN</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- TROUBLESHOOTING -->
+<section id="troubleshooting" class="py-24 bg-gradient-to-b from-transparent via-oracle-red/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-red mb-4">Real-World DBA</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Troubleshooting &amp; Maintenance</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">Common Data Guard problems and their exact resolution steps — from log gaps to transport failures.</p>
+    </div>
+
+    <div class="space-y-4 reveal">
+      <!-- Accordion 1: Archive Gap -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0"><i class="fas fa-gap text-red-400 text-sm"></i></div>
+            <div><div class="font-semibold text-white">Archive Log Gap — Standby Missing Sequences</div><div class="text-neutral-500 text-xs mt-0.5">V$ARCHIVE_GAP shows missing sequences, MRP stalls</div></div>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Archive Gap Resolution</span></div>
+              <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Diagnose: Check for gaps on standby</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> v$archive_gap;
+<span class="cm">-- Shows: LOW_SEQUENCE#, HIGH_SEQUENCE#, THREAD#</span>
+
+<span class="cm">-- Check which sequences standby has</span>
+<span class="kw">SELECT</span> sequence#, applied <span class="kw">FROM</span> v$archived_log
+<span class="kw">WHERE</span>  dest_id=<span class="num">1</span>
+<span class="kw">ORDER BY</span> sequence#;
+
+<span class="cm">-- Fix: FAL process auto-requests missing logs if configured</span>
+<span class="cm">-- Verify FAL_SERVER is set on standby:</span>
+<span class="kw">SHOW PARAMETER</span> fal_server;
+
+<span class="cm">-- Manual: Register missing archive on standby</span>
+<span class="kw">ALTER DATABASE REGISTER LOGFILE</span>
+  <span class="str">'/u03/fra/STBY/arch/1_1202_123456789.arc'</span>;
+
+<span class="cm">-- Or copy from primary manually then register</span>
+<span class="cm">-- (if FAL is not working)</span>
+<span class="op">$</span> scp primary:/u03/fra/PROD/arch/1_1202*.arc \
+       standby:/u03/fra/STBY/arch/
+
+<span class="cm">-- Re-register and verify</span>
+<span class="kw">ALTER DATABASE REGISTER LOGICAL LOGFILE</span>
+  <span class="str">'/u03/fra/STBY/arch/1_1202_123456789.arc'</span>;
+
+<span class="cm">-- Restart MRP</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE CANCEL</span>;
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="fn">DISCONNECT FROM SESSION</span>;</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion 2: MRP not running -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0"><i class="fas fa-gears text-orange-400 text-sm"></i></div>
+            <div><div class="font-semibold text-white">MRP Process Not Running / Apply Stopped</div><div class="text-neutral-500 text-xs mt-0.5">V$MANAGED_STANDBY shows no MRP row or STATUS=ERROR</div></div>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+              <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Check MRP status</span>
+<span class="kw">SELECT</span> process, status, sequence#
+<span class="kw">FROM</span>   v$managed_standby;
+
+<span class="cm">-- Check alert log for errors</span>
+<span class="op">$</span> tail -200 /u01/app/oracle/diag/rdbms/stby/STBY/trace/alert_STBY.log
+
+<span class="cm">-- Check Data Guard status messages</span>
+<span class="kw">SELECT</span> severity, error_code, message, timestamp
+<span class="kw">FROM</span>   v$dataguard_status
+<span class="kw">WHERE</span>  severity != <span class="str">'Informational'</span>
+<span class="kw">ORDER BY</span> timestamp <span class="fn">DESC</span>;
+
+<span class="cm">-- Restart MRP</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE CANCEL</span>;
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="fn">DISCONNECT FROM SESSION</span>;
+
+<span class="cm">-- If ORA-00313 / ORA-00312 (missing SRL):</span>
+<span class="cm">-- Add standby redo log files</span>
+<span class="kw">ALTER DATABASE ADD STANDBY LOGFILE GROUP</span> <span class="num">8</span>
+  (<span class="str">'/u02/oradata/STBY/srl05.log'</span>) <span class="fn">SIZE</span> <span class="num">200</span>M;</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion 3: Transport errors -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center flex-shrink-0"><i class="fas fa-paper-plane text-yellow-400 text-sm"></i></div>
+            <div><div class="font-semibold text-white">Redo Transport Failure (ERROR on LOG_ARCHIVE_DEST_2)</div><div class="text-neutral-500 text-xs mt-0.5">V$ARCHIVE_DEST_STATUS shows Error, redo not reaching standby</div></div>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+              <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Check transport error</span>
+<span class="kw">SELECT</span> dest_id, status, error, destination
+<span class="kw">FROM</span>   v$archive_dest_status
+<span class="kw">WHERE</span>  dest_id = <span class="num">2</span>;
+
+<span class="cm">-- Common causes and fixes:</span>
+
+<span class="cm">-- 1. Network issue: Test TNS connection from primary</span>
+<span class="op">$</span> tnsping STBY
+<span class="op">$</span> sqlplus sys/pass@STBY as sysdba
+
+<span class="cm">-- 2. Password file mismatch</span>
+<span class="op">$</span> scp $ORACLE_HOME/dbs/orapwPROD standby:$ORACLE_HOME/dbs/orapwSTBY
+
+<span class="cm">-- 3. Listener not running on standby</span>
+<span class="op">$</span> lsnrctl status   <span class="cm">-- on standby</span>
+<span class="op">$</span> lsnrctl start
+
+<span class="cm">-- 4. Reset/re-enable transport destination</span>
+<span class="kw">ALTER SYSTEM SET</span>
+  log_archive_dest_state_2=<span class="str">'DEFER'</span> <span class="kw">SCOPE</span>=BOTH;
+<span class="kw">ALTER SYSTEM SET</span>
+  log_archive_dest_state_2=<span class="str">'ENABLE'</span> <span class="kw">SCOPE</span>=BOTH;
+
+<span class="cm">-- 5. Force archive switch to re-trigger transport</span>
+<span class="kw">ALTER SYSTEM SWITCH LOGFILE</span>;
+<span class="kw">ALTER SYSTEM ARCHIVE LOG CURRENT</span>;</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion 4: Data file added on primary -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0"><i class="fas fa-file-circle-plus text-blue-400 text-sm"></i></div>
+            <div><div class="font-semibold text-white">New Datafile Added on Primary — Standby MRP Stalls</div><div class="text-neutral-500 text-xs mt-0.5">ORA-01111 or file creation error when apply tries to create missing datafile</div></div>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+              <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Prevention: STANDBY_FILE_MANAGEMENT=AUTO</span>
+<span class="cm">-- (auto-creates missing datafiles on standby)</span>
+<span class="kw">SHOW PARAMETER</span> standby_file_management;
+<span class="cm">-- Should show: AUTO</span>
+
+<span class="cm">-- If set to MANUAL or file path differs:</span>
+<span class="cm">-- Check alert log for ORA-01111 / ORA-01110</span>
+<span class="op">$</span> grep <span class="str">"ORA-01"</span> /path/to/alert_STBY.log | tail -20
+
+<span class="cm">-- Fix 1: Set to AUTO</span>
+<span class="kw">ALTER SYSTEM SET</span>
+  standby_file_management=<span class="str">'AUTO'</span> <span class="kw">SCOPE</span>=BOTH;
+
+<span class="cm">-- Fix 2: Create file manually on standby</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">CREATE DATAFILE</span>
+  <span class="str">'/u02/oradata/STBY/newfile.dbf'</span>
+  <span class="fn">AS</span>
+  <span class="str">'/u02/oradata/STBY/newfile.dbf'</span>;
+
+<span class="cm">-- Fix 3: Copy from primary (if standby on same host)</span>
+<span class="op">$</span> cp /u02/oradata/PROD/newfile.dbf \
+     /u02/oradata/STBY/newfile.dbf</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion 5: Check high apply lag -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center flex-shrink-0"><i class="fas fa-clock text-purple-400 text-sm"></i></div>
+            <div><div class="font-semibold text-white">High Apply Lag — Standby Falling Behind</div><div class="text-neutral-500 text-xs mt-0.5">V$DATAGUARD_STATS shows apply lag growing, standby not keeping up</div></div>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+              <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">-- Measure current lag</span>
+<span class="kw">SELECT</span> name, value, unit
+<span class="kw">FROM</span>   v$dataguard_stats
+<span class="kw">WHERE</span>  name <span class="kw">IN</span> (<span class="str">'apply lag'</span>,<span class="str">'transport lag'</span>);
+
+<span class="cm">-- Check MRP apply rate (blocks/sec)</span>
+<span class="kw">SELECT</span> sequence#, block#, blocks,
+       delay_mins, status
+<span class="kw">FROM</span>   v$managed_standby
+<span class="kw">WHERE</span>  process = <span class="str">'MRP0'</span>;
+
+<span class="cm">-- Resolution 1: Increase parallel apply</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE CANCEL</span>;
+<span class="kw">ALTER DATABASE</span>
+  <span class="fn">RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="fn">PARALLEL</span> <span class="num">4</span>              <span class="cm">-- 4 parallel threads</span>
+  <span class="fn">DISCONNECT FROM SESSION</span>;
+
+<span class="cm">-- Resolution 2: Increase DB_RECOVERY_FILE_DEST_SIZE</span>
+<span class="cm">-- if FRA filling up causing apply stalls</span>
+
+<span class="cm">-- Resolution 3: Check I/O bottleneck on standby</span>
+<span class="kw">SELECT</span> event, waits, time_waited
+<span class="kw">FROM</span>   v$system_event
+<span class="kw">WHERE</span>  event <span class="kw">LIKE</span> <span class="str">'%read%'</span>
+<span class="kw">ORDER BY</span> time_waited <span class="fn">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> <span class="kw">ROWS ONLY</span>;</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion 6: Parameter mismatch -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0"><i class="fas fa-wrench text-cyan-400 text-sm"></i></div>
+            <div><div class="font-semibold text-white">Maintenance — Daily Health Check Script</div><div class="text-neutral-500 text-xs mt-0.5">Complete script to run on both primary and standby each morning</div></div>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Daily DG Health Check</span></div>
+              <pre class="p-4 font-mono text-sm leading-7"><code><span class="cm">====== RUN ON PRIMARY ======</span>
+<span class="cm">-- 1. Database role and protection mode</span>
+<span class="kw">SELECT</span> db_unique_name, database_role,
+       protection_mode, open_mode
+<span class="kw">FROM</span>   v$database;
+
+<span class="cm">-- 2. Transport status</span>
+<span class="kw">SELECT</span> dest_id, status, error, destination
+<span class="kw">FROM</span>   v$archive_dest_status
+<span class="kw">WHERE</span>  dest_id &gt; <span class="num">1</span> <span class="kw">AND</span> target=<span class="str">'STANDBY'</span>;
+
+<span class="cm">-- 3. Last archive sent to standby</span>
+<span class="kw">SELECT</span> <span class="fn">MAX</span>(sequence#) sent,
+       <span class="fn">MAX</span>(applied_scn) applied
+<span class="kw">FROM</span>   v$archive_dest_status
+<span class="kw">WHERE</span>  target=<span class="str">'STANDBY'</span>;
+
+<span class="cm">====== RUN ON STANDBY ======</span>
+<span class="cm">-- 4. MRP process</span>
+<span class="kw">SELECT</span> process, status, sequence#, delay_mins
+<span class="kw">FROM</span>   v$managed_standby;
+
+<span class="cm">-- 5. Apply and transport lag</span>
+<span class="kw">SELECT</span> name, value, unit
+<span class="kw">FROM</span>   v$dataguard_stats
+<span class="kw">WHERE</span>  name <span class="kw">IN</span> (<span class="str">'apply lag'</span>,<span class="str">'transport lag'</span>);
+
+<span class="cm">-- 6. Any DG errors</span>
+<span class="kw">SELECT</span> severity, message, timestamp
+<span class="kw">FROM</span>   v$dataguard_status
+<span class="kw">WHERE</span>  severity != <span class="str">'Informational'</span>
+<span class="kw">AND</span>    timestamp &gt; <span class="fn">SYSDATE</span> - <span class="num">1</span>;
+
+<span class="cm">-- 7. Archive gaps</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> v$archive_gap;</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="py-16 border-t border-white/5">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-oracle-red to-oracle-dark flex items-center justify-center"><i class="fas fa-database text-white text-sm"></i></div>
+        <div><div class="font-display font-bold text-white text-sm">Oracle DBA Simplified</div><div class="text-neutral-500 text-xs">Data Guard Complete Reference</div></div>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap justify-center">
+        <span class="badge badge-red">Oracle 19c</span><span class="badge badge-blue">Data Guard</span><span class="badge badge-green">Enterprise HA</span>
+      </div>
+      <a href="index.html" class="btn-ghost text-sm py-2"><i class="fas fa-arrow-left text-xs"></i> Back to Home</a>
+    </div>
+    <div class="mt-8 pt-8 border-t border-white/5 text-center text-neutral-600 text-xs">
+      Content sourced from Oracle 19c Data Guard Concepts and Administration (SBYDB) and gavinsoorma.com.au
+    </div>
+  </div>
+</footer>
+
+<!-- Back to top -->
+<button id="btt" class="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-oracle-red/80 text-white flex items-center justify-center opacity-0 transition-opacity duration-300 hover:bg-oracle-red z-40"><i class="fas fa-chevron-up text-sm"></i></button>
+
+<script>
+// Mobile menu
+document.getElementById('mob-btn').addEventListener('click',()=>document.getElementById('mob-menu').classList.toggle('open'));
+
+// Back to top
+const btt=document.getElementById('btt');
+window.addEventListener('scroll',()=>{btt.style.opacity=window.scrollY>400?'1':'0';});
+btt.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+// Scroll reveal
+const ro=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+// Generic tabs
+function initTabs(id){
+  const c=document.getElementById(id);
+  if(!c)return;
+  c.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      c.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      c.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+      btn.classList.add('active');
+      const t=document.getElementById(btn.dataset.tab);
+      if(t)t.classList.add('active');
+    });
+  });
+}
+['sb-tabs','create-tabs','role-tabs'].forEach(initTabs);
+
+// Accordion
+document.querySelectorAll('.acc-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const c=btn.nextElementSibling;
+    const isOpen=c.classList.contains('open');
+    // close all
+    document.querySelectorAll('.acc-content').forEach(x=>x.classList.remove('open'));
+    document.querySelectorAll('.acc-btn').forEach(b=>b.classList.remove('open'));
+    if(!isOpen){c.classList.add('open');btn.classList.add('open');}
+  });
+});
+
+// Active nav on scroll
+const secs=document.querySelectorAll('section[id]');
+const nls=document.querySelectorAll('.nav-link');
+window.addEventListener('scroll',()=>{
+  let cur='';
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-120)cur=s.id;});
+  nls.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+cur));
+});
+
+// Architecture diagram component data
+const dgData={
+  'primary-db':{icon:'fas fa-database',ic:'text-oracle-red',bg:'bg-oracle-red/10 border-oracle-red/30',title:'Primary Database',sub:'READ WRITE — the production database',desc:'The primary database processes all application write operations. Every change generates redo data that is automatically transported to one or more standby databases in near-real-time. The primary runs in ARCHIVELOG mode, enabling online backup and standby synchronization.',pts:[{t:'Role',d:'DATABASE_ROLE = PRIMARY'},{t:'Open Mode',d:'READ WRITE — full DML/DDL'},{t:'FORCE LOGGING',d:'All changes generate redo — required for DG'},{t:'DB_UNIQUE_NAME',d:'Must differ from standby (e.g. PROD vs STBY)'}],code:`SELECT db_unique_name, database_role,\n       open_mode, protection_mode\nFROM   v$database;`},
+  'lgwr':{icon:'fas fa-pen-to-square',ic:'text-yellow-400',bg:'bg-yellow-500/10 border-yellow-500/30',title:'LGWR — Log Writer',sub:'Writes redo entries and ships redo to standbys',desc:'The Log Writer (LGWR) background process on the primary writes redo records from the log buffer to online redo log files. In a Data Guard configuration, LGWR also ships redo to standbys via the LNS (Log Network Server) process — either synchronously (SYNC) or asynchronously (ASYNC).',pts:[{t:'Redo Write',d:'LGWR writes to online redo log on commit'},{t:'SYNC Transport',d:'LGWR waits for standby ack before returning commit'},{t:'ASYNC Transport',d:'LGWR commits without waiting for standby'},{t:'LNS Process',d:'LNS1/LNS2 — LGWR helper processes for network I/O'}],code:`SELECT process, status, sequence#\nFROM   v$managed_standby\nWHERE  process LIKE 'LNS%';`},
+  'arcn':{icon:'fas fa-scroll',ic:'text-orange-400',bg:'bg-orange-500/10 border-orange-500/30',title:'ARCn — Archiver Process',sub:'Archives filled online redo logs',desc:'When an online redo log group fills, the ARCn (Archiver) process copies it to the archive log destination. In Data Guard, ARCn also sends archived logs to standby databases (typically as fallback to LGWR transport, or for filling archive gaps via FAL).',pts:[{t:'Archive Mode',d:'Database must be in ARCHIVELOG mode'},{t:'Fallback',d:'If LNS/LGWR transport fails, ARCn fills the gap'},{t:'Multiple ARCn',d:'Up to 30 ARCn processes for parallelism'},{t:'FAL Gap Fill',d:'ARCn sends specific sequences requested by standby FAL'}],code:`-- Monitor archivers\nSELECT process, status, sequence#\nFROM   v$managed_standby\nWHERE  process LIKE 'ARC%';\n\nARCHIVE LOG LIST;`},
+  'online-redo':{icon:'fas fa-rotate',ic:'text-oracle-red',bg:'bg-oracle-red/10 border-oracle-red/30',title:'Online Redo Logs',sub:'Circular redo log files on primary',desc:'Online redo log files record every change made to the primary database. Organized in groups — LGWR writes to one group at a time. When a group fills, a log switch occurs: LGWR moves to the next group and ARCn archives the filled group. These are the source of redo transported to standbys.',pts:[{t:'Groups',d:'Minimum 3 groups, rotate in circular fashion'},{t:'Log Switch',d:'ALTER SYSTEM SWITCH LOGFILE triggers archiving'},{t:'Size',d:'Recommended: 200MB–4GB based on generation rate'},{t:'Multiplexing',d:'Multiple members per group for fault tolerance'}],code:`SELECT group#, members, bytes/1024/1024 mb,\n       status, archived\nFROM   v$log;\nALTER SYSTEM SWITCH LOGFILE;`},
+  'redo-transport':{icon:'fas fa-paper-plane',ic:'text-cyan-400',bg:'bg-cyan-500/10 border-cyan-500/30',title:'Redo Transport Services',sub:'Ships redo from primary to standby via Oracle Net',desc:'Redo Transport is the mechanism that automatically transfers redo data from the primary to the standby. Configured via LOG_ARCHIVE_DEST_n parameters. Supports synchronous (SYNC/AFFIRM — zero data loss) and asynchronous (ASYNC — better performance) modes.',pts:[{t:'SYNC/AFFIRM',d:'Max Protection/Availability: waits for standby disk write'},{t:'ASYNC',d:'Max Performance: ships without waiting'},{t:'LOG_ARCHIVE_DEST_n',d:'Up to 31 destinations (dest 2–31 for standbys)'},{t:'RFS Process',d:'Remote File Server on standby receives redo from primary'}],code:`-- Check transport status\nSELECT dest_id, status, error,\n       target, destination\nFROM   v$archive_dest_status\nWHERE  target='STANDBY';`},
+  'broker':{icon:'fas fa-sliders',ic:'text-purple-400',bg:'bg-purple-500/10 border-purple-500/30',title:'Data Guard Broker',sub:'Centralized management via DGMGRL',desc:'The Data Guard Broker automates and centralizes management of the Data Guard configuration. It manages role transitions (switchover/failover), monitors health, and coordinates Fast-Start Failover. The broker configuration is stored in binary config files (.dat) on both primary and standby.',pts:[{t:'DGMGRL',d:'Command-line interface for all DG management'},{t:'Config File',d:'DG_BROKER_CONFIG_FILE1/2 — binary config stored on disk'},{t:'DG_BROKER_START',d:'TRUE on both primary and standby to enable broker'},{t:'Health Monitoring',d:'Automatic detection of failures and warnings'}],code:`ALTER SYSTEM SET dg_broker_start=TRUE;\n\n$ dgmgrl sys/pass@PROD\nDGMGRL> SHOW CONFIGURATION;\nDGMGRL> SWITCHOVER TO 'STBY';`},
+  'observer':{icon:'fas fa-eye',ic:'text-yellow-400',bg:'bg-yellow-500/10 border-yellow-500/30',title:'Observer (FSFO)',sub:'Monitors primary for Fast-Start Failover',desc:'The Observer is a broker component that runs on a third host, separate from both primary and standby. It continuously monitors the primary database and, if the primary is unreachable for the configured threshold (default 30 seconds), automatically triggers failover to the standby without DBA intervention.',pts:[{t:'Third Host',d:'Must run separately from primary and standby'},{t:'Threshold',d:'FastStartFailoverThreshold = seconds before trigger'},{t:'Prerequisite',d:'FSFO must be enabled, broker configured'},{t:'Multiple Observers',d:'12c+: up to 3 observers for observer redundancy'}],code:`DGMGRL> ENABLE FAST_START FAILOVER;\nDGMGRL> START OBSERVER;\nDGMGRL> SHOW FAST_START FAILOVER;\nDGMGRL> SHOW OBSERVERS;`},
+  'physical-standby':{icon:'fas fa-server',ic:'text-blue-400',bg:'bg-blue-500/10 border-blue-500/30',title:'Physical Standby Database',sub:'Block-for-block copy maintained via Redo Apply',desc:'The physical standby is an exact copy of the primary maintained through Redo Apply (MRP process). It receives redo from the primary and applies it block-by-block to its datafiles. Can be open READ ONLY (Active Data Guard) while applying. The most common and recommended standby type.',pts:[{t:'MRP',d:'Managed Recovery Process applies redo to datafiles'},{t:'RFS',d:'Remote File Server receives redo from primary LGWR'},{t:'ADG',d:'Active Data Guard: READ ONLY + apply simultaneously'},{t:'Backup Target',d:'Run RMAN backups on standby — zero primary impact'}],code:`-- Start redo apply\nALTER DATABASE RECOVER MANAGED STANDBY DATABASE\n  DISCONNECT FROM SESSION;\n\n-- Active Data Guard\nALTER DATABASE OPEN READ ONLY;\nALTER DATABASE RECOVER MANAGED STANDBY DATABASE\n  USING CURRENT LOGFILE DISCONNECT;`},
+  'srl':{icon:'fas fa-file-lines',ic:'text-green-400',bg:'bg-green-500/10 border-green-500/30',title:'Standby Redo Logs (SRL)',sub:'Receive live redo from primary before archiving',desc:'Standby Redo Logs (SRL) are the counterpart of online redo logs on the standby. The primary\'s LGWR/LNS process writes directly into the standby SRL files (via the RFS process). When an SRL fills, the standby ARCn archives it locally. SRLs enable real-time apply and minimize apply lag.',pts:[{t:'Count',d:'Recommended: online log groups + 1 per thread'},{t:'Size',d:'Same size as primary online redo logs or larger'},{t:'Real-Time Apply',d:'MRP can apply from SRL before archiving (USING CURRENT LOGFILE)'},{t:'Required for',d:'SYNC transport — SRLs must exist for redo to land'}],code:`ALTER DATABASE ADD STANDBY LOGFILE GROUP 4\n  ('/stby/srl01.log') SIZE 200M;\n\nSELECT group#, sequence#, bytes/1024/1024 mb,\n       used, archived, status\nFROM   v$standby_log;`},
+  'mrp':{icon:'fas fa-gears',ic:'text-cyan-400',bg:'bg-cyan-500/10 border-cyan-500/30',title:'MRP — Managed Recovery Process',sub:'Applies redo to standby datafiles',desc:'MRP0 (Managed Recovery Process) is the background process on the physical standby that reads redo from archived logs or SRLs and applies the changes block-by-block to the standby datafiles. It is started with ALTER DATABASE RECOVER MANAGED STANDBY DATABASE.',pts:[{t:'MRP0',d:'Single MRP process — main apply coordinator'},{t:'Pr00-PrNN',d:'Parallel recovery slaves spawned by MRP'},{t:'Real-Time Apply',d:'USING CURRENT LOGFILE — apply from SRL without archiving'},{t:'Parallel Apply',d:'PARALLEL n — spawn parallel apply workers'}],code:`SELECT process, status, sequence#,\n       block#, delay_mins\nFROM   v$managed_standby;\n\n-- Check last applied sequence\nSELECT MAX(sequence#) applied\nFROM   v$archived_log\nWHERE  applied='YES';`},
+  'logical-standby':{icon:'fas fa-table',ic:'text-purple-400',bg:'bg-purple-500/10 border-purple-500/30',title:'Logical Standby Database',sub:'SQL Apply via LogMiner — open READ WRITE',desc:'The logical standby uses SQL Apply: redo is mined by LogMiner to reconstruct SQL statements, which are then applied to the standby database. The standby is always open READ WRITE and can have additional indexes, MVs, and objects not present on the primary.',pts:[{t:'LSP',d:'LogMiner Server Process — mines redo for SQL'},{t:'Always Open',d:'READ WRITE — full query access'},{t:'Extra Objects',d:'Can have indexes/MVs not on primary'},{t:'Limitations',d:'Not all data types supported; higher complexity'}],code:`ALTER DATABASE START LOGICAL STANDBY APPLY\n  IMMEDIATE;\n\nSELECT status, applied_scn, latest_scn\nFROM   v$logstdby_progress;`},
+  'snapshot-standby':{icon:'fas fa-camera',ic:'text-orange-400',bg:'bg-orange-500/10 border-orange-500/30',title:'Snapshot Standby Database',sub:'Writable physical standby for testing',desc:'A snapshot standby is a physical standby temporarily converted to READ WRITE mode for testing or development. All changes made while in snapshot mode are discarded when converted back to physical standby — Flashback Database rewinds to the pre-snapshot state, and redo received during the snapshot period is applied.',pts:[{t:'Writable',d:'Full READ WRITE access for DML, DDL, testing'},{t:'Redo Continues',d:'Primary redo still received during snapshot mode'},{t:'Auto-Discard',d:'All test changes rolled back on reversion'},{t:'Requires Flashback',d:'Flashback Database must be enabled on standby'}],code:`ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;\nALTER DATABASE CONVERT TO SNAPSHOT STANDBY;\nALTER DATABASE OPEN;\n-- ... testing ...\nALTER DATABASE CONVERT TO PHYSICAL STANDBY;\nSTARTUP MOUNT;`}
+};
+
+document.querySelectorAll('.dg-comp').forEach(el=>{
+  el.addEventListener('click',()=>{
+    document.querySelectorAll('.dg-comp').forEach(e=>e.classList.remove('selected'));
+    el.classList.add('selected');
+    const d=dgData[el.dataset.dg];
+    if(!d)return;
+    const panel=document.getElementById('dg-info');
+    panel.classList.remove('hidden');
+    document.getElementById('dgi-icon').className=`w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${d.bg}`;
+    document.getElementById('dgi-icon').innerHTML=`<i class="${d.icon} ${d.ic}"></i>`;
+    document.getElementById('dgi-title').textContent=d.title;
+    document.getElementById('dgi-sub').textContent=d.sub;
+    document.getElementById('dgi-desc').textContent=d.desc;
+    document.getElementById('dgi-points').innerHTML=d.pts.map(p=>`<div class="glass rounded-lg p-2 border border-white/5"><div class="text-white text-xs font-semibold">${p.t}</div><div class="text-neutral-500 text-xs mt-0.5">${p.d}</div></div>`).join('');
+    document.getElementById('dgi-code').innerHTML=`<div class="terminal"><div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div><pre class="p-4 font-mono text-xs text-neutral-300 whitespace-pre-wrap leading-6">${d.code}</pre></div>`;
+    panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+});
+</script>
+</body>
+</html>

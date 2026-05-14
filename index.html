@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Oracle DBA Simplified — Learn Oracle Database the Simple Way</title>
+  <meta name="description" content="Master Oracle Database Administration from basics to advanced. Real-world DBA concepts explained simply for beginners, DBAs, and interview prep." />
+  <meta property="og:title" content="Oracle DBA Simplified" />
+  <meta property="og:description" content="Learn Oracle Database in the simplest way possible." />
+  <meta property="og:type" content="website" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            oracle: { red: '#C74634', dark: '#8B2E22', light: '#E8604A' },
+            surface: { dark: '#0a0a0f', card: '#111118', border: '#1e1e2e' }
+          },
+          fontFamily: {
+            display: ['Sora', 'sans-serif'],
+            body: ['DM Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'float-delay': 'float 6s ease-in-out 2s infinite',
+            'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+            'typing': 'typing 3s steps(30) infinite',
+            'fade-up': 'fadeUp 0.6s ease forwards',
+            'spin-slow': 'spin 20s linear infinite',
+          },
+          keyframes: {
+            float: { '0%,100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-18px)' } },
+            pulseGlow: { '0%,100%': { boxShadow: '0 0 20px rgba(199,70,52,0.3)' }, '50%': { boxShadow: '0 0 50px rgba(199,70,52,0.7)' } },
+            fadeUp: { from: { opacity: '0', transform: 'translateY(30px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+            typing: { '0%': { width: '0' }, '50%': { width: '100%' }, '100%': { width: '0' } }
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --color-primary: #C74634;
+      --color-primary-hover: #a8392a;
+      --color-neutral-50: #fafafa;
+      --color-neutral-100: #f4f4f5;
+      --color-neutral-500: #71717a;
+      --color-neutral-900: #18181b;
+      --color-surface: #111118;
+      --color-border: #1e1e2e;
+      --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+      --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px; --space-24: 96px;
+      --text-xs: 0.75rem; --text-sm: 0.875rem; --text-base: 1rem;
+      --text-lg: 1.125rem; --text-xl: 1.25rem; --text-2xl: 1.5rem;
+      --text-3xl: 1.875rem; --text-4xl: 2.25rem;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: #0a0a0f; color: #e2e8f0; overflow-x: hidden; }
+    .font-display { font-family: 'Sora', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Glassmorphism */
+    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass-strong { background: rgba(255,255,255,0.07); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.12); }
+
+    /* Gradient text */
+    .gradient-text { background: linear-gradient(135deg, #C74634 0%, #ff8c7a 50%, #ffb347 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .gradient-text-white { background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* Noise texture overlay */
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; opacity: 0.4; }
+
+    /* Glow orbs */
+    .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; pointer-events: none; }
+    .orb-red { background: radial-gradient(circle, #C74634, transparent); }
+    .orb-blue { background: radial-gradient(circle, #3b82f6, transparent); }
+    .orb-purple { background: radial-gradient(circle, #8b5cf6, transparent); }
+
+    /* Animated grid */
+    .grid-bg { background-image: linear-gradient(rgba(199,70,52,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(199,70,52,0.03) 1px, transparent 1px); background-size: 64px 64px; }
+
+    /* Cards */
+    .topic-card { transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
+    .topic-card:hover { transform: translateY(-8px); box-shadow: 0 20px 60px rgba(199,70,52,0.2); border-color: rgba(199,70,52,0.4) !important; }
+    .blog-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .blog-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
+
+    /* Buttons */
+    .btn-primary { background: linear-gradient(135deg, #C74634, #a8392a); color: white; border-radius: 6px; padding: 12px 28px; font-weight: 600; font-size: var(--text-sm); transition: all 0.2s ease; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary:hover { background: linear-gradient(135deg, #d95541, #C74634); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(199,70,52,0.4); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-secondary { background: transparent; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 12px 28px; font-weight: 500; font-size: var(--text-sm); transition: all 0.2s ease; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-secondary:hover { border-color: rgba(199,70,52,0.6); color: #C74634; background: rgba(199,70,52,0.05); transform: translateY(-1px); }
+    .btn-secondary:active { transform: scale(0.98); }
+
+    /* Navbar */
+    nav { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .nav-link { font-size: var(--text-sm); color: #94a3b8; transition: color 0.2s; position: relative; }
+    .nav-link:hover { color: #C74634; }
+    .nav-link::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 1px; background: #C74634; transition: width 0.2s; }
+    .nav-link:hover::after { width: 100%; }
+
+    /* Scroll reveal */
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* Terminal */
+    .terminal { background: #0d0d14; border: 1px solid #1e1e2e; border-radius: 12px; overflow: hidden; }
+    .terminal-bar { background: #1a1a25; padding: 12px 16px; display: flex; align-items: center; gap: 8px; }
+    .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+    /* Code highlight */
+    .code-line { display: block; padding: 2px 0; }
+    .kw { color: #ff7eb6; }
+    .fn { color: #78d4f4; }
+    .str { color: #a8ff78; }
+    .cm { color: #6b7280; font-style: italic; }
+    .num { color: #ffb347; }
+
+    /* Accordion */
+    .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+    .accordion-content.open { max-height: 500px; }
+    .accordion-icon { transition: transform 0.3s ease; }
+    .accordion-btn.open .accordion-icon { transform: rotate(180deg); }
+
+    /* Typing cursor */
+    .typing-cursor::after { content: '|'; animation: blink 1s infinite; }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* Stats counter */
+    .stat-card { background: linear-gradient(135deg, rgba(199,70,52,0.1), rgba(199,70,52,0.02)); border: 1px solid rgba(199,70,52,0.2); border-radius: 12px; padding: var(--space-6); text-align: center; transition: transform 0.3s ease; }
+    .stat-card:hover { transform: translateY(-4px); }
+
+    /* Learning path */
+    .path-node { position: relative; }
+    .path-node::before { content: ''; position: absolute; left: 50%; top: 100%; width: 2px; height: 48px; background: linear-gradient(to bottom, #C74634, transparent); transform: translateX(-50%); }
+    .path-node:last-child::before { display: none; }
+
+    /* Mobile menu */
+    #mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+    #mobile-menu.open { max-height: 600px; }
+
+    /* Light mode overrides */
+    .light body { background: #f8f9fa; color: #18181b; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0a0a0f; }
+    ::-webkit-scrollbar-thumb { background: #C74634; border-radius: 3px; }
+
+    /* Badge */
+    .badge { font-size: var(--text-xs); padding: 3px 10px; border-radius: 100px; font-weight: 600; display: inline-block; }
+    .badge-red { background: rgba(199,70,52,0.15); color: #E8604A; border: 1px solid rgba(199,70,52,0.25); }
+    .badge-blue { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+    .badge-green { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+    .badge-purple { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+    .badge-orange { background: rgba(249,115,22,0.15); color: #fb923c; border: 1px solid rgba(249,115,22,0.25); }
+
+    @media (max-width: 768px) {
+      .hero-title { font-size: 2.2rem !important; }
+    }
+  </style>
+</head>
+<body class="relative">
+
+<!-- ===== NAVIGATION ===== -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+  <div class="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between">
+    <!-- Logo -->
+    <a href="#" class="flex items-center gap-3 group">
+      <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-oracle-red to-oracle-dark flex items-center justify-center shadow-lg group-hover:shadow-oracle-red/40 transition-shadow">
+        <i class="fas fa-database text-white text-sm"></i>
+      </div>
+      <div>
+        <span class="font-display font-bold text-white text-base leading-none block">Oracle DBA</span>
+        <span class="text-oracle-red text-xs font-mono">Simplified</span>
+      </div>
+    </a>
+
+    <!-- Desktop Nav -->
+    <div class="hidden xl:flex items-center gap-6">
+      <a href="#hero" class="nav-link">Home</a>
+      <a href="#topics" class="nav-link">Topics</a>
+      <a href="#blogs" class="nav-link">Blogs</a>
+      <a href="#learning-path" class="nav-link">Learning Path</a>
+      <a href="#interview" class="nav-link">Interview Prep</a>
+      <a href="#scenarios" class="nav-link">DBA Scenarios</a>
+      <a href="#about" class="nav-link">About</a>
+      <a href="#contact" class="nav-link">Contact</a>
+    </div>
+
+    <!-- Right controls -->
+    <div class="flex items-center gap-3">
+      <div class="hidden md:flex items-center gap-2 glass rounded-lg px-3 py-2">
+        <i class="fas fa-search text-neutral-500 text-xs"></i>
+        <input type="text" placeholder="Search tutorials..." class="bg-transparent text-sm text-neutral-300 placeholder-neutral-600 outline-none w-36 font-body" />
+      </div>
+      <button id="menu-toggle" class="xl:hidden w-9 h-9 rounded-lg glass flex items-center justify-center">
+        <i class="fas fa-bars text-neutral-400 text-sm"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="xl:hidden glass border-t border-white/5">
+    <div class="max-w-[1200px] mx-auto px-6 py-4 flex flex-col gap-3">
+      <div class="flex items-center gap-2 glass rounded-lg px-3 py-2 mb-2">
+        <i class="fas fa-search text-neutral-500 text-xs"></i>
+        <input type="text" placeholder="Search tutorials..." class="bg-transparent text-sm text-neutral-300 placeholder-neutral-600 outline-none flex-1 font-body" />
+      </div>
+      <a href="#hero" class="nav-link py-2 border-b border-white/5">Home</a>
+      <a href="#topics" class="nav-link py-2 border-b border-white/5">Topics</a>
+      <a href="#blogs" class="nav-link py-2 border-b border-white/5">Blogs</a>
+      <a href="#learning-path" class="nav-link py-2 border-b border-white/5">Learning Path</a>
+      <a href="#interview" class="nav-link py-2 border-b border-white/5">Interview Prep</a>
+      <a href="#scenarios" class="nav-link py-2 border-b border-white/5">DBA Scenarios</a>
+      <a href="#about" class="nav-link py-2 border-b border-white/5">About</a>
+      <a href="#contact" class="nav-link py-2">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section id="hero" class="relative min-h-screen flex items-center pt-20 overflow-hidden grid-bg">
+  <!-- Background orbs -->
+  <div class="orb orb-red w-96 h-96 top-20 -left-32"></div>
+  <div class="orb orb-blue w-80 h-80 top-1/2 right-0"></div>
+  <div class="orb orb-purple w-64 h-64 bottom-20 left-1/3"></div>
+
+  <!-- Animated particles -->
+  <div class="absolute inset-0 pointer-events-none" id="particles"></div>
+
+  <div class="max-w-[1200px] mx-auto px-6 py-24 relative z-10">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+      <!-- Left content -->
+      <div>
+        <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-8">
+          <span class="w-2 h-2 rounded-full bg-oracle-red animate-pulse"></span>
+          <span class="text-xs text-neutral-400 font-mono">Oracle DBA Learning Platform</span>
+        </div>
+
+        <h1 class="font-display font-extrabold text-5xl lg:text-6xl leading-tight mb-6 hero-title">
+          <span class="gradient-text-white">Master Oracle</span><br/>
+          <span class="gradient-text">Database Administration</span><br/>
+          <span class="gradient-text-white">From Basics to Advanced</span>
+        </h1>
+
+        <p class="text-neutral-400 text-lg mb-4 font-body leading-relaxed">
+          Real-world Oracle DBA concepts explained in the simplest possible language. No jargon — just clarity.
+        </p>
+
+        <div class="font-mono text-sm text-oracle-red mb-8 h-6 overflow-hidden">
+          <span id="typing-text" class="typing-cursor"></span>
+        </div>
+
+        <div class="flex flex-wrap gap-4 mb-12">
+          <a href="#topics" class="btn-primary">
+            <i class="fas fa-rocket text-xs"></i> Start Learning
+          </a>
+          <a href="#blogs" class="btn-secondary">
+            <i class="fas fa-book-open text-xs"></i> Read Blogs
+          </a>
+        </div>
+
+        <!-- Stats -->
+        <div class="flex flex-wrap gap-6">
+          <div class="text-center">
+            <div class="font-display font-bold text-2xl text-white" data-count="100">0</div>
+            <div class="text-xs text-neutral-500">+ Tutorials</div>
+          </div>
+          <div class="w-px bg-white/10"></div>
+          <div class="text-center">
+            <div class="font-display font-bold text-2xl text-white" data-count="50">0</div>
+            <div class="text-xs text-neutral-500">+ DBA Scenarios</div>
+          </div>
+          <div class="w-px bg-white/10"></div>
+          <div class="text-center">
+            <div class="font-display font-bold text-2xl text-white" data-count="10">0</div>
+            <div class="text-xs text-neutral-500">K+ Learners</div>
+          </div>
+          <div class="w-px bg-white/10"></div>
+          <div class="text-center">
+            <div class="font-display font-bold text-2xl text-white" data-count="200">0</div>
+            <div class="text-xs text-neutral-500">+ Interview Q&amp;A</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Floating DB visual -->
+      <div class="relative hidden lg:flex items-center justify-center">
+        <!-- Central DB icon -->
+        <div class="relative w-72 h-72">
+          <div class="absolute inset-0 rounded-full border border-oracle-red/20 animate-spin-slow"></div>
+          <div class="absolute inset-8 rounded-full border border-oracle-red/10 animate-[spin_15s_linear_reverse_infinite]"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="w-32 h-32 rounded-2xl glass-strong flex items-center justify-center animate-[float_4s_ease-in-out_infinite] animate-pulse-glow">
+              <i class="fas fa-database text-oracle-red text-5xl"></i>
+            </div>
+          </div>
+          <!-- Floating cards -->
+          <div class="absolute -top-6 -right-8 glass rounded-xl p-3 animate-float text-xs font-mono">
+            <span class="text-oracle-red">SELECT</span> <span class="text-green-400">*</span> <span class="text-blue-400">FROM</span> <span class="text-yellow-400">dba_users</span>
+          </div>
+          <div class="absolute -bottom-4 -left-10 glass rounded-xl p-3 animate-float-delay text-xs">
+            <div class="flex items-center gap-2">
+              <i class="fas fa-shield-alt text-oracle-red"></i>
+              <span class="text-neutral-300">Data Guard Active</span>
+            </div>
+          </div>
+          <div class="absolute top-1/2 -right-16 glass rounded-xl p-3 animate-[float_5s_ease-in-out_1s_infinite] text-xs">
+            <div class="flex items-center gap-2">
+              <i class="fas fa-server text-blue-400"></i>
+              <span class="text-neutral-300">RAC Node 1</span>
+            </div>
+          </div>
+          <div class="absolute top-0 left-0 glass rounded-xl p-3 animate-[float_7s_ease-in-out_3s_infinite] text-xs">
+            <div class="flex items-center gap-2">
+              <i class="fas fa-hdd text-purple-400"></i>
+              <span class="text-neutral-300">ASM +DATADG</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+    <span class="text-xs text-neutral-600 font-mono">scroll</span>
+    <i class="fas fa-chevron-down text-oracle-red text-xs"></i>
+  </div>
+</section>
+
+<!-- ===== TERMINAL SHOWCASE ===== -->
+<section class="py-16 relative">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="terminal reveal">
+      <div class="terminal-bar">
+        <div class="terminal-dot bg-red-500"></div>
+        <div class="terminal-dot bg-yellow-500"></div>
+        <div class="terminal-dot bg-green-500"></div>
+        <span class="text-neutral-500 text-xs font-mono ml-2">oracle@prod-db01:~$</span>
+      </div>
+      <div class="p-6 font-mono text-sm overflow-x-auto">
+        <div class="flex flex-wrap gap-8">
+          <div>
+            <div class="text-neutral-500 text-xs mb-2">-- Check database status</div>
+            <code class="code-line"><span class="kw">SELECT</span> name, db_unique_name,</code>
+            <code class="code-line">  open_mode, protection_mode</code>
+            <code class="code-line"><span class="kw">FROM</span> v$database;</code>
+          </div>
+          <div>
+            <div class="text-neutral-500 text-xs mb-2">-- RMAN incremental backup</div>
+            <code class="code-line"><span class="fn">RMAN</span><span class="str">&gt;</span> backup incremental level <span class="num">1</span></code>
+            <code class="code-line">  database plus archivelog</code>
+            <code class="code-line">  delete input;</code>
+          </div>
+          <div>
+            <div class="text-neutral-500 text-xs mb-2">-- Blocking sessions</div>
+            <code class="code-line"><span class="kw">SELECT</span> blocking_session, sid,</code>
+            <code class="code-line">  wait_class, seconds_in_wait</code>
+            <code class="code-line"><span class="kw">FROM</span> v$session <span class="kw">WHERE</span> blocking_session <span class="kw">IS NOT NULL</span>;</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURED TOPICS ===== -->
+<section id="topics" class="py-24 relative">
+  <div class="orb orb-red w-80 h-80 top-0 right-0 opacity-10"></div>
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-red mb-4">Topics</span>
+      <h2 class="font-display font-bold text-4xl text-white mb-4">Everything You Need to<br/><span class="gradient-text">Master Oracle DBA</span></h2>
+      <p class="text-neutral-400 max-w-xl mx-auto">Comprehensive coverage of every Oracle DBA topic — from architecture fundamentals to cloud deployments.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+
+      <!-- Topic cards -->
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.05s">
+        <div class="w-12 h-12 rounded-xl bg-oracle-red/10 border border-oracle-red/20 flex items-center justify-center mb-4 group-hover:bg-oracle-red/20 transition-colors">
+          <i class="fas fa-layer-group text-oracle-red"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Oracle Architecture</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">SGA, PGA, background processes, memory structures and how Oracle works internally.</p>
+        <a href="oracle-architecture.html" class="text-oracle-red text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.1s">
+        <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition-colors">
+          <i class="fas fa-redo-alt text-blue-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">RMAN Backup &amp; Recovery</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Level 0 &amp; 1 backups, archivelog management, RMAN catalog, and disaster recovery.</p>
+        <a href="rman-backup-recovery.html" class="text-blue-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.15s">
+        <div class="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center mb-4 group-hover:bg-green-500/20 transition-colors">
+          <i class="fas fa-server text-green-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Oracle RAC</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Real Application Clusters — clusterware, VIPs, SCAN listeners, and cache fusion.</p>
+        <a href="#" class="text-green-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.2s">
+        <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-4 group-hover:bg-purple-500/20 transition-colors">
+          <i class="fas fa-hdd text-purple-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">ASM Internals</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Automatic Storage Management — disk groups, AU sizes, rebalancing, and ASMCMD.</p>
+        <a href="#" class="text-purple-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.05s">
+        <div class="w-12 h-12 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center mb-4 group-hover:bg-yellow-500/20 transition-colors">
+          <i class="fas fa-shield-alt text-yellow-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Data Guard</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Physical &amp; logical standby, redo apply, switchover, failover, and broker configuration.</p>
+        <a href="data-guard.html" class="text-yellow-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.1s">
+        <div class="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-4 group-hover:bg-orange-500/20 transition-colors">
+          <i class="fas fa-sync-alt text-orange-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">GoldenGate</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Real-time replication, extract &amp; replicat processes, trails, and zero-downtime migrations.</p>
+        <a href="#" class="text-orange-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.15s">
+        <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mb-4 group-hover:bg-cyan-500/20 transition-colors">
+          <i class="fas fa-tachometer-alt text-cyan-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Performance Tuning</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">AWR, ASH, ADDM, execution plans, indexing strategies, and wait events analysis.</p>
+        <a href="performance-tuning.html" class="text-cyan-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.2s">
+        <div class="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center mb-4 group-hover:bg-pink-500/20 transition-colors">
+          <i class="fas fa-code text-pink-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">SQL Optimization</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Query tuning, hints, CBO internals, bind variables, and plan stability techniques.</p>
+        <a href="#" class="text-pink-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.05s">
+        <div class="w-12 h-12 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center mb-4 group-hover:bg-lime-500/20 transition-colors">
+          <i class="fab fa-linux text-lime-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Linux for DBAs</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Essential Linux commands, shell scripting, cron jobs, and OS-level DBA operations.</p>
+        <a href="linux-for-dbas.html" class="text-lime-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.1s">
+        <div class="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center mb-4 group-hover:bg-teal-500/20 transition-colors">
+          <i class="fas fa-terminal text-teal-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Shell Scripting</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Automate DBA tasks — backup scripts, health checks, alert monitoring, and reporting.</p>
+        <a href="#" class="text-teal-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.15s">
+        <div class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center mb-4 group-hover:bg-sky-500/20 transition-colors">
+          <i class="fab fa-aws text-sky-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">AWS RDS Oracle</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Managed Oracle on AWS — RDS setup, parameter groups, Multi-AZ, and migration paths.</p>
+        <a href="aws-rds-oracle.html" class="text-sky-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.2s">
+        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4 group-hover:bg-indigo-500/20 transition-colors">
+          <i class="fas fa-elephant text-indigo-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">PostgreSQL Basics</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">PostgreSQL for Oracle DBAs — key differences, migration strategies, and parallel skills.</p>
+        <a href="#" class="text-indigo-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.05s">
+        <div class="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mb-4 group-hover:bg-violet-500/20 transition-colors">
+          <i class="fas fa-user-shield text-violet-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">User Management</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Creating users, roles, privileges, profiles, and Oracle security best practices.</p>
+        <a href="#" class="text-violet-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.1s">
+        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
+          <i class="fas fa-database text-emerald-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Tablespace Management</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Datafiles, extents, segments, space management, and tablespace best practices.</p>
+        <a href="#" class="text-emerald-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.15s">
+        <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-4 group-hover:bg-rose-500/20 transition-colors">
+          <i class="fas fa-arrow-up-right-dots text-rose-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Patches &amp; Upgrades</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">OPatch, RU/RUR, in-place upgrades, DBUA, and Oracle patch management lifecycle.</p>
+        <a href="#" class="text-rose-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.2s">
+        <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-4 group-hover:bg-amber-500/20 transition-colors">
+          <i class="fas fa-eye text-amber-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Oracle Auditing</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Unified Auditing, fine-grained audit, DBSAT, and compliance configuration.</p>
+        <a href="#" class="text-amber-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.05s">
+        <div class="w-12 h-12 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center mb-4 group-hover:bg-fuchsia-500/20 transition-colors">
+          <i class="fas fa-calendar-check text-fuchsia-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Oracle Scheduler</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">DBMS_SCHEDULER, jobs, chains, windows, and automating DBA maintenance tasks.</p>
+        <a href="#" class="text-fuchsia-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.1s">
+        <div class="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-4 group-hover:bg-red-500/20 transition-colors">
+          <i class="fas fa-file-code text-red-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">DBA Scripts Library</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Ready-to-use scripts — health checks, space reports, session monitoring, and automation.</p>
+        <a href="#" class="text-red-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+      <div class="topic-card glass rounded-2xl p-6 cursor-pointer reveal group" style="transition-delay:0.15s">
+        <div class="w-12 h-12 rounded-xl bg-slate-500/10 border border-slate-500/20 flex items-center justify-center mb-4 group-hover:bg-slate-500/20 transition-colors">
+          <i class="fas fa-sliders text-slate-400"></i>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Database Configuration</h3>
+        <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Init parameters, spfile, memory settings, undo management, and redo configuration.</p>
+        <a href="#" class="text-slate-400 text-sm font-semibold hover:underline flex items-center gap-1">Read More <i class="fas fa-arrow-right text-xs"></i></a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== LATEST BLOGS ===== -->
+<section id="blogs" class="py-24 relative bg-gradient-to-b from-transparent to-surface-card/30">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 reveal gap-4">
+      <div>
+        <span class="badge badge-blue mb-4">Latest Articles</span>
+        <h2 class="font-display font-bold text-4xl text-white">Fresh from the<br/><span class="gradient-text">DBA Desk</span></h2>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button class="filter-btn active badge badge-red cursor-pointer" data-filter="all">All</button>
+        <button class="filter-btn badge badge-blue cursor-pointer" data-filter="architecture">Architecture</button>
+        <button class="filter-btn badge badge-green cursor-pointer" data-filter="rman">RMAN</button>
+        <button class="filter-btn badge badge-purple cursor-pointer" data-filter="rac">RAC</button>
+        <button class="filter-btn badge badge-orange cursor-pointer" data-filter="interview">Interview</button>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <article class="blog-card glass rounded-2xl overflow-hidden reveal" data-category="architecture">
+        <div class="h-44 bg-gradient-to-br from-oracle-red/20 to-orange-900/20 flex items-center justify-center relative">
+          <i class="fas fa-layer-group text-oracle-red text-5xl opacity-40"></i>
+          <div class="absolute top-3 left-3"><span class="badge badge-red">Architecture</span></div>
+          <div class="absolute top-3 right-3 text-xs text-neutral-500 font-mono">8 min read</div>
+        </div>
+        <div class="p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-6 h-6 rounded-full bg-oracle-red/20 flex items-center justify-center"><i class="fas fa-user text-oracle-red text-xs"></i></div>
+            <span class="text-xs text-neutral-500">Oracle DBA Team</span>
+            <span class="text-neutral-700">·</span>
+            <span class="text-xs text-neutral-500">May 2025</span>
+          </div>
+          <h3 class="font-display font-semibold text-white mb-2 leading-snug hover:text-oracle-red transition-colors cursor-pointer">Oracle Architecture Explained Simply</h3>
+          <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Understand SGA, PGA, background processes like LGWR, DBWn, PMON — explained the way it actually works in production.</p>
+          <a href="oracle-architecture.html" class="btn-primary text-xs py-2 px-4">Read Article <i class="fas fa-arrow-right text-xs"></i></a>
+        </div>
+      </article>
+
+      <article class="blog-card glass rounded-2xl overflow-hidden reveal" data-category="rman" style="transition-delay:0.1s">
+        <div class="h-44 bg-gradient-to-br from-blue-900/20 to-cyan-900/20 flex items-center justify-center relative">
+          <i class="fas fa-redo-alt text-blue-400 text-5xl opacity-40"></i>
+          <div class="absolute top-3 left-3"><span class="badge badge-blue">RMAN</span></div>
+          <div class="absolute top-3 right-3 text-xs text-neutral-500 font-mono">6 min read</div>
+        </div>
+        <div class="p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center"><i class="fas fa-user text-blue-400 text-xs"></i></div>
+            <span class="text-xs text-neutral-500">Oracle DBA Team</span>
+            <span class="text-neutral-700">·</span>
+            <span class="text-xs text-neutral-500">Apr 2025</span>
+          </div>
+          <h3 class="font-display font-semibold text-white mb-2 leading-snug hover:text-blue-400 transition-colors cursor-pointer">RMAN Level 0 vs Level 1 Backup</h3>
+          <p class="text-neutral-500 text-sm mb-4 leading-relaxed">What's the real difference? How does incremental backup strategy reduce recovery time? Real-world examples included.</p>
+          <a href="rman-backup-recovery.html" class="btn-secondary text-xs py-2 px-4 border-blue-500/30 text-blue-400 hover:border-blue-400/60">Read Article <i class="fas fa-arrow-right text-xs"></i></a>
+        </div>
+      </article>
+
+      <article class="blog-card glass rounded-2xl overflow-hidden reveal" data-category="architecture" style="transition-delay:0.2s">
+        <div class="h-44 bg-gradient-to-br from-red-900/20 to-pink-900/20 flex items-center justify-center relative">
+          <i class="fas fa-exclamation-triangle text-red-400 text-5xl opacity-40"></i>
+          <div class="absolute top-3 left-3"><span class="badge badge-red">Architecture</span></div>
+          <div class="absolute top-3 right-3 text-xs text-neutral-500 font-mono">10 min read</div>
+        </div>
+        <div class="p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center"><i class="fas fa-user text-red-400 text-xs"></i></div>
+            <span class="text-xs text-neutral-500">Oracle DBA Team</span>
+            <span class="text-neutral-700">·</span>
+            <span class="text-xs text-neutral-500">Apr 2025</span>
+          </div>
+          <h3 class="font-display font-semibold text-white mb-2 leading-snug hover:text-red-400 transition-colors cursor-pointer">What Happens When LGWR Fails?</h3>
+          <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Deep dive into LGWR failure scenarios, ORA-00600 errors, crash recovery, and how Oracle protects your redo log.</p>
+          <a href="#" class="btn-secondary text-xs py-2 px-4 border-red-500/30 text-red-400 hover:border-red-400/60">Read Article <i class="fas fa-arrow-right text-xs"></i></a>
+        </div>
+      </article>
+
+      <article class="blog-card glass rounded-2xl overflow-hidden reveal" data-category="rac">
+        <div class="h-44 bg-gradient-to-br from-green-900/20 to-teal-900/20 flex items-center justify-center relative">
+          <i class="fas fa-server text-green-400 text-5xl opacity-40"></i>
+          <div class="absolute top-3 left-3"><span class="badge badge-green">RAC</span></div>
+          <div class="absolute top-3 right-3 text-xs text-neutral-500 font-mono">12 min read</div>
+        </div>
+        <div class="p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center"><i class="fas fa-user text-green-400 text-xs"></i></div>
+            <span class="text-xs text-neutral-500">Oracle DBA Team</span>
+            <span class="text-neutral-700">·</span>
+            <span class="text-xs text-neutral-500">Mar 2025</span>
+          </div>
+          <h3 class="font-display font-semibold text-white mb-2 leading-snug hover:text-green-400 transition-colors cursor-pointer">Oracle RAC Explained for Beginners</h3>
+          <p class="text-neutral-500 text-sm mb-4 leading-relaxed">How multiple nodes share one database, cache fusion, interconnect traffic, and when RAC makes sense.</p>
+          <a href="#" class="btn-secondary text-xs py-2 px-4 border-green-500/30 text-green-400 hover:border-green-400/60">Read Article <i class="fas fa-arrow-right text-xs"></i></a>
+        </div>
+      </article>
+
+      <article class="blog-card glass rounded-2xl overflow-hidden reveal" data-category="architecture" style="transition-delay:0.1s">
+        <div class="h-44 bg-gradient-to-br from-orange-900/20 to-amber-900/20 flex items-center justify-center relative">
+          <i class="fas fa-sync-alt text-orange-400 text-5xl opacity-40"></i>
+          <div class="absolute top-3 left-3"><span class="badge badge-orange">GoldenGate</span></div>
+          <div class="absolute top-3 right-3 text-xs text-neutral-500 font-mono">9 min read</div>
+        </div>
+        <div class="p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center"><i class="fas fa-user text-orange-400 text-xs"></i></div>
+            <span class="text-xs text-neutral-500">Oracle DBA Team</span>
+            <span class="text-neutral-700">·</span>
+            <span class="text-xs text-neutral-500">Mar 2025</span>
+          </div>
+          <h3 class="font-display font-semibold text-white mb-2 leading-snug hover:text-orange-400 transition-colors cursor-pointer">GoldenGate Architecture in Real Time</h3>
+          <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Extract, trail files, data pump, replicat — how GoldenGate moves data with zero downtime in production.</p>
+          <a href="#" class="btn-secondary text-xs py-2 px-4 border-orange-500/30 text-orange-400 hover:border-orange-400/60">Read Article <i class="fas fa-arrow-right text-xs"></i></a>
+        </div>
+      </article>
+
+      <article class="blog-card glass rounded-2xl overflow-hidden reveal" data-category="interview" style="transition-delay:0.2s">
+        <div class="h-44 bg-gradient-to-br from-purple-900/20 to-violet-900/20 flex items-center justify-center relative">
+          <i class="fas fa-question-circle text-purple-400 text-5xl opacity-40"></i>
+          <div class="absolute top-3 left-3"><span class="badge badge-purple">Interview</span></div>
+          <div class="absolute top-3 right-3 text-xs text-neutral-500 font-mono">15 min read</div>
+        </div>
+        <div class="p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center"><i class="fas fa-user text-purple-400 text-xs"></i></div>
+            <span class="text-xs text-neutral-500">Oracle DBA Team</span>
+            <span class="text-neutral-700">·</span>
+            <span class="text-xs text-neutral-500">Feb 2025</span>
+          </div>
+          <h3 class="font-display font-semibold text-white mb-2 leading-snug hover:text-purple-400 transition-colors cursor-pointer">Top 20 Oracle DBA Interview Questions</h3>
+          <p class="text-neutral-500 text-sm mb-4 leading-relaxed">The exact questions asked in Oracle DBA interviews — with detailed answers, scenarios, and expert tips.</p>
+          <a href="#" class="btn-secondary text-xs py-2 px-4 border-purple-500/30 text-purple-400 hover:border-purple-400/60">Read Article <i class="fas fa-arrow-right text-xs"></i></a>
+        </div>
+      </article>
+
+    </div>
+
+    <div class="text-center mt-12 reveal">
+      <a href="#" class="btn-secondary">View All Articles <i class="fas fa-arrow-right text-xs"></i></a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LEARNING PATH ===== -->
+<section id="learning-path" class="py-24 relative overflow-hidden">
+  <div class="orb orb-purple w-96 h-96 bottom-0 left-0 opacity-10"></div>
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-purple mb-4">Roadmap</span>
+      <h2 class="font-display font-bold text-4xl text-white mb-4">Your Oracle DBA<br/><span class="gradient-text">Learning Journey</span></h2>
+      <p class="text-neutral-400 max-w-lg mx-auto">A structured roadmap from complete beginner to production-grade Oracle DBA. Follow the path at your own pace.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <div class="path-card glass rounded-2xl p-6 reveal relative overflow-hidden group hover:border-oracle-red/40 transition-colors">
+        <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-oracle-red to-transparent rounded-l-2xl"></div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-oracle-red text-white flex items-center justify-center font-display font-bold text-sm">1</div>
+          <div><span class="badge badge-red">Beginner</span></div>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-3">Foundation</h3>
+        <ul class="space-y-2 text-sm text-neutral-400">
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-oracle-red text-xs"></i> Oracle Installation</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-oracle-red text-xs"></i> Database Architecture</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-oracle-red text-xs"></i> Basic SQL &amp; PL/SQL</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-oracle-red text-xs"></i> Linux Fundamentals</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-oracle-red text-xs"></i> User Management</li>
+        </ul>
+        <div class="mt-4 bg-oracle-red/10 rounded-lg px-3 py-2 text-xs text-oracle-red font-mono">~2 months</div>
+      </div>
+
+      <div class="path-card glass rounded-2xl p-6 reveal relative overflow-hidden group hover:border-blue-400/40 transition-colors" style="transition-delay:0.1s">
+        <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-400 to-transparent rounded-l-2xl"></div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-display font-bold text-sm">2</div>
+          <div><span class="badge badge-blue">Intermediate</span></div>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-3">Core DBA Skills</h3>
+        <ul class="space-y-2 text-sm text-neutral-400">
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-blue-400 text-xs"></i> RMAN Backup &amp; Recovery</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-blue-400 text-xs"></i> Tablespace Management</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-blue-400 text-xs"></i> Data Guard Setup</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-blue-400 text-xs"></i> Patching &amp; Upgrades</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-blue-400 text-xs"></i> Shell Scripting</li>
+        </ul>
+        <div class="mt-4 bg-blue-500/10 rounded-lg px-3 py-2 text-xs text-blue-400 font-mono">~3 months</div>
+      </div>
+
+      <div class="path-card glass rounded-2xl p-6 reveal relative overflow-hidden group hover:border-green-400/40 transition-colors" style="transition-delay:0.2s">
+        <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-green-400 to-transparent rounded-l-2xl"></div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-display font-bold text-sm">3</div>
+          <div><span class="badge badge-green">Advanced</span></div>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-3">Advanced Topics</h3>
+        <ul class="space-y-2 text-sm text-neutral-400">
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-400 text-xs"></i> Oracle RAC</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-400 text-xs"></i> ASM Administration</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-400 text-xs"></i> GoldenGate Replication</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-400 text-xs"></i> Performance Tuning</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-400 text-xs"></i> AWR/ASH Analysis</li>
+        </ul>
+        <div class="mt-4 bg-green-500/10 rounded-lg px-3 py-2 text-xs text-green-400 font-mono">~4 months</div>
+      </div>
+
+      <div class="path-card glass rounded-2xl p-6 reveal relative overflow-hidden group hover:border-purple-400/40 transition-colors">
+        <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-purple-400 to-transparent rounded-l-2xl"></div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center font-display font-bold text-sm">4</div>
+          <div><span class="badge badge-purple">Production</span></div>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-3">Production DBA</h3>
+        <ul class="space-y-2 text-sm text-neutral-400">
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-purple-400 text-xs"></i> Incident Response</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-purple-400 text-xs"></i> On-call Support</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-purple-400 text-xs"></i> DR Drills</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-purple-400 text-xs"></i> Change Management</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-purple-400 text-xs"></i> Capacity Planning</li>
+        </ul>
+        <div class="mt-4 bg-purple-500/10 rounded-lg px-3 py-2 text-xs text-purple-400 font-mono">Ongoing</div>
+      </div>
+
+      <div class="path-card glass rounded-2xl p-6 reveal relative overflow-hidden group hover:border-sky-400/40 transition-colors" style="transition-delay:0.1s">
+        <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-sky-400 to-transparent rounded-l-2xl"></div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center font-display font-bold text-sm">5</div>
+          <div><span class="badge" style="background:rgba(14,165,233,0.15);color:#38bdf8;border:1px solid rgba(14,165,233,0.25)">Cloud DBA</span></div>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-3">Cloud DBA</h3>
+        <ul class="space-y-2 text-sm text-neutral-400">
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-sky-400 text-xs"></i> AWS RDS Oracle</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-sky-400 text-xs"></i> Oracle OCI</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-sky-400 text-xs"></i> Autonomous DB</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-sky-400 text-xs"></i> Cloud Migrations</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-sky-400 text-xs"></i> IaC for Databases</li>
+        </ul>
+        <div class="mt-4 bg-sky-500/10 rounded-lg px-3 py-2 text-xs text-sky-400 font-mono">~3 months</div>
+      </div>
+
+      <div class="path-card glass rounded-2xl p-6 reveal relative overflow-hidden group hover:border-yellow-400/40 transition-colors" style="transition-delay:0.2s">
+        <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-yellow-400 to-transparent rounded-l-2xl"></div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-yellow-500 text-white flex items-center justify-center font-display font-bold text-sm">6</div>
+          <div><span class="badge badge-orange">Expert</span></div>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-3">Performance Expert</h3>
+        <ul class="space-y-2 text-sm text-neutral-400">
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-yellow-400 text-xs"></i> CBO Deep Dive</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-yellow-400 text-xs"></i> Wait Event Analysis</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-yellow-400 text-xs"></i> Memory Optimization</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-yellow-400 text-xs"></i> SQL Plan Management</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check-circle text-yellow-400 text-xs"></i> Exadata Internals</li>
+        </ul>
+        <div class="mt-4 bg-yellow-500/10 rounded-lg px-3 py-2 text-xs text-yellow-400 font-mono">Mastery level</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== INTERVIEW PREP ===== -->
+<section id="interview" class="py-24 relative bg-gradient-to-b from-transparent to-surface-card/20">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-purple mb-4">Interview Prep</span>
+      <h2 class="font-display font-bold text-4xl text-white mb-4">Ace Your Oracle DBA<br/><span class="gradient-text">Interview</span></h2>
+      <p class="text-neutral-400 max-w-lg mx-auto">Curated question banks and scenario-based answers to help you land your dream DBA role.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+      <div class="glass rounded-2xl p-6 reveal hover:border-oracle-red/40 transition-all hover:-translate-y-1 cursor-pointer group">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-xl bg-oracle-red/10 border border-oracle-red/20 flex items-center justify-center">
+            <i class="fas fa-database text-oracle-red"></i>
+          </div>
+          <span class="badge badge-red">200+ Q&amp;A</span>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Oracle DBA Interview Questions</h3>
+        <p class="text-neutral-500 text-sm mb-4">Architecture, backup, recovery, RAC, ASM, Data Guard — every topic covered.</p>
+        <div class="flex items-center gap-2 text-oracle-red text-sm font-semibold group-hover:gap-3 transition-all">Study Now <i class="fas fa-arrow-right text-xs"></i></div>
+      </div>
+
+      <div class="glass rounded-2xl p-6 reveal hover:border-blue-400/40 transition-all hover:-translate-y-1 cursor-pointer group" style="transition-delay:0.05s">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+            <i class="fas fa-code text-blue-400"></i>
+          </div>
+          <span class="badge badge-blue">150+ Q&amp;A</span>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">SQL Interview Questions</h3>
+        <p class="text-neutral-500 text-sm mb-4">Joins, subqueries, window functions, PL/SQL blocks, and performance SQL.</p>
+        <div class="flex items-center gap-2 text-blue-400 text-sm font-semibold group-hover:gap-3 transition-all">Study Now <i class="fas fa-arrow-right text-xs"></i></div>
+      </div>
+
+      <a href="linux-for-dbas.html" class="glass rounded-2xl p-6 reveal hover:border-green-400/40 transition-all hover:-translate-y-1 cursor-pointer group block" style="transition-delay:0.1s">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+            <i class="fab fa-linux text-green-400"></i>
+          </div>
+          <span class="badge badge-green">100+ Commands</span>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Linux Commands for DBAs</h3>
+        <p class="text-neutral-500 text-sm mb-4">Essential Linux commands every Oracle DBA must know for production work.</p>
+        <div class="flex items-center gap-2 text-green-400 text-sm font-semibold group-hover:gap-3 transition-all">Study Now <i class="fas fa-arrow-right text-xs"></i></div>
+      </a>
+
+      <div class="glass rounded-2xl p-6 reveal hover:border-purple-400/40 transition-all hover:-translate-y-1 cursor-pointer group">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+            <i class="fas fa-puzzle-piece text-purple-400"></i>
+          </div>
+          <span class="badge badge-purple">80+ Scenarios</span>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Scenario-Based Questions</h3>
+        <p class="text-neutral-500 text-sm mb-4">Real-world DBA scenarios with step-by-step answers and expert commentary.</p>
+        <div class="flex items-center gap-2 text-purple-400 text-sm font-semibold group-hover:gap-3 transition-all">Study Now <i class="fas fa-arrow-right text-xs"></i></div>
+      </div>
+
+      <div class="glass rounded-2xl p-6 reveal hover:border-orange-400/40 transition-all hover:-translate-y-1 cursor-pointer group" style="transition-delay:0.05s">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+            <i class="fas fa-tools text-orange-400"></i>
+          </div>
+          <span class="badge badge-orange">60+ Scenarios</span>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Production Support Scenarios</h3>
+        <p class="text-neutral-500 text-sm mb-4">Handle P1 incidents like a senior DBA — database down, ORA- errors, and more.</p>
+        <div class="flex items-center gap-2 text-orange-400 text-sm font-semibold group-hover:gap-3 transition-all">Study Now <i class="fas fa-arrow-right text-xs"></i></div>
+      </div>
+
+      <div class="glass rounded-2xl p-6 reveal hover:border-cyan-400/40 transition-all hover:-translate-y-1 cursor-pointer group" style="transition-delay:0.1s">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+            <i class="fas fa-bug text-cyan-400"></i>
+          </div>
+          <span class="badge" style="background:rgba(6,182,212,0.15);color:#22d3ee;border:1px solid rgba(6,182,212,0.25)">40+ Cases</span>
+        </div>
+        <h3 class="font-display font-semibold text-white mb-2">Real-Time Troubleshooting</h3>
+        <p class="text-neutral-500 text-sm mb-4">Diagnose and resolve real database problems with structured RCA methodologies.</p>
+        <div class="flex items-center gap-2 text-cyan-400 text-sm font-semibold group-hover:gap-3 transition-all">Study Now <i class="fas fa-arrow-right text-xs"></i></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== DBA SCENARIOS ACCORDION ===== -->
+<section id="scenarios" class="py-24 relative">
+  <div class="orb orb-blue w-80 h-80 top-1/2 right-0 opacity-10"></div>
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-16 items-start">
+      <div class="reveal">
+        <span class="badge badge-red mb-4">DBA Scenarios</span>
+        <h2 class="font-display font-bold text-4xl text-white mb-4">Real-World DBA<br/><span class="gradient-text">Incident Playbook</span></h2>
+        <p class="text-neutral-400 mb-8 leading-relaxed">Step-by-step resolution guides for the most common production database incidents. Learn how senior DBAs respond.</p>
+
+        <div class="space-y-3" id="accordion">
+
+          <div class="glass rounded-xl overflow-hidden">
+            <button class="accordion-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/5 transition-colors" onclick="toggleAccordion(this)">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-times-circle text-red-400 text-xs"></i>
+                </div>
+                <span class="font-semibold text-white text-sm">Database Down — ORA-01034</span>
+              </div>
+              <i class="fas fa-chevron-down accordion-icon text-neutral-500 text-xs flex-shrink-0"></i>
+            </button>
+            <div class="accordion-content">
+              <div class="px-5 pb-5 text-sm text-neutral-400 space-y-2">
+                <p>1. Check alert log: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">tail -200f $ORACLE_BASE/diag/.../alert_*.log</code></p>
+                <p>2. Verify listener status: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">lsnrctl status</code></p>
+                <p>3. Attempt startup: connect as SYSDBA → <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">startup</code></p>
+                <p>4. Check OS resources — disk space, memory, ulimits</p>
+                <p>5. Review ORA- errors and escalate if ORA-00600/ORA-07445</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl overflow-hidden">
+            <button class="accordion-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/5 transition-colors" onclick="toggleAccordion(this)">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-archive text-orange-400 text-xs"></i>
+                </div>
+                <span class="font-semibold text-white text-sm">Archive Log Destination Full</span>
+              </div>
+              <i class="fas fa-chevron-down accordion-icon text-neutral-500 text-xs flex-shrink-0"></i>
+            </button>
+            <div class="accordion-content">
+              <div class="px-5 pb-5 text-sm text-neutral-400 space-y-2">
+                <p>1. Check archive log space: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">SELECT * FROM v$recovery_file_dest;</code></p>
+                <p>2. RMAN delete: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">RMAN&gt; delete archivelog all backed up 2 times to device type disk;</code></p>
+                <p>3. Increase FRA size if needed: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">ALTER SYSTEM SET db_recovery_file_dest_size=200G;</code></p>
+                <p>4. Review RMAN retention policy and schedule</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl overflow-hidden">
+            <button class="accordion-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/5 transition-colors" onclick="toggleAccordion(this)">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-database text-yellow-400 text-xs"></i>
+                </div>
+                <span class="font-semibold text-white text-sm">Tablespace Full — ORA-01653</span>
+              </div>
+              <i class="fas fa-chevron-down accordion-icon text-neutral-500 text-xs flex-shrink-0"></i>
+            </button>
+            <div class="accordion-content">
+              <div class="px-5 pb-5 text-sm text-neutral-400 space-y-2">
+                <p>1. Identify: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">SELECT tablespace_name, used_percent FROM dba_tablespace_usage_metrics;</code></p>
+                <p>2. Add datafile: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">ALTER TABLESPACE USERS ADD DATAFILE SIZE 10G AUTOEXTEND ON;</code></p>
+                <p>3. Enable autoextend on existing: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">ALTER DATABASE DATAFILE '...' AUTOEXTEND ON MAXSIZE 30G;</code></p>
+                <p>4. Investigate growth — large tables, purge candidates, stale data</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl overflow-hidden">
+            <button class="accordion-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/5 transition-colors" onclick="toggleAccordion(this)">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-lock text-blue-400 text-xs"></i>
+                </div>
+                <span class="font-semibold text-white text-sm">Blocking Sessions</span>
+              </div>
+              <i class="fas fa-chevron-down accordion-icon text-neutral-500 text-xs flex-shrink-0"></i>
+            </button>
+            <div class="accordion-content">
+              <div class="px-5 pb-5 text-sm text-neutral-400 space-y-2">
+                <p>1. Find blockers: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">SELECT blocking_session, sid, sql_id FROM v$session WHERE blocking_session IS NOT NULL;</code></p>
+                <p>2. Get SQL: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">SELECT sql_text FROM v$sql WHERE sql_id = '&lt;id&gt;';</code></p>
+                <p>3. Kill if necessary: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">ALTER SYSTEM KILL SESSION 'sid,serial#' IMMEDIATE;</code></p>
+                <p>4. Escalate to app team to fix missing commits</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl overflow-hidden">
+            <button class="accordion-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/5 transition-colors" onclick="toggleAccordion(this)">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-tachometer-alt text-purple-400 text-xs"></i>
+                </div>
+                <span class="font-semibold text-white text-sm">High CPU — Slow Database</span>
+              </div>
+              <i class="fas fa-chevron-down accordion-icon text-neutral-500 text-xs flex-shrink-0"></i>
+            </button>
+            <div class="accordion-content">
+              <div class="px-5 pb-5 text-sm text-neutral-400 space-y-2">
+                <p>1. Find top SQL by CPU: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">SELECT sql_id, elapsed_time, cpu_time FROM v$sql ORDER BY cpu_time DESC FETCH FIRST 10 ROWS ONLY;</code></p>
+                <p>2. Check AWR: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">@$ORACLE_HOME/rdbms/admin/awrrpt.sql</code></p>
+                <p>3. Review execution plans for full table scans</p>
+                <p>4. Gather stale stats: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">EXEC DBMS_STATS.GATHER_TABLE_STATS('schema','table');</code></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl overflow-hidden">
+            <button class="accordion-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/5 transition-colors" onclick="toggleAccordion(this)">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-network-wired text-green-400 text-xs"></i>
+                </div>
+                <span class="font-semibold text-white text-sm">Listener Not Responding</span>
+              </div>
+              <i class="fas fa-chevron-down accordion-icon text-neutral-500 text-xs flex-shrink-0"></i>
+            </button>
+            <div class="accordion-content">
+              <div class="px-5 pb-5 text-sm text-neutral-400 space-y-2">
+                <p>1. Check status: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">lsnrctl status LISTENER</code></p>
+                <p>2. Check listener.log for errors: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">tail -100 $ORACLE_BASE/diag/tnslsnr/.../listener.log</code></p>
+                <p>3. Restart: <code class="font-mono text-oracle-red bg-black/30 px-1 rounded">lsnrctl stop; lsnrctl start</code></p>
+                <p>4. Verify tnsnames.ora and sqlnet.ora configuration</p>
+                <p>5. Check firewall rules if remote connections fail</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right: metrics panel -->
+      <div class="reveal" style="transition-delay:0.2s">
+        <div class="glass rounded-2xl p-6 mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-display font-semibold text-white text-sm">Database Health Monitor</h3>
+            <span class="flex items-center gap-2 text-xs text-green-400"><span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>Live</span>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="text-neutral-400">Buffer Cache Hit Ratio</span><span class="text-green-400 font-mono">98.7%</span></div>
+              <div class="h-2 bg-black/40 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full" style="width:98.7%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="text-neutral-400">Library Cache Hit Ratio</span><span class="text-green-400 font-mono">99.2%</span></div>
+              <div class="h-2 bg-black/40 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full" style="width:99.2%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="text-neutral-400">Tablespace Usage (USERS)</span><span class="text-yellow-400 font-mono">74%</span></div>
+              <div class="h-2 bg-black/40 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-yellow-500 to-yellow-400 rounded-full" style="width:74%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="text-neutral-400">FRA Usage</span><span class="text-orange-400 font-mono">61%</span></div>
+              <div class="h-2 bg-black/40 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full" style="width:61%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class="text-neutral-400">Active Sessions</span><span class="text-blue-400 font-mono">42 / 300</span></div>
+              <div class="h-2 bg-black/40 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full" style="width:14%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="stat-card">
+            <div class="text-3xl font-display font-bold text-white mb-1">99.9<span class="text-oracle-red text-xl">%</span></div>
+            <div class="text-xs text-neutral-500">Uptime SLA</div>
+          </div>
+          <div class="stat-card">
+            <div class="text-3xl font-display font-bold text-white mb-1">0<span class="text-green-400 text-xl"> P1s</span></div>
+            <div class="text-xs text-neutral-500">This Month</div>
+          </div>
+          <div class="stat-card">
+            <div class="text-3xl font-display font-bold text-white mb-1">4<span class="text-blue-400 text-xl">ms</span></div>
+            <div class="text-xs text-neutral-500">Avg SQL Response</div>
+          </div>
+          <div class="stat-card">
+            <div class="text-3xl font-display font-bold text-white mb-1">14<span class="text-purple-400 text-xl">TB</span></div>
+            <div class="text-xs text-neutral-500">Managed Data</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NEWSLETTER ===== -->
+<section id="contact" class="py-24 relative">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="glass-strong rounded-3xl p-12 relative overflow-hidden reveal">
+      <div class="orb orb-red w-64 h-64 -top-16 -right-16"></div>
+      <div class="orb orb-blue w-48 h-48 -bottom-10 -left-10"></div>
+      <div class="relative z-10 max-w-2xl mx-auto text-center">
+        <div class="w-16 h-16 rounded-2xl bg-oracle-red/10 border border-oracle-red/20 flex items-center justify-center mx-auto mb-6">
+          <i class="fas fa-envelope text-oracle-red text-2xl"></i>
+        </div>
+        <h2 class="font-display font-bold text-4xl text-white mb-4">Get Oracle DBA Tutorials<br/><span class="gradient-text">Directly to Your Inbox</span></h2>
+        <p class="text-neutral-400 mb-8">Join 10,000+ Oracle DBAs getting weekly tutorials, interview tips, and production insights. No spam — unsubscribe anytime.</p>
+        <form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="your@email.com" required class="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-neutral-600 outline-none focus:border-oracle-red/50 transition-colors font-body" />
+          <button type="submit" class="btn-primary whitespace-nowrap">
+            <i class="fas fa-paper-plane text-xs"></i> Subscribe
+          </button>
+        </form>
+        <div id="subscribe-msg" class="hidden mt-4 text-green-400 text-sm font-semibold"></div>
+        <p class="text-xs text-neutral-600 mt-4">By subscribing you agree to our Privacy Policy. No spam ever.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ABOUT ===== -->
+<section id="about" class="py-24 relative">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+      <div class="reveal">
+        <span class="badge badge-red mb-4">About</span>
+        <h2 class="font-display font-bold text-4xl text-white mb-6">Built by a<br/><span class="gradient-text">Senior Oracle DBA</span></h2>
+        <p class="text-neutral-400 mb-4 leading-relaxed">With 8+ years of hands-on experience managing mission-critical Oracle databases across banking, telecom, and cloud environments, I built Oracle DBA Simplified to make DBA knowledge accessible to everyone.</p>
+        <p class="text-neutral-400 mb-8 leading-relaxed">From managing 50TB+ databases to implementing zero-downtime migrations using GoldenGate, every article here is written from real production experience — not textbooks.</p>
+
+        <div class="flex flex-wrap gap-2 mb-8">
+          <span class="badge badge-red">Oracle RAC</span>
+          <span class="badge badge-blue">ASM</span>
+          <span class="badge badge-green">Data Guard</span>
+          <span class="badge badge-orange">GoldenGate</span>
+          <span class="badge badge-purple">RMAN</span>
+          <span class="badge" style="background:rgba(6,182,212,0.15);color:#22d3ee;border:1px solid rgba(6,182,212,0.25)">AWS RDS</span>
+          <span class="badge badge-red">Performance Tuning</span>
+          <span class="badge badge-blue">Oracle OCI</span>
+        </div>
+
+        <div class="flex gap-4">
+          <a href="#" class="w-10 h-10 glass rounded-lg flex items-center justify-center hover:border-oracle-red/50 transition-colors hover:text-oracle-red text-neutral-400">
+            <i class="fab fa-linkedin-in text-sm"></i>
+          </a>
+          <a href="#" class="w-10 h-10 glass rounded-lg flex items-center justify-center hover:border-oracle-red/50 transition-colors hover:text-oracle-red text-neutral-400">
+            <i class="fab fa-twitter text-sm"></i>
+          </a>
+          <a href="#" class="w-10 h-10 glass rounded-lg flex items-center justify-center hover:border-oracle-red/50 transition-colors hover:text-oracle-red text-neutral-400">
+            <i class="fab fa-github text-sm"></i>
+          </a>
+          <a href="#" class="w-10 h-10 glass rounded-lg flex items-center justify-center hover:border-oracle-red/50 transition-colors hover:text-oracle-red text-neutral-400">
+            <i class="fab fa-youtube text-sm"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="reveal" style="transition-delay:0.2s">
+        <div class="glass rounded-3xl p-8 relative">
+          <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-oracle-red to-oracle-dark flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-user-tie text-white text-4xl"></i>
+          </div>
+          <div class="text-center mb-6">
+            <h3 class="font-display font-bold text-white text-xl mb-1">Oracle DBA Expert</h3>
+            <p class="text-oracle-red text-sm font-mono">Senior Database Administrator</p>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="glass rounded-xl p-4 text-center">
+              <div class="font-display font-bold text-2xl text-white">8+</div>
+              <div class="text-xs text-neutral-500">Years Experience</div>
+            </div>
+            <div class="glass rounded-xl p-4 text-center">
+              <div class="font-display font-bold text-2xl text-white">50TB+</div>
+              <div class="text-xs text-neutral-500">Data Managed</div>
+            </div>
+            <div class="glass rounded-xl p-4 text-center">
+              <div class="font-display font-bold text-2xl text-white">20+</div>
+              <div class="text-xs text-neutral-500">Production DBs</div>
+            </div>
+            <div class="glass rounded-xl p-4 text-center">
+              <div class="font-display font-bold text-2xl text-white">100+</div>
+              <div class="text-xs text-neutral-500">Tutorials Written</div>
+            </div>
+          </div>
+          <div class="terminal text-xs">
+            <div class="terminal-bar">
+              <div class="terminal-dot bg-red-500"></div>
+              <div class="terminal-dot bg-yellow-500"></div>
+              <div class="terminal-dot bg-green-500"></div>
+            </div>
+            <div class="p-4 font-mono text-xs space-y-1">
+              <div><span class="text-green-400">$</span> <span class="text-neutral-300">sqlplus / as sysdba</span></div>
+              <div><span class="text-neutral-500">SQL&gt;</span> <span class="kw">SELECT</span> <span class="str">'Welcome!'</span> <span class="kw">FROM</span> dual;</div>
+              <div class="text-green-400 pl-2">Welcome!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="border-t border-white/5 py-16 relative">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-oracle-red to-oracle-dark flex items-center justify-center">
+            <i class="fas fa-database text-white text-sm"></i>
+          </div>
+          <div>
+            <span class="font-display font-bold text-white text-sm block">Oracle DBA Simplified</span>
+            <span class="text-oracle-red text-xs font-mono">Learn. Build. Master.</span>
+          </div>
+        </div>
+        <p class="text-neutral-500 text-sm leading-relaxed mb-4">The simplest way to learn Oracle Database Administration from the ground up.</p>
+        <div class="flex gap-3">
+          <a href="#" class="w-8 h-8 glass rounded-lg flex items-center justify-center hover:border-oracle-red/50 transition-colors text-neutral-500 hover:text-oracle-red text-xs"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="w-8 h-8 glass rounded-lg flex items-center justify-center hover:border-oracle-red/50 transition-colors text-neutral-500 hover:text-oracle-red text-xs"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" class="w-8 h-8 glass rounded-lg flex items-center justify-center hover:border-oracle-red/50 transition-colors text-neutral-500 hover:text-oracle-red text-xs"><i class="fab fa-youtube"></i></a>
+          <a href="#" class="w-8 h-8 glass rounded-lg flex items-center justify-center hover:border-oracle-red/50 transition-colors text-neutral-500 hover:text-oracle-red text-xs"><i class="fab fa-github"></i></a>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="font-display font-semibold text-white text-sm mb-4">Quick Links</h4>
+        <ul class="space-y-2 text-sm text-neutral-500">
+          <li><a href="#hero" class="hover:text-oracle-red transition-colors">Home</a></li>
+          <li><a href="#topics" class="hover:text-oracle-red transition-colors">All Topics</a></li>
+          <li><a href="#blogs" class="hover:text-oracle-red transition-colors">Latest Blogs</a></li>
+          <li><a href="#learning-path" class="hover:text-oracle-red transition-colors">Learning Path</a></li>
+          <li><a href="#interview" class="hover:text-oracle-red transition-colors">Interview Prep</a></li>
+          <li><a href="#about" class="hover:text-oracle-red transition-colors">About</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-display font-semibold text-white text-sm mb-4">Blog Categories</h4>
+        <ul class="space-y-2 text-sm text-neutral-500">
+          <li><a href="oracle-architecture.html" class="hover:text-oracle-red transition-colors">Oracle Architecture</a></li>
+          <li><a href="rman-backup-recovery.html" class="hover:text-oracle-red transition-colors">RMAN Backup &amp; Recovery</a></li>
+          <li><a href="data-guard.html" class="hover:text-oracle-red transition-colors">Data Guard</a></li>
+          <li><a href="linux-for-dbas.html" class="hover:text-oracle-red transition-colors">Linux for DBAs</a></li>
+          <li><a href="#" class="hover:text-oracle-red transition-colors">GoldenGate</a></li>
+          <li><a href="performance-tuning.html" class="hover:text-oracle-red transition-colors">Performance Tuning</a></li>
+          <li><a href="#" class="hover:text-oracle-red transition-colors">Interview Questions</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-display font-semibold text-white text-sm mb-4">Contact</h4>
+        <ul class="space-y-3 text-sm text-neutral-500">
+          <li class="flex items-center gap-2"><i class="fas fa-envelope text-oracle-red text-xs"></i> hello@oracledbasimplified.com</li>
+          <li class="flex items-center gap-2"><i class="fas fa-map-marker-alt text-oracle-red text-xs"></i> Worldwide — Remote First</li>
+          <li class="flex items-center gap-2"><i class="fas fa-clock text-oracle-red text-xs"></i> Mon–Fri, 9AM–6PM IST</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-neutral-600 text-xs font-mono">© 2025 Oracle DBA Simplified. All rights reserved.</p>
+      <div class="flex gap-6 text-xs text-neutral-600">
+        <a href="#" class="hover:text-neutral-400 transition-colors">Privacy Policy</a>
+        <a href="#" class="hover:text-neutral-400 transition-colors">Terms of Service</a>
+        <a href="#" class="hover:text-neutral-400 transition-colors">Sitemap</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== BACK TO TOP ===== -->
+<button id="back-top" class="fixed bottom-8 right-8 w-10 h-10 bg-oracle-red rounded-lg flex items-center justify-center shadow-lg hover:bg-oracle-dark transition-colors opacity-0 translate-y-4 transition-all duration-300 z-50" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="fas fa-arrow-up text-white text-sm"></i>
+</button>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+  // Mobile menu
+  document.getElementById('menu-toggle').addEventListener('click', () => {
+    const menu = document.getElementById('mobile-menu');
+    menu.classList.toggle('open');
+  });
+
+  // Close mobile menu on link click
+  document.querySelectorAll('#mobile-menu a').forEach(link => {
+    link.addEventListener('click', () => document.getElementById('mobile-menu').classList.remove('open'));
+  });
+
+  // Navbar scroll effect
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+      navbar.style.background = 'rgba(10,10,15,0.95)';
+      navbar.style.borderColor = 'rgba(255,255,255,0.08)';
+    } else {
+      navbar.style.background = 'transparent';
+      navbar.style.borderColor = 'transparent';
+    }
+
+    // Back to top
+    const btn = document.getElementById('back-top');
+    if (window.scrollY > 500) {
+      btn.style.opacity = '1';
+      btn.style.transform = 'translateY(0)';
+    } else {
+      btn.style.opacity = '0';
+      btn.style.transform = 'translateY(16px)';
+    }
+  });
+
+  // Scroll reveal
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // Counter animation
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const el = e.target;
+        const target = parseInt(el.dataset.count);
+        let current = 0;
+        const step = target / 60;
+        const timer = setInterval(() => {
+          current = Math.min(current + step, target);
+          el.textContent = Math.floor(current);
+          if (current >= target) clearInterval(timer);
+        }, 16);
+        counterObserver.unobserve(el);
+      }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
+
+  // Typing animation
+  const phrases = [
+    'SELECT * FROM dba_users WHERE account_status = \'OPEN\';',
+    'RMAN> backup incremental level 1 database;',
+    'ALTER SYSTEM SWITCH LOGFILE;',
+    'SELECT * FROM v$asm_diskgroup;',
+    'dgmgrl> switchover to standby_db;',
+  ];
+  let phraseIdx = 0, charIdx = 0, deleting = false;
+  const typingEl = document.getElementById('typing-text');
+
+  function typeEffect() {
+    const phrase = phrases[phraseIdx];
+    if (!deleting) {
+      typingEl.textContent = phrase.slice(0, ++charIdx);
+      if (charIdx === phrase.length) { deleting = true; setTimeout(typeEffect, 2000); return; }
+    } else {
+      typingEl.textContent = phrase.slice(0, --charIdx);
+      if (charIdx === 0) { deleting = false; phraseIdx = (phraseIdx + 1) % phrases.length; }
+    }
+    setTimeout(typeEffect, deleting ? 40 : 70);
+  }
+  typeEffect();
+
+  // Accordion
+  function toggleAccordion(btn) {
+    const content = btn.nextElementSibling;
+    const isOpen = content.classList.contains('open');
+    document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('open'));
+    document.querySelectorAll('.accordion-btn').forEach(b => b.classList.remove('open'));
+    if (!isOpen) { content.classList.add('open'); btn.classList.add('open'); }
+  }
+
+  // Newsletter
+  function handleSubscribe(e) {
+    e.preventDefault();
+    const msg = document.getElementById('subscribe-msg');
+    msg.textContent = '🎉 You\'re subscribed! Your first tutorial is on its way.';
+    msg.classList.remove('hidden');
+    e.target.reset();
+    setTimeout(() => msg.classList.add('hidden'), 5000);
+  }
+
+  // Particles
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const particleContainer = document.getElementById('particles');
+  particleContainer.appendChild(canvas);
+  canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;';
+
+  function resizeCanvas() {
+    canvas.width = particleContainer.offsetWidth;
+    canvas.height = particleContainer.offsetHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  const particles = Array.from({ length: 40 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.5 + 0.5,
+    dx: (Math.random() - 0.5) * 0.4,
+    dy: (Math.random() - 0.5) * 0.4,
+    alpha: Math.random() * 0.4 + 0.1
+  }));
+
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.dx; p.y += p.dy;
+      if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(199, 70, 52, ${p.alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+
+  // Blog category filter
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'badge-red'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      document.querySelectorAll('[data-category]').forEach(card => {
+        card.style.display = (filter === 'all' || card.dataset.category === filter) ? 'flex' : 'none';
+        if (card.style.display !== 'none') card.style.display = 'block';
+      });
+    });
+  });
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('a.nav-link');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+    navLinks.forEach(l => {
+      l.style.color = l.getAttribute('href') === `#${current}` ? '#C74634' : '';
+    });
+  });
+</script>
+</body>
+</html>

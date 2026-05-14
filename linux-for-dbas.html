@@ -1,0 +1,2880 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Linux for DBAs | Oracle DBA Simplified</title>
+  <meta name="description" content="Complete Linux guide for Oracle DBAs — essential commands, shell scripting, cron jobs, process management, performance monitoring, and OS-level DBA operations."/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config={darkMode:'class',theme:{extend:{colors:{oracle:{red:'#C74634',dark:'#8B2E22',light:'#E8604A'},lime:{400:'#a3e635',500:'#84cc16'}},fontFamily:{display:['Sora','sans-serif'],body:['DM Sans','sans-serif'],mono:['JetBrains Mono','monospace']}}}}
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{--color-primary:#C74634;--color-lime:#a3e635;--color-surface:#111118;--color-border:#1e1e2e;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#0a0a0f;color:#e2e8f0;overflow-x:hidden;}
+    ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:#0a0a0f;}::-webkit-scrollbar-thumb{background:#a3e635;border-radius:3px;}
+    .glass{background:rgba(255,255,255,0.04);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);}
+    .glass-strong{background:rgba(255,255,255,0.07);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);}
+    .gradient-text{background:linear-gradient(135deg,#a3e635,#4ade80,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .gradient-text-w{background:linear-gradient(135deg,#fff,#cbd5e1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12;pointer-events:none;}
+    .grid-bg{background-image:linear-gradient(rgba(163,230,53,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(163,230,53,.03) 1px,transparent 1px);background-size:64px 64px;}
+    .nav-link{font-size:.875rem;color:#94a3b8;transition:color .2s;}
+    .nav-link:hover,.nav-link.active{color:#a3e635;}
+    .btn-primary{background:linear-gradient(135deg,#a3e635,#65a30d);color:#0a0a0f;border-radius:6px;padding:10px 24px;font-weight:700;font-size:.875rem;transition:all .2s;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(163,230,53,.4);}
+    .btn-ghost{background:transparent;color:#e2e8f0;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:10px 24px;font-weight:500;font-size:.875rem;transition:all .2s;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-ghost:hover{border-color:rgba(163,230,53,.5);color:#a3e635;}
+    .badge{font-size:.75rem;padding:3px 10px;border-radius:100px;font-weight:600;display:inline-block;}
+    .badge-red{background:rgba(199,70,52,.15);color:#E8604A;border:1px solid rgba(199,70,52,.25);}
+    .badge-blue{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.25);}
+    .badge-green{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);}
+    .badge-lime{background:rgba(163,230,53,.15);color:#a3e635;border:1px solid rgba(163,230,53,.25);}
+    .badge-purple{background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.25);}
+    .badge-orange{background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.25);}
+    .badge-cyan{background:rgba(6,182,212,.15);color:#22d3ee;border:1px solid rgba(6,182,212,.25);}
+    .badge-yellow{background:rgba(234,179,8,.15);color:#facc15;border:1px solid rgba(234,179,8,.25);}
+    .reveal{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease;}
+    .reveal.visible{opacity:1;transform:none;}
+    .terminal{background:#0d0d14;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden;}
+    .terminal-bar{background:#1a1a25;padding:10px 16px;display:flex;align-items:center;gap:8px;}
+    .t-dot{width:11px;height:11px;border-radius:50%;}
+    code .kw{color:#a3e635;} code .fn{color:#78d4f4;} code .str{color:#ffd700;} code .cm{color:#6b7280;font-style:italic;} code .num{color:#fb923c;} code .op{color:#e2e8f0;} code .var{color:#c084fc;} code .flag{color:#22d3ee;}
+    .tab-btn{padding:8px 18px;border-radius:8px;font-size:.8rem;font-weight:600;transition:all .2s;cursor:pointer;border:1px solid transparent;color:#64748b;white-space:nowrap;}
+    .tab-btn.active,.tab-btn:hover{background:rgba(163,230,53,.12);color:#a3e635;border-color:rgba(163,230,53,.3);}
+    .tab-content{display:none;}.tab-content.active{display:block;}
+    .cmd-card{transition:transform .25s,box-shadow .25s;cursor:pointer;}
+    .cmd-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(163,230,53,.2);}
+    .cmd-card.selected{box-shadow:0 0 0 2px #a3e635,0 0 24px rgba(163,230,53,.3);}
+    .acc-content{max-height:0;overflow:hidden;transition:max-height .4s ease;}
+    .acc-content.open{max-height:3000px;}
+    .acc-icon{transition:transform .3s;}
+    .acc-btn.open .acc-icon{transform:rotate(180deg);}
+    #mob-menu{max-height:0;overflow:hidden;transition:max-height .4s;}
+    #mob-menu.open{max-height:600px;}
+    .cmd-pill{font-family:'JetBrains Mono',monospace;font-size:.7rem;background:rgba(163,230,53,.1);border:1px solid rgba(163,230,53,.2);color:#a3e635;border-radius:6px;padding:2px 8px;display:inline-block;margin:2px;}
+    .script-line{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:#e2e8f0;line-height:1.8;}
+    .prompt{color:#a3e635;} .root-prompt{color:#C74634;}
+    .info-panel{transition:all .3s;min-height:120px;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+    .cursor{animation:blink 1s infinite;color:#a3e635;}
+    @keyframes typewriter{from{width:0}to{width:100%}}
+    .type-anim{overflow:hidden;white-space:nowrap;border-right:2px solid #a3e635;animation:typewriter 2.5s steps(40,end) forwards,blink 1s step-end 2.5s infinite;}
+  </style>
+</head>
+<body class="dark grid-bg">
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/5">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="flex items-center gap-2 text-neutral-400 hover:text-lime-400 transition-colors text-sm font-medium">
+        <i class="fas fa-arrow-left text-xs"></i> Back to Home
+      </a>
+      <span class="text-neutral-700">|</span>
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-md bg-gradient-to-br from-lime-500 to-green-700 flex items-center justify-center">
+          <i class="fab fa-linux text-white text-xs"></i>
+        </div>
+        <span class="font-display font-bold text-white text-sm">Oracle DBA Simplified</span>
+      </div>
+    </div>
+    <div class="hidden md:flex items-center gap-5">
+      <a href="#overview" class="nav-link">Overview</a>
+      <a href="#commands" class="nav-link">Commands</a>
+      <a href="#oracle-linux" class="nav-link">Oracle on Linux</a>
+      <a href="#top-command" class="nav-link">top &amp; ps</a>
+      <a href="#scripting" class="nav-link">Shell Scripting</a>
+      <a href="#cron" class="nav-link">Cron Jobs</a>
+      <a href="#performance" class="nav-link">Performance</a>
+      <a href="#logs" class="nav-link">Log Management</a>
+    </div>
+    <button id="mob-btn" class="md:hidden text-neutral-400 hover:text-white"><i class="fas fa-bars"></i></button>
+  </div>
+  <div id="mob-menu" class="md:hidden px-6 pb-4">
+    <div class="flex flex-col gap-3 pt-2">
+      <a href="#overview" class="nav-link">Overview</a><a href="#commands" class="nav-link">Commands</a>
+      <a href="#oracle-linux" class="nav-link">Oracle on Linux</a><a href="#top-command" class="nav-link">top &amp; ps</a>
+      <a href="#scripting" class="nav-link">Shell Scripting</a><a href="#cron" class="nav-link">Cron Jobs</a>
+      <a href="#performance" class="nav-link">Performance</a><a href="#logs" class="nav-link">Log Management</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
+  <div class="orb w-96 h-96 bg-lime-500 top-20 left-10"></div>
+  <div class="orb w-80 h-80 bg-green-600 bottom-20 right-10"></div>
+  <div class="orb w-64 h-64 bg-cyan-600 top-40 right-1/3"></div>
+  <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
+    <div>
+      <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-6 border border-lime-500/20">
+        <span class="w-2 h-2 rounded-full bg-lime-400 animate-pulse"></span>
+        <span class="text-sm text-neutral-400 font-medium">Complete Linux Guide for Oracle DBAs</span>
+      </div>
+      <h1 class="font-display font-bold text-5xl md:text-6xl mb-6 leading-tight">
+        <span class="gradient-text-w">Linux for</span><br/>
+        <span class="gradient-text">Oracle DBAs</span>
+      </h1>
+      <p class="text-neutral-400 text-lg mb-8 leading-relaxed">
+        Master the Linux skills every Oracle DBA needs — from day-to-day commands and shell scripting to cron automation, process management, and OS-level performance tuning.
+      </p>
+      <div class="flex flex-wrap justify-start gap-3 mb-10">
+        <a href="#commands" class="badge badge-lime cursor-pointer hover:scale-105 transition-transform py-2 px-4">Command Reference</a>
+        <a href="#oracle-linux" class="badge badge-green cursor-pointer hover:scale-105 transition-transform py-2 px-4">Oracle on Linux</a>
+        <a href="#scripting" class="badge badge-cyan cursor-pointer hover:scale-105 transition-transform py-2 px-4">Shell Scripting</a>
+        <a href="#cron" class="badge badge-blue cursor-pointer hover:scale-105 transition-transform py-2 px-4">Cron Automation</a>
+        <a href="#performance" class="badge badge-purple cursor-pointer hover:scale-105 transition-transform py-2 px-4">Performance</a>
+        <a href="#logs" class="badge badge-orange cursor-pointer hover:scale-105 transition-transform py-2 px-4">Log Management</a>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="glass rounded-xl p-3 border border-lime-500/20 text-center">
+          <div class="font-display font-bold text-2xl gradient-text">100+</div>
+          <div class="text-neutral-500 text-xs mt-1">Commands Covered</div>
+        </div>
+        <div class="glass rounded-xl p-3 border border-green-500/20 text-center">
+          <div class="font-display font-bold text-2xl" style="color:#4ade80">10+</div>
+          <div class="text-neutral-500 text-xs mt-1">Ready-to-Use Scripts</div>
+        </div>
+        <div class="glass rounded-xl p-3 border border-cyan-500/20 text-center">
+          <div class="font-display font-bold text-2xl" style="color:#22d3ee">OEL 7/8</div>
+          <div class="text-neutral-500 text-xs mt-1">Oracle Linux Focus</div>
+        </div>
+        <div class="glass rounded-xl p-3 border border-purple-500/20 text-center">
+          <div class="font-display font-bold text-2xl" style="color:#a78bfa">19c</div>
+          <div class="text-neutral-500 text-xs mt-1">DB Version</div>
+        </div>
+      </div>
+    </div>
+    <!-- Hero Terminal -->
+    <div class="terminal reveal">
+      <div class="terminal-bar">
+        <div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div>
+        <span class="text-neutral-500 text-xs ml-2 font-mono">oracle@prod-db-01:~$</span>
+      </div>
+      <div class="p-5 font-mono text-sm space-y-2" style="min-height:320px">
+        <div><span class="prompt">oracle@prod-db-01:~$</span> <span class="text-white">. oraenv</span></div>
+        <div class="text-neutral-400">ORACLE_SID = [oracle] ? <span class="text-lime-400">ORCL</span></div>
+        <div class="text-neutral-400">The Oracle base remains unchanged with value /u01/app/oracle</div>
+        <div class="mt-2"><span class="prompt">oracle@prod-db-01:~$</span> <span class="text-white">ps -ef | grep smon</span></div>
+        <div class="text-lime-400">oracle   <span class="text-white">12345</span>  1  0 08:00 ?  00:00:02 ora_smon_ORCL</div>
+        <div class="mt-2"><span class="prompt">oracle@prod-db-01:~$</span> <span class="text-white">df -h /u01</span></div>
+        <div class="text-neutral-300">Filesystem      Size  Used Avail Use% Mounted on</div>
+        <div class="text-lime-400">/dev/sdb1       500G  187G  313G  38% /u01</div>
+        <div class="mt-2"><span class="prompt">oracle@prod-db-01:~$</span> <span class="text-white">tail -f $ORACLE_BASE/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log</span></div>
+        <div class="text-green-400">Thread 1 advanced to log sequence 1042 (LGWR switch)</div>
+        <div class="text-green-400">Current log# 3 seq# 1042 mem# 0: /u01/oradata/ORCL/redo03.log</div>
+        <div class="flex items-center gap-1 mt-1"><span class="prompt">oracle@prod-db-01:~$</span> <span class="cursor">|</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-neutral-600"><i class="fas fa-chevron-down"></i></div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-lime mb-4">Why Linux Matters for DBAs</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">The DBA's OS Foundation</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">Oracle Database runs on Linux in over 80% of production environments. Linux proficiency is not optional — it is the bedrock of every DBA's toolkit.</p>
+  </div>
+  <div class="grid md:grid-cols-3 gap-6 mb-12">
+    <div class="glass rounded-2xl p-6 border border-lime-500/20 reveal">
+      <div class="w-12 h-12 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center mb-4"><i class="fas fa-terminal text-lime-400 text-xl"></i></div>
+      <h3 class="font-display font-semibold text-white text-lg mb-2">Day-to-Day Operations</h3>
+      <p class="text-neutral-400 text-sm leading-relaxed">Navigate file systems, monitor disk usage, search logs, manage processes, transfer files — all standard DBA activities require confident Linux command use.</p>
+    </div>
+    <div class="glass rounded-2xl p-6 border border-green-500/20 reveal">
+      <div class="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center mb-4"><i class="fas fa-code text-green-400 text-xl"></i></div>
+      <h3 class="font-display font-semibold text-white text-lg mb-2">Automation &amp; Scripting</h3>
+      <p class="text-neutral-400 text-sm leading-relaxed">Shell scripts and cron jobs automate RMAN backups, space checks, log rotation, stats gathering, and health monitoring — saving hours every week.</p>
+    </div>
+    <div class="glass rounded-2xl p-6 border border-cyan-500/20 reveal">
+      <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mb-4"><i class="fas fa-gauge-high text-cyan-400 text-xl"></i></div>
+      <h3 class="font-display font-semibold text-white text-lg mb-2">Performance Analysis</h3>
+      <p class="text-neutral-400 text-sm leading-relaxed">When AWR says "high I/O wait", you need iostat. When memory is low, you need free and vmstat. OS-level tools complete the picture AWR cannot show.</p>
+    </div>
+  </div>
+
+  <!-- What Every DBA Must Know -->
+  <div class="glass rounded-2xl p-8 border border-white/5 reveal">
+    <h3 class="font-display font-semibold text-white text-xl mb-6">The 10 Linux Skills Every Oracle DBA Must Have</h3>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-lime-500/10">
+        <span class="badge badge-lime flex-shrink-0 mt-0.5">01</span>
+        <div><p class="text-white text-sm font-semibold">Navigation &amp; File Management</p><p class="text-neutral-400 text-xs mt-1">pwd, ls, cd, cp, mv, rm — finding and moving Oracle trace files, alert logs, data files.</p></div>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-green-500/10">
+        <span class="badge badge-green flex-shrink-0 mt-0.5">02</span>
+        <div><p class="text-white text-sm font-semibold">Disk Space Monitoring</p><p class="text-neutral-400 text-xs mt-1">df -h and du -sh for FRA, data file, and archive log space capacity planning.</p></div>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-cyan-500/10">
+        <span class="badge badge-cyan flex-shrink-0 mt-0.5">03</span>
+        <div><p class="text-white text-sm font-semibold">Process Management</p><p class="text-neutral-400 text-xs mt-1">ps -ef, top, kill — identifying Oracle background processes and tying OS PIDs to DB sessions.</p></div>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-purple-500/10">
+        <span class="badge badge-purple flex-shrink-0 mt-0.5">04</span>
+        <div><p class="text-white text-sm font-semibold">Text Processing</p><p class="text-neutral-400 text-xs mt-1">grep, awk, sed, cut — parsing alert logs, trace files, and AWR text reports.</p></div>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-orange-500/10">
+        <span class="badge badge-orange flex-shrink-0 mt-0.5">05</span>
+        <div><p class="text-white text-sm font-semibold">Permissions &amp; Ownership</p><p class="text-neutral-400 text-xs mt-1">chmod, chown — correct oracle:oinstall ownership on data files and Oracle directories.</p></div>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-yellow-500/10">
+        <span class="badge badge-yellow flex-shrink-0 mt-0.5">06</span>
+        <div><p class="text-white text-sm font-semibold">Remote Access</p><p class="text-neutral-400 text-xs mt-1">ssh, scp — connecting to multiple DB servers and securely transferring RMAN backups or scripts.</p></div>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-lime-500/10">
+        <span class="badge badge-lime flex-shrink-0 mt-0.5">07</span>
+        <div><p class="text-white text-sm font-semibold">Log File Monitoring</p><p class="text-neutral-400 text-xs mt-1">tail -f on alert logs, grep for ORA- errors — the first line of incident detection.</p></div>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-blue-500/10">
+        <span class="badge badge-blue flex-shrink-0 mt-0.5">08</span>
+        <div><p class="text-white text-sm font-semibold">Cron Scheduling</p><p class="text-neutral-400 text-xs mt-1">crontab -e — automating RMAN backups, space alerts, stats jobs, and maintenance windows.</p></div>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-green-500/10">
+        <span class="badge badge-green flex-shrink-0 mt-0.5">09</span>
+        <div><p class="text-white text-sm font-semibold">Compression &amp; Archive</p><p class="text-neutral-400 text-xs mt-1">tar, gzip — packaging trace files for Oracle SR, compressing old backups, bundling scripts.</p></div>
+      </div>
+      <div class="flex items-start gap-3 glass rounded-xl p-4 border border-red-500/10">
+        <span class="badge badge-red flex-shrink-0 mt-0.5">10</span>
+        <div><p class="text-white text-sm font-semibold">Performance Monitoring</p><p class="text-neutral-400 text-xs mt-1">vmstat, iostat, sar, free -m — OS-level diagnosis when the database performance problem starts at the OS.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMMAND EXPLORER -->
+<section id="commands" class="py-24 bg-gradient-to-b from-transparent via-lime-500/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-green mb-4">Interactive Reference</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Command Explorer</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">Click any category to explore commands with real DBA use cases, syntax, and examples.</p>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="flex flex-wrap gap-2 mb-8 reveal">
+      <button class="tab-btn active" data-tab="cmd-nav" data-group="cmd">Navigation &amp; Files</button>
+      <button class="tab-btn" data-tab="cmd-disk" data-group="cmd">Disk &amp; Storage</button>
+      <button class="tab-btn" data-tab="cmd-proc" data-group="cmd">Process Mgmt</button>
+      <button class="tab-btn" data-tab="cmd-text" data-group="cmd">Text Processing</button>
+      <button class="tab-btn" data-tab="cmd-perm" data-group="cmd">Permissions</button>
+      <button class="tab-btn" data-tab="cmd-net" data-group="cmd">Network &amp; SSH</button>
+      <button class="tab-btn" data-tab="cmd-arch" data-group="cmd">Archive &amp; Compress</button>
+      <button class="tab-btn" data-tab="cmd-sys" data-group="cmd">System Info</button>
+    </div>
+
+    <!-- Navigation & Files -->
+    <div class="tab-content active" id="cmd-nav">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Navigation &amp; Directory</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Print working directory</span>
+<span class="kw">pwd</span>
+<span class="cm">/home/oracle</span>
+
+<span class="cm"># List files with permissions and timestamps</span>
+<span class="kw">ls</span> <span class="flag">-ltr</span>        <span class="cm"># sorted by time, newest last</span>
+<span class="kw">ls</span> <span class="flag">-alh</span>        <span class="cm"># all files, human-readable sizes</span>
+<span class="kw">ls</span> <span class="flag">-lh</span> /u01/oradata/ORCL/
+
+<span class="cm"># Navigate directories</span>
+<span class="kw">cd</span> /u01/app/oracle/product/19.0.0/dbhome_1
+<span class="kw">cd</span> <span class="str">$ORACLE_HOME</span>   <span class="cm"># use env variable</span>
+<span class="kw">cd</span> ..            <span class="cm"># one level up</span>
+<span class="kw">cd</span> <span class="str">~</span>             <span class="cm"># go to home directory</span>
+<span class="kw">cd</span> <span class="str">-</span>             <span class="cm"># go to previous directory</span>
+
+<span class="cm"># Create directories</span>
+<span class="kw">mkdir</span> <span class="flag">-p</span> /u01/backup/ORCL/rman
+<span class="kw">mkdir</span> <span class="flag">-p</span> /scripts/dba/{backup,monitor,alerts}
+
+<span class="cm"># Find files — critical for DBAs</span>
+<span class="kw">find</span> /u01/diag <span class="flag">-name</span> <span class="str">"*.trc"</span> <span class="flag">-mtime</span> <span class="num">+7</span>
+<span class="kw">find</span> /u01/diag <span class="flag">-name</span> <span class="str">"alert_*.log"</span>
+<span class="kw">find</span> /u01/diag <span class="flag">-size</span> <span class="num">+100M</span>  <span class="cm"># large files</span>
+
+<span class="cm"># Purge old trace files (>7 days)</span>
+<span class="kw">find</span> /u01/diag/rdbms/orcl/ORCL/trace \
+  <span class="flag">-name</span> <span class="str">"*.trc"</span> <span class="flag">-mtime</span> <span class="num">+7</span> <span class="flag">-exec</span> <span class="kw">rm</span> <span class="flag">-f</span> {} \;</code></pre>
+        </div>
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">File Operations</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Copy files and directories</span>
+<span class="kw">cp</span> spfileORCL.ora spfileORCL.ora.bak
+<span class="kw">cp</span> <span class="flag">-r</span> /scripts /scripts_backup
+
+<span class="cm"># Move / rename files</span>
+<span class="kw">mv</span> listener.ora listener.ora.orig
+<span class="kw">mv</span> /u01/backup/old /u02/archive/
+
+<span class="cm"># Remove files safely</span>
+<span class="kw">rm</span> <span class="flag">-f</span> /u01/backup/ORCL/arch_*.arc
+<span class="kw">rm</span> <span class="flag">-rf</span> /u01/diag/rdbms/orcl/ORCL/trace/old/
+
+<span class="cm"># View file contents</span>
+<span class="kw">cat</span> /etc/oratab
+<span class="kw">cat</span> <span class="flag">-n</span> tnsnames.ora   <span class="cm"># with line numbers</span>
+<span class="kw">head</span> <span class="flag">-50</span> alert_ORCL.log
+<span class="kw">tail</span> <span class="flag">-100</span> alert_ORCL.log
+<span class="kw">tail</span> <span class="flag">-f</span> alert_ORCL.log  <span class="cm"># live follow</span>
+<span class="kw">more</span> big_file.txt
+<span class="kw">less</span> big_file.txt       <span class="cm"># preferred — searchable</span>
+
+<span class="cm"># Touch / create empty file</span>
+<span class="kw">touch</span> /tmp/lockfile.pid
+
+<span class="cm"># Create symbolic links</span>
+<span class="kw">ln</span> <span class="flag">-s</span> /u01/app/oracle/product/19.0.0/dbhome_1 \
+       /u01/oracle_home
+
+<span class="cm"># Check file type</span>
+<span class="kw">file</span> /u01/oradata/ORCL/system01.dbf
+<span class="cm"># Output: data</span>
+
+<span class="cm"># Secure copy between servers</span>
+<span class="kw">scp</span> scripts/rman_backup.sh oracle@standby:/scripts/
+<span class="kw">scp</span> <span class="flag">-r</span> /scripts oracle@server2:/home/oracle/</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Disk & Storage -->
+    <div class="tab-content" id="cmd-disk">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Disk Space — df &amp; du</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Check filesystem disk usage</span>
+<span class="kw">df</span> <span class="flag">-h</span>                    <span class="cm"># all filesystems, human-readable</span>
+<span class="kw">df</span> <span class="flag">-h</span> /u01               <span class="cm"># specific mount point</span>
+<span class="kw">df</span> <span class="flag">-hT</span>                   <span class="cm"># include filesystem type</span>
+
+<span class="cm"># Example output:</span>
+<span class="cm"># Filesystem    Type   Size  Used Avail Use% Mounted on</span>
+<span class="cm"># /dev/sdb1     ext4   500G  187G  313G  38% /u01</span>
+
+<span class="cm"># Check FRA usage — CRITICAL for DBAs</span>
+<span class="kw">df</span> <span class="flag">-h</span> /u01/fast_recovery_area
+
+<span class="cm"># Directory size breakdown</span>
+<span class="kw">du</span> <span class="flag">-sh</span> /u01/oradata/ORCL/   <span class="cm"># total size</span>
+<span class="kw">du</span> <span class="flag">-sh</span> /u01/fast_recovery_area/*
+<span class="kw">du</span> <span class="flag">-h</span> <span class="flag">--max-depth=1</span> /u01/  <span class="cm"># 1-level breakdown</span>
+
+<span class="cm"># Top 10 largest files in a directory</span>
+<span class="kw">du</span> <span class="flag">-ah</span> /u01/diag/rdbms/orcl/ORCL/trace/ | \
+  <span class="kw">sort</span> <span class="flag">-rh</span> | <span class="kw">head</span> <span class="flag">-10</span>
+
+<span class="cm"># Monitor disk usage change over time</span>
+<span class="kw">watch</span> <span class="flag">-n</span> <span class="num">30</span> <span class="str">'df -h /u01'</span>
+
+<span class="cm"># List block devices and mount points</span>
+<span class="kw">lsblk</span>
+<span class="kw">lsblk</span> <span class="flag">-f</span>   <span class="cm"># include filesystem type and UUID</span>
+<span class="kw">blkid</span>      <span class="cm"># show UUIDs (root required)</span>
+
+<span class="cm"># Check inode usage (can fill up with many small files)</span>
+<span class="kw">df</span> <span class="flag">-i</span> /u01</code></pre>
+        </div>
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Storage Management</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Mount a filesystem</span>
+<span class="kw">mount</span> /dev/sdb1 /u01
+<span class="kw">mount</span> <span class="flag">-a</span>          <span class="cm"># mount all entries in /etc/fstab</span>
+<span class="kw">mount</span>             <span class="cm"># show all currently mounted FSes</span>
+
+<span class="cm"># Unmount safely</span>
+<span class="kw">umount</span> /u01
+
+<span class="cm"># Check if filesystem is in /etc/fstab</span>
+<span class="kw">cat</span> /etc/fstab
+
+<span class="cm"># /etc/fstab entry for Oracle data:</span>
+<span class="cm"># /dev/sdb1  /u01  ext4  defaults,noatime  0 0</span>
+
+<span class="cm"># fdisk — partition info (root)</span>
+<span class="kw">fdisk</span> <span class="flag">-l</span>
+<span class="kw">fdisk</span> <span class="flag">-l</span> /dev/sdb
+
+<span class="cm"># Format a partition (USE CAREFULLY)</span>
+<span class="kw">mkfs.ext4</span> /dev/sdc1
+
+<span class="cm"># Check filesystem errors (offline)</span>
+<span class="kw">fsck</span> <span class="flag">-n</span> /dev/sdb1   <span class="cm"># -n = dry run, no fix</span>
+
+<span class="cm"># ASM disk discovery (Oracle ASM)</span>
+<span class="kw">ls</span> <span class="flag">-lh</span> /dev/sd*
+<span class="kw">oracleasm</span> listdisks
+<span class="kw">oracleasm</span> querydisk DATA1
+
+<span class="cm"># Extend LVM volume (root required)</span>
+<span class="kw">lvextend</span> <span class="flag">-L</span> +50G /dev/vg_oracle/lv_u01
+<span class="kw">resize2fs</span> /dev/vg_oracle/lv_u01
+
+<span class="cm"># Check LVM info</span>
+<span class="kw">pvs</span>   <span class="cm"># physical volumes</span>
+<span class="kw">vgs</span>   <span class="cm"># volume groups</span>
+<span class="kw">lvs</span>   <span class="cm"># logical volumes</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Process Management -->
+    <div class="tab-content" id="cmd-proc">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">ps — Process Status</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># List all Oracle background processes</span>
+<span class="kw">ps</span> <span class="flag">-ef</span> | <span class="kw">grep</span> <span class="str">ora_</span>
+
+<span class="cm"># Output (healthy DB):</span>
+<span class="cm"># oracle 12001 1 ora_pmon_ORCL</span>
+<span class="cm"># oracle 12003 1 ora_smon_ORCL</span>
+<span class="cm"># oracle 12005 1 ora_dbwr_ORCL</span>
+<span class="cm"># oracle 12007 1 ora_lgwr_ORCL</span>
+<span class="cm"># oracle 12009 1 ora_ckpt_ORCL</span>
+<span class="cm"># oracle 12011 1 ora_arcn_ORCL</span>
+
+<span class="cm"># Show processes for oracle user with full command</span>
+<span class="kw">ps</span> <span class="flag">-fu</span> oracle
+
+<span class="cm"># Check if listener is running</span>
+<span class="kw">ps</span> <span class="flag">-ef</span> | <span class="kw">grep</span> tnslsnr
+
+<span class="cm"># Show a specific process by PID with memory</span>
+<span class="kw">ps</span> <span class="flag">-p</span> 12001 <span class="flag">-o</span> pid,ppid,%cpu,%mem,vsz,rss,cmd
+
+<span class="cm"># Custom ps output for Oracle session tracking</span>
+<span class="kw">ps</span> <span class="flag">-eo</span> pid,ppid,user,%cpu,%mem,stat,cmd \
+   | <span class="kw">grep</span> <span class="str">'ora_\|oracle'</span> | <span class="kw">head</span> <span class="flag">-30</span>
+
+<span class="cm"># Kill a runaway session (use PID from V$PROCESS)</span>
+<span class="kw">kill</span> <span class="flag">-9</span> 14523       <span class="cm"># force kill</span>
+<span class="kw">kill</span> <span class="flag">-15</span> 14523      <span class="cm"># graceful terminate (SIGTERM)</span>
+
+<span class="cm"># Send signal to all oracle processes (careful!)</span>
+<span class="kw">pkill</span> <span class="flag">-u</span> oracle <span class="flag">-f</span> <span class="str">"ora_pmon"</span>
+
+<span class="cm"># Check number of OS processes for oracle user</span>
+<span class="kw">ps</span> <span class="flag">-fu</span> oracle | <span class="kw">wc</span> <span class="flag">-l</span></code></pre>
+        </div>
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Correlate OS PID → Oracle Session</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">-- Find OS PID of high-CPU process from top/ps</span>
+<span class="cm">-- Then run this in SQL*Plus:</span>
+
+<span class="kw">SELECT</span>
+  s.sid,
+  s.serial#,
+  s.username,
+  s.osuser,
+  s.machine,
+  s.program,
+  s.sql_id,
+  s.status,
+  p.spid          <span class="cm">AS os_pid</span>
+<span class="kw">FROM</span>   v$session s
+<span class="kw">JOIN</span>   v$process p <span class="kw">ON</span> s.paddr = p.addr
+<span class="kw">WHERE</span>  p.spid = <span class="str">'&amp;OS_PID'</span>;
+
+<span class="cm">-- Get the SQL being run by that session</span>
+<span class="kw">SELECT</span> sql_text
+<span class="kw">FROM</span>   v$sqlarea
+<span class="kw">WHERE</span>  sql_id = <span class="str">'&amp;SQL_ID'</span>;
+
+<span class="cm">-- Kill session from SQL*Plus if needed</span>
+<span class="kw">ALTER</span> <span class="kw">SYSTEM</span> KILL SESSION <span class="str">'&amp;SID,&amp;SERIAL#'</span>
+  IMMEDIATE;
+
+<span class="cm">-- Background process to OS PID mapping</span>
+<span class="kw">SELECT</span> name, description, spid
+<span class="kw">FROM</span>   v$bgprocess b
+<span class="kw">JOIN</span>   v$process p <span class="kw">ON</span> b.paddr = p.addr
+<span class="kw">ORDER</span> <span class="kw">BY</span> name;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Text Processing -->
+    <div class="tab-content" id="cmd-text">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">grep — Pattern Search</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Search alert log for ORA- errors (most used DBA command)</span>
+<span class="kw">grep</span> <span class="str">"ORA-"</span> alert_ORCL.log
+<span class="kw">grep</span> <span class="flag">-i</span> <span class="str">"error\|ora-\|warning"</span> alert_ORCL.log
+<span class="kw">grep</span> <span class="flag">-c</span> <span class="str">"ORA-"</span> alert_ORCL.log  <span class="cm"># count occurrences</span>
+
+<span class="cm"># Show context around matches</span>
+<span class="kw">grep</span> <span class="flag">-A 5</span> <span class="str">"ORA-04031"</span> alert_ORCL.log  <span class="cm"># 5 lines after</span>
+<span class="kw">grep</span> <span class="flag">-B 3</span> <span class="str">"ORA-00600"</span> alert_ORCL.log  <span class="cm"># 3 lines before</span>
+
+<span class="cm"># Search all alert logs in diag</span>
+<span class="kw">grep</span> <span class="flag">-r</span> <span class="str">"ORA-00600"</span> /u01/diag/
+
+<span class="cm"># Find TNS connection entries</span>
+<span class="kw">grep</span> <span class="flag">-i</span> <span class="str">"ORCL"</span> /u01/app/oracle/product/19.0.0/\
+   dbhome_1/network/admin/tnsnames.ora
+
+<span class="cm"># awk — field extraction (powerful for DBAs)</span>
+<span class="cm"># Extract SID from /etc/oratab</span>
+<span class="kw">awk</span> <span class="flag">-F</span><span class="str">':'</span> <span class="str">'{print $1}'</span> /etc/oratab | <span class="kw">grep</span> <span class="flag">-v</span> <span class="str">"#"</span>
+
+<span class="cm"># Get column 5 (size) from df output</span>
+<span class="kw">df</span> <span class="flag">-h</span> | <span class="kw">awk</span> <span class="str">'{print $5, $6}'</span>
+
+<span class="cm"># Flag filesystems over 80% full</span>
+<span class="kw">df</span> <span class="flag">-h</span> | <span class="kw">awk</span> <span class="str">'NR>1 {gsub(/%/,"",$5); if($5>80) print "WARN:",$0}'</span>
+
+<span class="cm"># sed — stream editor</span>
+<span class="cm"># Replace old ORACLE_HOME in scripts</span>
+<span class="kw">sed</span> <span class="flag">-i</span> <span class="str">'s|/u01/oracle/18c|/u01/oracle/19c|g'</span> *.sh
+
+<span class="cm"># Remove blank lines from a file</span>
+<span class="kw">sed</span> <span class="str">'/^$/d'</span> file.txt
+
+<span class="cm"># cut — simple column extraction</span>
+<span class="kw">cut</span> <span class="flag">-d:</span> <span class="flag">-f1</span> /etc/passwd   <span class="cm"># usernames only</span>
+<span class="kw">cut</span> <span class="flag">-d:</span> <span class="flag">-f1,3</span> /etc/oratab</code></pre>
+        </div>
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">sort, uniq, wc, diff</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># sort — ordering output</span>
+<span class="kw">ls</span> <span class="flag">-lh</span> /u01/oradata/ | <span class="kw">sort</span> <span class="flag">-k5 -rh</span>  <span class="cm"># sort by size</span>
+<span class="kw">sort</span> <span class="flag">-u</span> file.txt                       <span class="cm"># unique lines</span>
+<span class="kw">sort</span> <span class="flag">-t:</span> <span class="flag">-k3 -n</span> /etc/passwd           <span class="cm"># sort by UID</span>
+
+<span class="cm"># uniq — find duplicate entries</span>
+<span class="kw">grep</span> <span class="str">"ORA-"</span> alert_ORCL.log | \
+  <span class="kw">sort</span> | <span class="kw">uniq</span> <span class="flag">-c</span> | <span class="kw">sort</span> <span class="flag">-rn</span>
+<span class="cm"># Shows most frequent ORA- errors ranked</span>
+
+<span class="cm"># wc — count lines, words, chars</span>
+<span class="kw">wc</span> <span class="flag">-l</span> alert_ORCL.log      <span class="cm"># count log lines</span>
+<span class="kw">grep</span> <span class="str">"ORA-"</span> alert_ORCL.log | <span class="kw">wc</span> <span class="flag">-l</span>
+
+<span class="cm"># diff — compare files</span>
+<span class="kw">diff</span> tnsnames.ora tnsnames.ora.bak
+<span class="kw">diff</span> sqlnet.ora.prod sqlnet.ora.dr
+<span class="kw">diff</span> <span class="flag">-u</span> old_listener.ora new_listener.ora
+
+<span class="cm"># tr — translate characters</span>
+<span class="cm"># Convert uppercase to lowercase</span>
+<span class="kw">echo</span> <span class="str">"ORCL"</span> | <span class="kw">tr</span> <span class="str">'[:upper:]'</span> <span class="str">'[:lower:]'</span>
+
+<span class="cm"># xargs — build command from stdin</span>
+<span class="cm"># Delete all .trc files older than 30 days</span>
+<span class="kw">find</span> /u01/diag <span class="flag">-name</span> <span class="str">"*.trc"</span> <span class="flag">-mtime</span> <span class="num">+30</span> | \
+  <span class="kw">xargs</span> <span class="kw">rm</span> <span class="flag">-f</span>
+
+<span class="cm"># Pipe chain example: find top ORA- errors</span>
+<span class="kw">grep</span> <span class="str">"ORA-"</span> alert_ORCL.log \
+  | <span class="kw">grep</span> <span class="flag">-oP</span> <span class="str">'ORA-[0-9]+'</span> \
+  | <span class="kw">sort</span> | <span class="kw">uniq</span> <span class="flag">-c</span> | <span class="kw">sort</span> <span class="flag">-rn</span> | <span class="kw">head</span> <span class="flag">-10</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Permissions -->
+    <div class="tab-content" id="cmd-perm">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">chmod &amp; chown</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Understanding permission notation</span>
+<span class="cm"># -rwxr-xr-x  1 oracle oinstall 1234 file.sh</span>
+<span class="cm">#  ||| ||| |||</span>
+<span class="cm">#  usr grp oth</span>
+<span class="cm">#  r=4, w=2, x=1</span>
+
+<span class="cm"># chmod — change permissions</span>
+<span class="kw">chmod</span> <span class="num">755</span> /scripts/rman_backup.sh  <span class="cm"># rwxr-xr-x</span>
+<span class="kw">chmod</span> <span class="num">640</span> /etc/oratab              <span class="cm"># rw-r-----</span>
+<span class="kw">chmod</span> <span class="num">600</span> $HOME/.ssh/authorized_keys
+<span class="kw">chmod</span> <span class="flag">-R</span> <span class="num">750</span> /scripts/             <span class="cm"># recursive</span>
+
+<span class="cm"># Symbolic notation</span>
+<span class="kw">chmod</span> u+x script.sh      <span class="cm"># add execute for user</span>
+<span class="kw">chmod</span> o-w datafile.dbf   <span class="cm"># remove write for others</span>
+<span class="kw">chmod</span> g+rw logfile.log   <span class="cm"># add read+write for group</span>
+
+<span class="cm"># chown — change ownership</span>
+<span class="kw">chown</span> oracle:oinstall /u01/oradata/ORCL/
+<span class="kw">chown</span> <span class="flag">-R</span> oracle:oinstall /u01/app/oracle/
+<span class="kw">chown</span> oracle:dba /scripts/rman_backup.sh
+
+<span class="cm"># Oracle-specific permission requirements</span>
+<span class="cm"># ORACLE_HOME — owned by oracle:oinstall, 755</span>
+<span class="kw">chown</span> <span class="flag">-R</span> oracle:oinstall $ORACLE_HOME
+<span class="kw">chmod</span> <span class="flag">-R</span> <span class="num">755</span> $ORACLE_HOME
+
+<span class="cm"># Data files — oracle:oinstall, 640</span>
+<span class="kw">chown</span> oracle:oinstall /u01/oradata/ORCL/*.dbf
+<span class="kw">chmod</span> <span class="num">640</span> /u01/oradata/ORCL/*.dbf</code></pre>
+        </div>
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Users &amp; Groups</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Oracle requires these OS groups:</span>
+<span class="cm"># oinstall — Oracle inventory group</span>
+<span class="cm"># dba — SYSDBA privilege group</span>
+<span class="cm"># oper — SYSOPER privilege group</span>
+<span class="cm"># backupdba — SYSBACKUP group</span>
+
+<span class="cm"># Create groups and oracle user</span>
+<span class="kw">groupadd</span> <span class="flag">-g</span> <span class="num">54321</span> oinstall
+<span class="kw">groupadd</span> <span class="flag">-g</span> <span class="num">54322</span> dba
+<span class="kw">groupadd</span> <span class="flag">-g</span> <span class="num">54323</span> oper
+<span class="kw">groupadd</span> <span class="flag">-g</span> <span class="num">54324</span> backupdba
+
+<span class="kw">useradd</span> <span class="flag">-u</span> <span class="num">54321</span> <span class="flag">-g</span> oinstall \
+  <span class="flag">-G</span> dba,oper,backupdba \
+  <span class="flag">-d</span> /home/oracle <span class="flag">-s</span> /bin/bash oracle
+
+<span class="cm"># Check oracle user groups</span>
+<span class="kw">id</span> oracle
+<span class="kw">groups</span> oracle
+
+<span class="cm"># Switch to oracle user</span>
+<span class="kw">su</span> <span class="flag">-</span> oracle         <span class="cm"># full login shell (loads profile)</span>
+<span class="kw">sudo</span> <span class="flag">-u</span> oracle <span class="kw">bash</span> <span class="flag">-l</span>
+
+<span class="cm"># Check who is logged in</span>
+<span class="kw">who</span>
+<span class="kw">w</span>
+<span class="kw">last</span> | <span class="kw">head</span> <span class="flag">-20</span>   <span class="cm"># login history</span>
+
+<span class="cm"># Set password for oracle user (root)</span>
+<span class="kw">passwd</span> oracle
+
+<span class="cm"># /etc/sudoers — allow oracle to start/stop</span>
+<span class="cm"># oracle ALL=(root) NOPASSWD: /sbin/service oracle*</span>
+
+<span class="cm"># Lock/unlock oracle OS account</span>
+<span class="kw">usermod</span> <span class="flag">-L</span> oracle   <span class="cm"># lock</span>
+<span class="kw">usermod</span> <span class="flag">-U</span> oracle   <span class="cm"># unlock</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Network & SSH -->
+    <div class="tab-content" id="cmd-net">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Network Diagnostics</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Test basic connectivity</span>
+<span class="kw">ping</span> <span class="flag">-c</span> <span class="num">4</span> standby-server
+<span class="kw">ping</span> <span class="flag">-c</span> <span class="num">4</span> 192.168.1.50
+
+<span class="cm"># Test TNS port (1521) is reachable</span>
+<span class="kw">telnet</span> db-server 1521
+<span class="kw">nc</span> <span class="flag">-zv</span> db-server <span class="num">1521</span>   <span class="cm"># netcat — preferred</span>
+<span class="kw">nc</span> <span class="flag">-zv</span> db-server <span class="num">1521</span> <span class="num">2>&amp;1</span>
+
+<span class="cm"># Check listening ports</span>
+<span class="kw">ss</span> <span class="flag">-tlnp</span>               <span class="cm"># TCP listening, with PID</span>
+<span class="kw">ss</span> <span class="flag">-tlnp</span> | <span class="kw">grep</span> <span class="num">1521</span>  <span class="cm"># verify listener port</span>
+<span class="kw">netstat</span> <span class="flag">-tlnp</span> | <span class="kw">grep</span> 1521 <span class="cm"># older systems</span>
+
+<span class="cm"># DNS resolution</span>
+<span class="kw">nslookup</span> db-server
+<span class="kw">dig</span> db-server A
+<span class="kw">host</span> 192.168.1.100    <span class="cm"># reverse lookup</span>
+
+<span class="cm"># Show routing table</span>
+<span class="kw">route</span> <span class="flag">-n</span>
+<span class="kw">ip</span> route show
+
+<span class="cm"># Show network interfaces and IPs</span>
+<span class="kw">ip</span> addr show
+<span class="kw">ifconfig</span>              <span class="cm"># older systems</span>
+
+<span class="cm"># Check active connections on Oracle port</span>
+<span class="kw">ss</span> <span class="flag">-tnp</span> | <span class="kw">grep</span> <span class="num">1521</span>
+<span class="kw">netstat</span> <span class="flag">-an</span> | <span class="kw">grep</span> <span class="num">1521</span>
+
+<span class="cm"># Traceroute to diagnose network path</span>
+<span class="kw">traceroute</span> standby-server
+<span class="kw">tracepath</span> standby-server</code></pre>
+        </div>
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">SSH — Secure Remote Access</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Connect to remote server</span>
+<span class="kw">ssh</span> oracle@db-server2
+<span class="kw">ssh</span> <span class="flag">-p</span> <span class="num">22</span> oracle@192.168.1.50
+
+<span class="cm"># Run remote command without interactive session</span>
+<span class="kw">ssh</span> oracle@standby <span class="str">'ps -ef | grep smon'</span>
+<span class="kw">ssh</span> oracle@standby <span class="str">'df -h /u01'</span>
+<span class="kw">ssh</span> oracle@standby <span class="str">'cat /etc/oratab'</span>
+
+<span class="cm"># Set up passwordless SSH (for RAC/DG automation)</span>
+<span class="kw">ssh-keygen</span> <span class="flag">-t</span> rsa <span class="flag">-b</span> <span class="num">4096</span>   <span class="cm"># generate key pair</span>
+<span class="kw">ssh-copy-id</span> oracle@node2      <span class="cm"># push public key</span>
+<span class="kw">ssh-copy-id</span> oracle@standby
+
+<span class="cm"># scp — secure copy between servers</span>
+<span class="kw">scp</span> rman_backup.sh oracle@standby:/scripts/
+<span class="kw">scp</span> <span class="flag">-r</span> /scripts/dba oracle@node2:/home/oracle/
+
+<span class="cm"># Copy file FROM remote server</span>
+<span class="kw">scp</span> oracle@standby:/u01/oradata/pfile.ora /tmp/
+
+<span class="cm"># rsync — efficient sync (preserves permissions)</span>
+<span class="kw">rsync</span> <span class="flag">-avz</span> /scripts/ oracle@standby:/scripts/
+<span class="kw">rsync</span> <span class="flag">-avz --delete</span> /u01/backup/ oracle@archive:/archive/
+
+<span class="cm"># SSH tunnel — forward local port to remote DB port</span>
+<span class="kw">ssh</span> <span class="flag">-L</span> 1521:db-server:1521 jumphost
+<span class="cm"># Now connect SQLDeveloper to localhost:1521</span>
+
+<span class="cm"># ~/.ssh/config — define server aliases</span>
+<span class="cm"># Host proddb</span>
+<span class="cm">#   HostName 192.168.1.100</span>
+<span class="cm">#   User oracle</span>
+<span class="cm">#   IdentityFile ~/.ssh/id_rsa</span>
+<span class="kw">ssh</span> proddb   <span class="cm"># uses config above</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Archive & Compress -->
+    <div class="tab-content" id="cmd-arch">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">tar — Archive Files</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># tar flags:</span>
+<span class="cm"># c = create, x = extract, v = verbose</span>
+<span class="cm"># f = filename, z = gzip, j = bzip2, J = xz</span>
+
+<span class="cm"># Create compressed archive</span>
+<span class="kw">tar</span> <span class="flag">-czvf</span> scripts_backup.tar.gz /scripts/dba/
+<span class="kw">tar</span> <span class="flag">-cjvf</span> traces.tar.bz2 /u01/diag/rdbms/orcl/ORCL/trace/
+
+<span class="cm"># Extract archive</span>
+<span class="kw">tar</span> <span class="flag">-xzvf</span> scripts_backup.tar.gz
+<span class="kw">tar</span> <span class="flag">-xzvf</span> archive.tar.gz <span class="flag">-C</span> /tmp/restore/
+
+<span class="cm"># List contents without extracting</span>
+<span class="kw">tar</span> <span class="flag">-tzvf</span> scripts_backup.tar.gz
+
+<span class="cm"># Extract single file from archive</span>
+<span class="kw">tar</span> <span class="flag">-xzvf</span> backup.tar.gz scripts/rman_backup.sh
+
+<span class="cm"># Create archive excluding certain files</span>
+<span class="kw">tar</span> <span class="flag">-czvf</span> diag.tar.gz /u01/diag/ \
+  <span class="flag">--exclude=</span><span class="str">'*.trc'</span> <span class="flag">--exclude=</span><span class="str">'*.trm'</span>
+
+<span class="cm"># Append files to existing archive</span>
+<span class="kw">tar</span> <span class="flag">-rvf</span> scripts.tar new_script.sh
+
+<span class="cm"># Real DBA use: bundle trace files for Oracle SR</span>
+<span class="kw">tar</span> <span class="flag">-czvf</span> /tmp/ora600_traces_$(date +%Y%m%d).tar.gz \
+  /u01/diag/rdbms/orcl/ORCL/trace/*ORA-00600*</code></pre>
+        </div>
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">gzip, zip &amp; Compression</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># gzip — compress individual files</span>
+<span class="kw">gzip</span> alert_ORCL.log          <span class="cm"># creates alert_ORCL.log.gz</span>
+<span class="kw">gzip</span> <span class="flag">-k</span> alert_ORCL.log       <span class="cm"># keep original</span>
+<span class="kw">gzip</span> <span class="flag">-v</span> large_trace.trc      <span class="cm"># verbose — show ratio</span>
+<span class="kw">gzip</span> <span class="flag">-9</span> archive_log.arc      <span class="cm"># max compression</span>
+
+<span class="cm"># gunzip — decompress</span>
+<span class="kw">gunzip</span> alert_ORCL.log.gz
+<span class="kw">gzip</span> <span class="flag">-d</span> file.gz             <span class="cm"># same as gunzip</span>
+
+<span class="cm"># Read gzipped file without extracting</span>
+<span class="kw">zcat</span> alert_ORCL.log.gz | <span class="kw">grep</span> <span class="str">"ORA-"</span>
+<span class="kw">zgrep</span> <span class="str">"ORA-04031"</span> alert_ORCL.log.gz
+<span class="kw">zless</span> alert_ORCL.log.gz
+
+<span class="cm"># zip — compatible with Windows</span>
+<span class="kw">zip</span> <span class="flag">-r</span> scripts.zip /scripts/dba/
+<span class="kw">unzip</span> scripts.zip
+<span class="kw">unzip</span> <span class="flag">-l</span> scripts.zip        <span class="cm"># list contents</span>
+
+<span class="cm"># Check compression ratio</span>
+<span class="kw">ls</span> <span class="flag">-lh</span> alert_ORCL.log
+<span class="kw">gzip</span> <span class="flag">-v</span> alert_ORCL.log
+<span class="cm"># alert_ORCL.log: 87.3% -- replaced with alert_ORCL.log.gz</span>
+
+<span class="cm"># bzip2 — better compression than gzip</span>
+<span class="kw">bzip2</span> bigfile.sql
+<span class="kw">bunzip2</span> bigfile.sql.bz2</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Info -->
+    <div class="tab-content" id="cmd-sys">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">System Information</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># OS version — critical for Oracle support</span>
+<span class="kw">cat</span> /etc/os-release
+<span class="kw">cat</span> /etc/oracle-release    <span class="cm"># Oracle Linux</span>
+<span class="kw">uname</span> <span class="flag">-a</span>                   <span class="cm"># kernel version</span>
+<span class="kw">uname</span> <span class="flag">-r</span>                   <span class="cm"># kernel only</span>
+
+<span class="cm"># CPU information</span>
+<span class="kw">cat</span> /proc/cpuinfo | <span class="kw">grep</span> <span class="str">"model name"</span> | <span class="kw">uniq</span>
+<span class="kw">nproc</span>                      <span class="cm"># number of CPUs/cores</span>
+<span class="kw">lscpu</span>                      <span class="cm"># full CPU details</span>
+
+<span class="cm"># Memory information</span>
+<span class="kw">free</span> <span class="flag">-m</span>     <span class="cm"># in MB</span>
+<span class="kw">free</span> <span class="flag">-g</span>     <span class="cm"># in GB</span>
+<span class="kw">cat</span> /proc/meminfo | <span class="kw">grep</span> <span class="flag">-i</span> mem
+
+<span class="cm"># System uptime and load</span>
+<span class="kw">uptime</span>
+<span class="cm"># 10:35:22 up 47 days,  3:12, 2 users, load average: 1.23, 1.45, 1.67</span>
+
+<span class="cm"># Date and time</span>
+<span class="kw">date</span>
+<span class="kw">date</span> <span class="str">'+%Y-%m-%d %H:%M:%S'</span>
+<span class="kw">timedatectl</span>                <span class="cm"># timezone info</span>
+
+<span class="cm"># Hostname</span>
+<span class="kw">hostname</span>
+<span class="kw">hostname</span> <span class="flag">-i</span>                <span class="cm"># IP address</span>
+<span class="kw">hostname</span> <span class="flag">-f</span>                <span class="cm"># FQDN</span>
+
+<span class="cm"># Check kernel parameters (Oracle prereqs)</span>
+<span class="kw">sysctl</span> <span class="flag">-a</span> | <span class="kw">grep</span> <span class="str">shmmax</span>
+<span class="kw">sysctl</span> <span class="flag">-a</span> | <span class="kw">grep</span> <span class="str">sem</span>
+<span class="kw">cat</span> /proc/sys/kernel/shmmax
+<span class="kw">ulimit</span> <span class="flag">-a</span>                  <span class="cm"># oracle user limits</span></code></pre>
+        </div>
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">OS Kernel Parameters for Oracle</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># /etc/sysctl.conf — required kernel params</span>
+<span class="cm"># Shared memory</span>
+<span class="var">kernel.shmmax</span> = <span class="num">4398046511104</span>
+<span class="var">kernel.shmall</span> = <span class="num">1073741824</span>
+<span class="var">kernel.shmmni</span> = <span class="num">4096</span>
+
+<span class="cm"># Semaphores: semmsl semmns semopm semmni</span>
+<span class="var">kernel.sem</span> = <span class="num">250 32000 100 128</span>
+
+<span class="cm"># Network</span>
+<span class="var">net.ipv4.ip_local_port_range</span> = <span class="num">9000 65500</span>
+<span class="var">net.core.rmem_default</span> = <span class="num">262144</span>
+<span class="var">net.core.rmem_max</span> = <span class="num">4194304</span>
+<span class="var">net.core.wmem_default</span> = <span class="num">262144</span>
+<span class="var">net.core.wmem_max</span> = <span class="num">1048576</span>
+
+<span class="cm"># Apply without reboot</span>
+<span class="kw">sysctl</span> <span class="flag">-p</span>
+
+<span class="cm"># /etc/security/limits.conf — oracle user limits</span>
+<span class="cm"># oracle  soft  nofile   1024</span>
+<span class="cm"># oracle  hard  nofile   65536</span>
+<span class="cm"># oracle  soft  nproc    2047</span>
+<span class="cm"># oracle  hard  nproc    16384</span>
+<span class="cm"># oracle  soft  stack    10240</span>
+<span class="cm"># oracle  hard  stack    32768</span>
+<span class="cm"># oracle  soft  memlock  3145728</span>
+<span class="cm"># oracle  hard  memlock  3145728</span>
+
+<span class="cm"># Verify as oracle user</span>
+<span class="kw">ulimit</span> <span class="flag">-Sn</span>   <span class="cm"># soft open files</span>
+<span class="kw">ulimit</span> <span class="flag">-Hn</span>   <span class="cm"># hard open files</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ORACLE ON LINUX -->
+<section id="oracle-linux" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-orange mb-4">Oracle + Linux Integration</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Oracle on Linux</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">Setting up the Oracle environment, managing startup/shutdown, and navigating the Oracle directory structure — the essentials before anything else.</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex flex-wrap gap-2 mb-8 reveal">
+    <button class="tab-btn active" data-tab="ol-env" data-group="ol">Environment Setup</button>
+    <button class="tab-btn" data-tab="ol-startup" data-group="ol">Startup &amp; Shutdown</button>
+    <button class="tab-btn" data-tab="ol-dirs" data-group="ol">Directory Structure</button>
+    <button class="tab-btn" data-tab="ol-listener" data-group="ol">Listener &amp; TNS</button>
+    <button class="tab-btn" data-tab="ol-service" data-group="ol">systemctl / init.d</button>
+  </div>
+
+  <!-- Environment Setup -->
+  <div class="tab-content active" id="ol-env">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">.bash_profile — oracle user</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># /home/oracle/.bash_profile</span>
+<span class="cm"># Oracle environment variables — source BEFORE connecting</span>
+
+<span class="cm"># Oracle Base and Home</span>
+<span class="kw">export</span> <span class="var">ORACLE_BASE</span>=<span class="str">/u01/app/oracle</span>
+<span class="kw">export</span> <span class="var">ORACLE_HOME</span>=<span class="str">/u01/app/oracle/product/19.0.0/dbhome_1</span>
+<span class="kw">export</span> <span class="var">ORACLE_SID</span>=<span class="str">ORCL</span>
+
+<span class="cm"># Add Oracle binaries to PATH</span>
+<span class="kw">export</span> <span class="var">PATH</span>=<span class="str">$ORACLE_HOME/bin:$PATH</span>
+
+<span class="cm"># Library path</span>
+<span class="kw">export</span> <span class="var">LD_LIBRARY_PATH</span>=<span class="str">$ORACLE_HOME/lib:/lib:/usr/lib</span>
+
+<span class="cm"># TNS Admin location</span>
+<span class="kw">export</span> <span class="var">TNS_ADMIN</span>=<span class="str">$ORACLE_HOME/network/admin</span>
+
+<span class="cm"># CLASSPATH for Java tools</span>
+<span class="kw">export</span> <span class="var">CLASSPATH</span>=<span class="str">$ORACLE_HOME/jlib:$ORACLE_HOME/rdbms/jlib</span>
+
+<span class="cm"># Useful aliases for DBAs</span>
+<span class="kw">alias</span> <span class="fn">sq</span>=<span class="str">'sqlplus / as sysdba'</span>
+<span class="kw">alias</span> <span class="fn">alert</span>=<span class="str">'tail -100f $ORACLE_BASE/diag/rdbms/orcl/$ORACLE_SID/trace/alert_$ORACLE_SID.log'</span>
+<span class="kw">alias</span> <span class="fn">lsnr</span>=<span class="str">'lsnrctl status'</span>
+<span class="kw">alias</span> <span class="fn">ll</span>=<span class="str">'ls -ltrh'</span>
+
+<span class="cm"># PS1 prompt showing ORACLE_SID</span>
+<span class="kw">export</span> <span class="var">PS1</span>=<span class="str">'\[\033[01;32m\]oracle@\h[\033[01;34m\]($ORACLE_SID)\[\033[00m\]:$ '</span></code></pre>
+      </div>
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">oraenv — switch between databases</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># oraenv script — sets Oracle env for any SID</span>
+<span class="cm"># Uses /etc/oratab to find ORACLE_HOME</span>
+
+<span class="cm"># /etc/oratab format:</span>
+<span class="cm"># SID:ORACLE_HOME:Y/N  (Y=auto start)</span>
+<span class="kw">cat</span> /etc/oratab
+<span class="cm"># ORCL:/u01/app/oracle/product/19.0.0/dbhome_1:Y</span>
+<span class="cm"># CDB1:/u01/app/oracle/product/19.0.0/dbhome_1:Y</span>
+<span class="cm"># DEV:/u01/app/oracle/product/18.0.0/dbhome_1:N</span>
+
+<span class="cm"># Switch to a different database environment</span>
+. <span class="str">/usr/local/bin/oraenv</span>
+<span class="cm"># ORACLE_SID = [ORCL] ? CDB1</span>
+<span class="cm"># The Oracle base remains unchanged</span>
+
+<span class="cm"># Or set ORACLE_SID first, then source oraenv</span>
+<span class="kw">export</span> <span class="var">ORACLE_SID</span>=<span class="str">CDB1</span>
+. <span class="str">oraenv</span>
+
+<span class="cm"># Script-friendly oraenv (no interactive prompt)</span>
+<span class="kw">export</span> <span class="var">ORACLE_SID</span>=<span class="str">ORCL</span>
+<span class="kw">export</span> <span class="var">ORAENV_ASK</span>=<span class="str">NO</span>
+. <span class="str">/usr/local/bin/oraenv</span>
+<span class="kw">unset</span> <span class="var">ORAENV_ASK</span>
+
+<span class="cm"># Verify environment is set correctly</span>
+<span class="kw">echo</span> <span class="str">"SID: $ORACLE_SID"</span>
+<span class="kw">echo</span> <span class="str">"HOME: $ORACLE_HOME"</span>
+<span class="kw">echo</span> <span class="str">"BASE: $ORACLE_BASE"</span>
+<span class="kw">which</span> sqlplus
+<span class="kw">sqlplus</span> <span class="flag">-v</span>
+<span class="cm"># SQL*Plus: Release 19.0.0.0.0</span></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Startup & Shutdown -->
+  <div class="tab-content" id="ol-startup">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">SQL*Plus Startup &amp; Shutdown</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Connect as SYSDBA from OS</span>
+<span class="kw">sqlplus</span> / as sysdba
+
+<span class="cm">-- Check current status</span>
+<span class="kw">SELECT</span> status <span class="kw">FROM</span> v$instance;
+<span class="kw">SELECT</span> open_mode <span class="kw">FROM</span> v$database;
+
+<span class="cm">-- STARTUP modes</span>
+<span class="kw">STARTUP</span>;               <span class="cm">-- normal startup</span>
+<span class="kw">STARTUP</span> MOUNT;         <span class="cm">-- mount only (for recovery)</span>
+<span class="kw">STARTUP</span> NOMOUNT;       <span class="cm">-- nomount (for DB creation/restore)</span>
+<span class="kw">STARTUP</span> RESTRICT;      <span class="cm">-- restricted mode (DBAs only)</span>
+<span class="kw">STARTUP</span> FORCE;         <span class="cm">-- force: like SHUTDOWN ABORT + STARTUP</span>
+<span class="kw">STARTUP</span> OPEN RECOVER;  <span class="cm">-- crash recovery on startup</span>
+
+<span class="cm">-- Transition states manually</span>
+<span class="kw">ALTER</span> DATABASE MOUNT;
+<span class="kw">ALTER</span> DATABASE OPEN;
+<span class="kw">ALTER</span> DATABASE OPEN READ ONLY;
+
+<span class="cm">-- Open PDBs after CDB startup (12c+)</span>
+<span class="kw">ALTER</span> PLUGGABLE DATABASE ALL OPEN;
+<span class="kw">ALTER</span> PLUGGABLE DATABASE pdb_name OPEN;
+
+<span class="cm">-- SHUTDOWN modes</span>
+<span class="kw">SHUTDOWN</span> NORMAL;       <span class="cm">-- wait for all users to disconnect</span>
+<span class="kw">SHUTDOWN</span> TRANSACTIONAL;<span class="cm">-- wait for transactions to complete</span>
+<span class="kw">SHUTDOWN</span> IMMEDIATE;    <span class="cm">-- rollback active, close cleanly</span>
+<span class="kw">SHUTDOWN</span> ABORT;        <span class="cm">-- crash simulation (requires recovery)</span></code></pre>
+      </div>
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">dbstart / dbshut &amp; lsnrctl</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Oracle-provided startup scripts</span>
+<span class="cm"># /etc/oratab must have :Y for auto-start</span>
+
+<span class="cm"># Start all databases in /etc/oratab</span>
+<span class="kw">dbstart</span> <span class="str">$ORACLE_HOME</span>
+
+<span class="cm"># Shutdown all databases in /etc/oratab</span>
+<span class="kw">dbshut</span> <span class="str">$ORACLE_HOME</span>
+
+<span class="cm"># Listener management</span>
+<span class="kw">lsnrctl</span> status          <span class="cm"># current status</span>
+<span class="kw">lsnrctl</span> start           <span class="cm"># start default listener</span>
+<span class="kw">lsnrctl</span> stop            <span class="cm"># stop default listener</span>
+<span class="kw">lsnrctl</span> reload          <span class="cm"># reload without stopping</span>
+<span class="kw">lsnrctl</span> start LISTENER  <span class="cm"># named listener</span>
+<span class="kw">lsnrctl</span> status LISTENER
+<span class="kw">lsnrctl</span> services        <span class="cm"># show registered services</span>
+
+<span class="cm"># Check if DB is registered with listener</span>
+<span class="kw">lsnrctl</span> status | <span class="kw">grep</span> <span class="str">-i</span> <span class="str">"orcl\|service"</span>
+
+<span class="cm"># Register service manually (from SQL*Plus)</span>
+<span class="cm">SQL&gt; ALTER SYSTEM REGISTER;</span>
+
+<span class="cm"># Verify connectivity after startup</span>
+<span class="kw">sqlplus</span> sys/<span class="str">password</span>@ORCL as sysdba
+<span class="kw">tnsping</span> ORCL
+<span class="kw">tnsping</span> ORCL <span class="num">3</span>   <span class="cm"># ping 3 times</span>
+
+<span class="cm"># Check listener log for connection attempts</span>
+<span class="kw">tail</span> <span class="flag">-100f</span> $ORACLE_BASE/diag/tnslsnr/\
+  $(hostname)/listener/trace/listener.log</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Directory Structure -->
+  <div class="tab-content" id="ol-dirs">
+    <div class="glass rounded-2xl p-8 border border-white/5 reveal">
+      <h3 class="font-display font-semibold text-white text-xl mb-6">Oracle Optimal Flexible Architecture (OFA)</h3>
+      <div class="terminal mb-6">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Oracle Directory Layout — OFA Standard</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">/u01/                              # Oracle data mount</span>
+├── <span class="str">app/</span>
+│   ├── <span class="str">oraInventory/</span>             <span class="cm"># Oracle central inventory</span>
+│   └── <span class="str">oracle/</span>                   <span class="cm"># ORACLE_BASE</span>
+│       ├── <span class="str">product/</span>
+│       │   └── <span class="str">19.0.0/</span>
+│       │       └── <span class="str">dbhome_1/</span>     <span class="cm"># ORACLE_HOME</span>
+│       │           ├── <span class="str">bin/</span>      <span class="cm"># sqlplus, rman, lsnrctl</span>
+│       │           ├── <span class="str">lib/</span>      <span class="cm"># Oracle libraries</span>
+│       │           ├── <span class="str">dbs/</span>      <span class="cm"># spfile, pfile, orapw</span>
+│       │           └── <span class="str">network/admin/</span> <span class="cm"># tnsnames, sqlnet, listener</span>
+│       ├── <span class="str">admin/</span>
+│       │   └── <span class="str">ORCL/</span>
+│       │       ├── <span class="str">adump/</span>        <span class="cm"># audit files</span>
+│       │       └── <span class="str">pfile/</span>        <span class="cm"># init.ora backups</span>
+│       ├── <span class="str">diag/</span>                 <span class="cm"># ADR — Automatic Diagnostic Repository</span>
+│       │   ├── <span class="str">rdbms/orcl/ORCL/</span>
+│       │   │   ├── <span class="str">trace/</span>        <span class="cm"># alert log + trace files</span>
+│       │   │   ├── <span class="str">incident/</span>    <span class="cm"># incident packages (IPS)</span>
+│       │   │   └── <span class="str">cdump/</span>        <span class="cm"># core dumps</span>
+│       │   └── <span class="str">tnslsnr/hostname/listener/trace/</span>
+│       └── <span class="str">fast_recovery_area/</span>   <span class="cm"># FRA — backups, archive logs</span>
+│           └── <span class="str">ORCL/</span>
+└── <span class="str">oradata/</span>
+    └── <span class="str">ORCL/</span>                     <span class="cm"># data files, redo logs, control files</span>
+        ├── <span class="str">system01.dbf</span>
+        ├── <span class="str">sysaux01.dbf</span>
+        ├── <span class="str">undo01.dbf</span>
+        ├── <span class="str">redo01.log</span>
+        └── <span class="str">control01.ctl</span>
+
+<span class="cm"># Shortcut to alert log</span>
+<span class="kw">export</span> <span class="var">ALERT</span>=<span class="str">$ORACLE_BASE/diag/rdbms/orcl/$ORACLE_SID/trace/alert_$ORACLE_SID.log</span>
+<span class="kw">tail</span> <span class="flag">-f</span> $ALERT</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Listener & TNS -->
+  <div class="tab-content" id="ol-listener">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">listener.ora</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># $ORACLE_HOME/network/admin/listener.ora</span>
+
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)
+                 (HOST = db-server)
+                 (PORT = 1521))
+    )
+  )
+
+SID_LIST_LISTENER =
+  (SID_LIST =
+    (SID_DESC =
+      (GLOBAL_DBNAME = ORCL)
+      (ORACLE_HOME = /u01/app/oracle/product/19.0.0/dbhome_1)
+      (SID_NAME = ORCL)
+    )
+  )
+
+<span class="cm"># Static registration needed for:</span>
+<span class="cm"># - RMAN DUPLICATE operations</span>
+<span class="cm"># - Data Guard (on standby)</span>
+<span class="cm"># - DB not open (NOMOUNT state)</span></code></pre>
+      </div>
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">tnsnames.ora &amp; sqlnet.ora</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># $ORACLE_HOME/network/admin/tnsnames.ora</span>
+
+ORCL =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)
+                 (HOST = db-server)
+                 (PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = ORCL)
+    )
+  )
+
+ORCL_STANDBY =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)
+                 (HOST = standby-server)
+                 (PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = ORCL_STBY)
+    )
+  )
+
+<span class="cm"># sqlnet.ora — wallet, encryption, auth</span>
+SQLNET.AUTHENTICATION_SERVICES = (BEQ, TCPS)
+NAMES.DIRECTORY_PATH = (TNSNAMES, EZCONNECT)
+SQLNET.EXPIRE_TIME = 10   <span class="cm"># keepalive (minutes)</span>
+
+<span class="cm"># Test TNS connection</span>
+<span class="kw">tnsping</span> ORCL
+<span class="kw">tnsping</span> ORCL_STANDBY</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- systemctl -->
+  <div class="tab-content" id="ol-service">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Oracle Linux 7/8 — systemctl</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Oracle XE / Oracle Database service via systemctl</span>
+
+<span class="cm"># Start listener and database</span>
+<span class="kw">systemctl</span> start oracle-xe-18c
+<span class="kw">systemctl</span> start oracle-database
+
+<span class="cm"># Stop database and listener</span>
+<span class="kw">systemctl</span> stop oracle-xe-18c
+
+<span class="cm"># Restart</span>
+<span class="kw">systemctl</span> restart oracle-database
+
+<span class="cm"># Check service status</span>
+<span class="kw">systemctl</span> status oracle-xe-18c
+<span class="kw">systemctl</span> status oracle-database <span class="flag">-l</span>
+
+<span class="cm"># Enable auto-start on boot</span>
+<span class="kw">systemctl</span> enable oracle-xe-18c
+<span class="kw">systemctl</span> daemon-reload
+
+<span class="cm"># Disable auto-start</span>
+<span class="kw">systemctl</span> disable oracle-database
+
+<span class="cm"># Check if enabled at boot</span>
+<span class="kw">systemctl</span> is-enabled oracle-database
+
+<span class="cm"># View full service logs (journald)</span>
+<span class="kw">journalctl</span> <span class="flag">-u</span> oracle-database <span class="flag">-f</span>
+<span class="kw">journalctl</span> <span class="flag">-u</span> oracle-database <span class="flag">--since</span> <span class="str">"1 hour ago"</span></code></pre>
+      </div>
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Oracle Linux 6 — init.d script</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Oracle Linux 6 uses SysV init scripts</span>
+
+<span class="cm"># Start</span>
+/etc/init.d/oracle-xe-18c start
+/etc/init.d/dbora start
+
+<span class="cm"># Stop</span>
+/etc/init.d/oracle-xe-18c stop
+
+<span class="cm"># Restart</span>
+/etc/init.d/dbora restart
+
+<span class="cm"># Check status</span>
+/etc/init.d/dbora status
+<span class="kw">service</span> dbora status
+
+<span class="cm"># Configure auto-start on boot</span>
+<span class="kw">chkconfig</span> oracle-xe-18c on
+<span class="kw">chkconfig</span> <span class="flag">--list</span> oracle-xe-18c
+
+<span class="cm"># Custom /etc/init.d/dbora script</span>
+<span class="cm"># Calls dbstart and dbshut</span>
+<span class="cm">#!/bin/bash</span>
+<span class="cm"># chkconfig: 345 99 10</span>
+<span class="cm"># description: Oracle Database</span>
+<span class="kw">export</span> <span class="var">ORACLE_HOME</span>=<span class="str">/u01/app/oracle/product/19.0.0/dbhome_1</span>
+<span class="kw">export</span> <span class="var">ORACLE_OWNER</span>=<span class="str">oracle</span>
+case <span class="str">"$1"</span> in
+  start) <span class="kw">su</span> <span class="flag">-</span> $ORACLE_OWNER <span class="flag">-c</span> <span class="str">"$ORACLE_HOME/bin/dbstart $ORACLE_HOME"</span>;;
+  stop)  <span class="kw">su</span> <span class="flag">-</span> $ORACLE_OWNER <span class="flag">-c</span> <span class="str">"$ORACLE_HOME/bin/dbshut $ORACLE_HOME"</span>;;
+esac</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOP COMMAND DEEP DIVE -->
+<section id="top-command" class="py-24 bg-gradient-to-b from-transparent via-lime-500/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-cyan mb-4">Process Monitoring</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">top &amp; ps — A DBA's View</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">top and ps are your real-time window into what Oracle is doing at the OS level. Know how to read them and correlate to database sessions.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6 mb-8">
+      <!-- top output explained -->
+      <div class="glass rounded-2xl p-6 border border-cyan-500/20 reveal">
+        <h3 class="font-display font-semibold text-white text-lg mb-4 flex items-center gap-2"><i class="fas fa-table text-cyan-400"></i> Reading top Output</h3>
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">top — annotated output</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">top - 10:35:22 up 47 days,  3:12,  2 users,  load avg: 2.15, 1.87, 1.62</span>
+<span class="cm">#      ^time    ^uptime               ^users    ^1min ^5min ^15min load</span>
+Tasks: 312 total, 2 running, 310 sleeping
+<span class="cm">%Cpu(s):  45.2 us,  8.1 sy,  0.0 ni, 40.3 id, 6.2 wa,  0.0 hi</span>
+<span class="cm">#          ^user    ^sys               ^idle    ^iowait ← WATCH THIS</span>
+MiB Mem:  64228.0 total, 12450.0 free, 38640.0 used,  13138.0 buff/cache
+<span class="cm">#                         ^free          ^used          ^page cache</span>
+MiB Swap:  8192.0 total,  7800.0 free,    392.0 used.  24000.0 avail Mem
+<span class="cm">#                          ^free          ^SWAP USAGE — should be near 0</span>
+
+  PID USER  PR  NI    VIRT    RES    SHR  S %CPU %MEM     TIME+ COMMAND
+<span class="kw">14523 oracle 20  0  28.5g  22.1g  22.0g  R 85.3 34.5  12:45.23 oracle_14523</span>
+<span class="cm">#^PID         ^priority ^virtual ^resident      ^cpu% ^mem%    ^DB process</span>
+12001 oracle 20  0  28.5g   1.2g   1.1g  S  0.3  1.9   0:02.11 ora_pmon_ORCL</code></pre>
+        </div>
+        <div class="space-y-3 text-sm">
+          <div class="flex items-start gap-2"><span class="badge badge-red flex-shrink-0">wa%</span><p class="text-neutral-400">I/O Wait — if consistently &gt;10%, disk I/O is a bottleneck. Check iostat.</p></div>
+          <div class="flex items-start gap-2"><span class="badge badge-yellow flex-shrink-0">Swap</span><p class="text-neutral-400">Swap usage should be near 0 for Oracle. Heavy swap = memory pressure. SGA may be oversized.</p></div>
+          <div class="flex items-start gap-2"><span class="badge badge-cyan flex-shrink-0">RES</span><p class="text-neutral-400">Resident memory — actual physical RAM used by the process. Most meaningful memory column.</p></div>
+          <div class="flex items-start gap-2"><span class="badge badge-green flex-shrink-0">load avg</span><p class="text-neutral-400">Load &gt; number of CPUs = CPU contention. 2.15 on a 4-core server = slight pressure.</p></div>
+        </div>
+      </div>
+
+      <!-- top interactive commands -->
+      <div class="glass rounded-2xl p-6 border border-lime-500/20 reveal">
+        <h3 class="font-display font-semibold text-white text-lg mb-4 flex items-center gap-2"><i class="fas fa-keyboard text-lime-400"></i> top Interactive Keys</h3>
+        <div class="space-y-3">
+          <div class="glass rounded-xl p-3 border border-white/5">
+            <div class="flex items-center gap-3"><span class="cmd-pill">1</span><p class="text-neutral-300 text-sm">Toggle per-CPU display — see if load is balanced across all cores</p></div>
+          </div>
+          <div class="glass rounded-xl p-3 border border-white/5">
+            <div class="flex items-center gap-3"><span class="cmd-pill">u</span><p class="text-neutral-300 text-sm">Filter by user — type <code class="text-lime-400">oracle</code> to show only Oracle processes</p></div>
+          </div>
+          <div class="glass rounded-xl p-3 border border-white/5">
+            <div class="flex items-center gap-3"><span class="cmd-pill">k</span><p class="text-neutral-300 text-sm">Kill a process — enter PID, then signal (9 = force)</p></div>
+          </div>
+          <div class="glass rounded-xl p-3 border border-white/5">
+            <div class="flex items-center gap-3"><span class="cmd-pill">P</span><p class="text-neutral-300 text-sm">Sort by CPU usage — find the hottest Oracle process</p></div>
+          </div>
+          <div class="glass rounded-xl p-3 border border-white/5">
+            <div class="flex items-center gap-3"><span class="cmd-pill">M</span><p class="text-neutral-300 text-sm">Sort by memory — identify memory-heavy Oracle sessions</p></div>
+          </div>
+          <div class="glass rounded-xl p-3 border border-white/5">
+            <div class="flex items-center gap-3"><span class="cmd-pill">c</span><p class="text-neutral-300 text-sm">Toggle full command line — see Oracle server process details</p></div>
+          </div>
+          <div class="glass rounded-xl p-3 border border-white/5">
+            <div class="flex items-center gap-3"><span class="cmd-pill">d</span><p class="text-neutral-300 text-sm">Change refresh interval — enter seconds (e.g., 5 for 5-second refresh)</p></div>
+          </div>
+          <div class="glass rounded-xl p-3 border border-white/5">
+            <div class="flex items-center gap-3"><span class="cmd-pill">q</span><p class="text-neutral-300 text-sm">Quit top</p></div>
+          </div>
+        </div>
+        <div class="terminal mt-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Useful top invocations</span></div>
+          <pre class="p-4 text-xs"><code><span class="cm"># Monitor single Oracle process</span>
+<span class="kw">top</span> <span class="flag">-c -p</span> 14523
+
+<span class="cm"># Batch output for scripting (5 iterations)</span>
+<span class="kw">top</span> <span class="flag">-b -n 5</span> | <span class="kw">grep</span> <span class="str">oracle</span>
+
+<span class="cm"># Monitor specific user's processes</span>
+<span class="kw">top</span> <span class="flag">-u</span> oracle</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- OS PID to DB Session -->
+    <div class="terminal reveal">
+      <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Complete Workflow: High CPU Oracle Process → Kill DB Session</span></div>
+      <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">STEP 1: Find the high-CPU process in top</span>
+<span class="kw">top</span> <span class="flag">-u</span> oracle
+<span class="cm"># PID = 14523, %CPU = 85.3</span>
+
+<span class="cm">STEP 2: Map OS PID to Oracle Session (in SQL*Plus)</span>
+<span class="kw">SELECT</span>
+  s.sid,
+  s.serial#,
+  s.username,
+  s.status,
+  s.sql_id,
+  s.event,
+  s.seconds_in_wait,
+  p.spid              <span class="cm">AS os_pid</span>
+<span class="kw">FROM</span> v$session s
+<span class="kw">JOIN</span> v$process p <span class="kw">ON</span> s.paddr = p.addr
+<span class="kw">WHERE</span> p.spid = <span class="num">14523</span>;
+
+<span class="cm">-- Result: SID=142, SERIAL#=4891, USERNAME=APPUSER, SQL_ID=9fxk3d2bqhq7m</span>
+
+<span class="cm">STEP 3: See the SQL being executed</span>
+<span class="kw">SELECT</span> sql_text
+<span class="kw">FROM</span>   v$sql
+<span class="kw">WHERE</span>  sql_id = <span class="str">'9fxk3d2bqhq7m'</span>;
+
+<span class="cm">STEP 4: Kill the session gracefully</span>
+<span class="kw">ALTER</span> <span class="kw">SYSTEM</span> KILL SESSION <span class="str">'142,4891'</span> IMMEDIATE;
+
+<span class="cm">-- If session doesn't die, disconnect at OS level</span>
+<span class="kw">kill</span> <span class="flag">-9</span> 14523   <span class="cm"># only after ALTER SYSTEM KILL fails</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- SHELL SCRIPTING -->
+<section id="scripting" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-purple mb-4">Automation</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Shell Scripting for DBAs</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">Real-world shell scripts every Oracle DBA needs — RMAN backups, health checks, space alerts, and alert log monitoring, all ready for production use.</p>
+  </div>
+
+  <div class="flex flex-wrap gap-2 mb-8 reveal">
+    <button class="tab-btn active" data-tab="sh-basics" data-group="sh">Scripting Basics</button>
+    <button class="tab-btn" data-tab="sh-rman" data-group="sh">RMAN Backup Script</button>
+    <button class="tab-btn" data-tab="sh-space" data-group="sh">Space Alert Script</button>
+    <button class="tab-btn" data-tab="sh-health" data-group="sh">DB Health Check</button>
+    <button class="tab-btn" data-tab="sh-alert" data-group="sh">Alert Log Monitor</button>
+    <button class="tab-btn" data-tab="sh-purge" data-group="sh">Trace File Purge</button>
+  </div>
+
+  <!-- Basics -->
+  <div class="tab-content active" id="sh-basics">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Variables, Conditionals &amp; Loops</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+<span class="cm"># Bash script skeleton for DBA scripts</span>
+
+<span class="cm"># Variables</span>
+<span class="var">ORACLE_SID</span>=<span class="str">"ORCL"</span>
+<span class="var">ORACLE_HOME</span>=<span class="str">"/u01/app/oracle/product/19.0.0/dbhome_1"</span>
+<span class="var">BACKUP_DIR</span>=<span class="str">"/u01/backup"</span>
+<span class="var">LOG_FILE</span>=<span class="str">"/tmp/dba_script_$(date +%Y%m%d).log"</span>
+<span class="var">TODAY</span>=<span class="str">$(date +%Y-%m-%d)</span>
+<span class="var">PATH</span>=<span class="str">$ORACLE_HOME/bin:$PATH</span>
+
+<span class="cm"># if / elif / else</span>
+if [ -f <span class="str">"/tmp/lockfile.pid"</span> ]; then
+  <span class="kw">echo</span> <span class="str">"Script already running"</span>
+  <span class="kw">exit</span> <span class="num">1</span>
+elif [ ! -d <span class="str">"$BACKUP_DIR"</span> ]; then
+  <span class="kw">echo</span> <span class="str">"Backup dir missing"</span>; <span class="kw">exit</span> <span class="num">2</span>
+else
+  <span class="kw">touch</span> <span class="str">"/tmp/lockfile.pid"</span>
+fi
+
+<span class="cm"># while loop</span>
+while IFS=: read sid home flag; do
+  [ <span class="str">"$flag"</span> = <span class="str">"Y"</span> ] && <span class="kw">echo</span> <span class="str">"Active DB: $sid"</span>
+done &lt; /etc/oratab
+
+<span class="cm"># for loop — process multiple SIDs</span>
+for SID in ORCL CDB1 DEV; do
+  <span class="var">ORACLE_SID</span>=<span class="str">$SID</span>
+  . oraenv &lt;&lt;&lt; <span class="str">$SID</span>
+  <span class="kw">echo</span> <span class="str">"Processing $SID"</span>
+done
+
+<span class="cm"># Functions</span>
+log() { <span class="kw">echo</span> <span class="str">"$(date '+%Y-%m-%d %H:%M:%S') $1"</span> | <span class="kw">tee</span> <span class="flag">-a</span> $LOG_FILE; }
+send_mail() { <span class="kw">echo</span> <span class="str">"$2"</span> | <span class="kw">mail</span> <span class="flag">-s</span> <span class="str">"$1"</span> dba-team@company.com; }
+
+log <span class="str">"Script started"</span></code></pre>
+      </div>
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">SQL from Shell Scripts</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+<span class="cm"># Run SQL from a shell script — 3 patterns</span>
+
+<span class="var">ORACLE_SID</span>=<span class="str">ORCL</span>
+<span class="var">PATH</span>=<span class="str">$ORACLE_HOME/bin:$PATH</span>
+
+<span class="cm"># Pattern 1: Heredoc — multi-line SQL</span>
+<span class="kw">sqlplus</span> <span class="flag">-s</span> / as sysdba &lt;&lt;<span class="str">EOF</span>
+SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
+SELECT status FROM v\$instance;
+EXIT;
+<span class="str">EOF</span>
+
+<span class="cm"># Pattern 2: Capture SQL output</span>
+<span class="var">STATUS</span>=$(<span class="kw">sqlplus</span> <span class="flag">-s</span> / as sysdba &lt;&lt;EOF
+SET PAGESIZE 0 FEEDBACK OFF HEADING OFF TRIMSPOOL ON
+SELECT status FROM v\$instance;
+EXIT;
+EOF
+)
+<span class="kw">echo</span> <span class="str">"DB Status: $STATUS"</span>
+
+if [ <span class="str">"$STATUS"</span> != <span class="str">"OPEN"</span> ]; then
+  send_mail <span class="str">"ALERT: DB not open"</span> <span class="str">"Status: $STATUS"</span>
+fi
+
+<span class="cm"># Pattern 3: SQL script file</span>
+<span class="kw">sqlplus</span> <span class="flag">-s</span> / as sysdba @/scripts/check_space.sql
+
+<span class="cm"># check_space.sql:</span>
+<span class="cm">-- SET PAGESIZE 50 LINESIZE 120</span>
+<span class="cm">-- SELECT tablespace_name, ...</span>
+<span class="cm">-- EXIT;</span>
+
+<span class="cm"># Error checking</span>
+if [ $? <span class="flag">-ne</span> <span class="num">0</span> ]; then
+  log <span class="str">"ERROR: SQL*Plus failed with exit code $?"</span>
+  <span class="kw">exit</span> <span class="num">1</span>
+fi</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- RMAN Backup Script -->
+  <div class="tab-content" id="sh-rman">
+    <div class="terminal reveal">
+      <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">/scripts/rman_backup.sh — Production RMAN Backup Script</span></div>
+      <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+<span class="cm">##############################################################</span>
+<span class="cm"># Oracle RMAN Backup Script</span>
+<span class="cm"># Usage: ./rman_backup.sh [FULL|INCR0|INCR1|ARCH]</span>
+<span class="cm">##############################################################</span>
+
+<span class="var">ORACLE_SID</span>=<span class="str">"ORCL"</span>
+<span class="var">ORACLE_HOME</span>=<span class="str">"/u01/app/oracle/product/19.0.0/dbhome_1"</span>
+<span class="var">PATH</span>=<span class="str">"$ORACLE_HOME/bin:$PATH"</span>
+<span class="var">BACKUP_TYPE</span>=<span class="str">${1:-INCR1}</span>     <span class="cm"># default to incremental level 1</span>
+<span class="var">LOG_DIR</span>=<span class="str">"/u01/backup/logs"</span>
+<span class="var">LOG_FILE</span>=<span class="str">"$LOG_DIR/rman_${ORACLE_SID}_${BACKUP_TYPE}_$(date +%Y%m%d_%H%M%S).log"</span>
+<span class="var">MAIL_TO</span>=<span class="str">"dba-team@company.com"</span>
+
+log() { <span class="kw">echo</span> <span class="str">"$(date '+%Y-%m-%d %H:%M:%S') [$BACKUP_TYPE] $1"</span> | <span class="kw">tee</span> <span class="flag">-a</span> <span class="str">"$LOG_FILE"</span>; }
+
+<span class="kw">mkdir</span> <span class="flag">-p</span> <span class="str">"$LOG_DIR"</span>
+log <span class="str">"=== RMAN $BACKUP_TYPE backup started ==="</span>
+
+<span class="kw">rman</span> target / nocatalog log=<span class="str">"$LOG_FILE"</span> append &lt;&lt;<span class="str">RMAN_EOF</span>
+  RUN {
+    ALLOCATE CHANNEL ch1 TYPE DISK;
+    ALLOCATE CHANNEL ch2 TYPE DISK;
+
+    <span class="kw">BACKUP</span> INCREMENTAL LEVEL $(<span class="kw">echo</span> $BACKUP_TYPE | <span class="kw">grep</span> <span class="flag">-oP</span> <span class="str">'\d'</span>)
+      DATABASE
+      FORMAT '/u01/backup/ORCL/%d_%T_%U.bkp'
+      TAG '${BACKUP_TYPE}_$(date +%Y%m%d)'
+      PLUS ARCHIVELOG DELETE INPUT;
+
+    BACKUP CURRENT CONTROLFILE
+      FORMAT '/u01/backup/ORCL/ctl_%d_%T_%U.bkp';
+
+    RELEASE CHANNEL ch1;
+    RELEASE CHANNEL ch2;
+  }
+  DELETE NOPROMPT OBSOLETE;
+<span class="str">RMAN_EOF</span>
+
+<span class="var">RC</span>=$?
+if [ $RC <span class="flag">-ne</span> <span class="num">0</span> ]; then
+  log <span class="str">"ERROR: RMAN backup FAILED (exit code $RC)"</span>
+  <span class="kw">echo</span> <span class="str">"RMAN $BACKUP_TYPE backup FAILED on $ORACLE_SID. Log: $LOG_FILE"</span> | \
+    <span class="kw">mail</span> <span class="flag">-s</span> <span class="str">"[ALERT] RMAN Backup Failed - $ORACLE_SID"</span> <span class="str">"$MAIL_TO"</span>
+  <span class="kw">exit</span> <span class="num">1</span>
+fi
+
+log <span class="str">"=== RMAN $BACKUP_TYPE backup completed successfully ==="</span></code></pre>
+    </div>
+  </div>
+
+  <!-- Space Alert Script -->
+  <div class="tab-content" id="sh-space">
+    <div class="terminal reveal">
+      <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">/scripts/check_space.sh — Disk &amp; Tablespace Alert</span></div>
+      <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+<span class="var">ORACLE_SID</span>=<span class="str">ORCL</span>
+<span class="var">ORACLE_HOME</span>=<span class="str">/u01/app/oracle/product/19.0.0/dbhome_1</span>
+<span class="var">PATH</span>=<span class="str">$ORACLE_HOME/bin:$PATH</span>
+<span class="var">FS_THRESHOLD</span>=<span class="num">80</span>     <span class="cm"># alert if filesystem &gt; 80% full</span>
+<span class="var">TS_THRESHOLD</span>=<span class="num">85</span>     <span class="cm"># alert if tablespace &gt; 85% full</span>
+<span class="var">MAIL_TO</span>=<span class="str">"dba-team@company.com"</span>
+<span class="var">ALERT</span>=<span class="str">""</span>
+
+<span class="cm"># --- Part 1: OS-level filesystem check ---</span>
+<span class="kw">echo</span> <span class="str">"=== Filesystem Usage ==="</span>
+while read line; do
+  <span class="var">PCT</span>=$(echo $line | <span class="kw">awk</span> <span class="str">'{gsub(/%/,"",$5); print $5}'</span>)
+  <span class="var">MNT</span>=$(echo $line | <span class="kw">awk</span> <span class="str">'{print $6}'</span>)
+  if [ <span class="str">"$PCT"</span> <span class="flag">-gt</span> <span class="str">"$FS_THRESHOLD"</span> ] 2&gt;/dev/null; then
+    <span class="var">ALERT</span>+=<span class="str">"FILESYSTEM ALERT: $MNT is ${PCT}% full\n"</span>
+    <span class="kw">echo</span> <span class="str">"  *** ALERT: $MNT = ${PCT}% used ***"</span>
+  fi
+done &lt;&lt;(<span class="kw">df</span> <span class="flag">-h</span> | <span class="kw">tail</span> <span class="flag">-n +2</span>)
+
+<span class="cm"># --- Part 2: Tablespace check via SQL ---</span>
+<span class="kw">echo</span> <span class="str">"=== Tablespace Usage ==="</span>
+<span class="var">TS_OUTPUT</span>=$(<span class="kw">sqlplus</span> <span class="flag">-s</span> / as sysdba &lt;&lt;EOF
+SET PAGESIZE 0 FEEDBACK OFF HEADING OFF TRIMSPOOL ON
+SELECT ts.tablespace_name || '|' ||
+       ROUND((ts.used_space * 8192)/1048576/1024,1) || 'GB|' ||
+       ROUND(ts.tablespace_size * 8192/1048576/1024,1) || 'GB|' ||
+       ROUND(ts.used_percent,1) || '%'
+FROM   dba_tablespace_usage_metrics ts
+WHERE  ts.used_percent &gt; $TS_THRESHOLD
+ORDER  BY ts.used_percent DESC;
+EXIT;
+EOF
+)
+
+if [ -n <span class="str">"$TS_OUTPUT"</span> ]; then
+  while IFS=<span class="str">'|'</span> read tsname used total pct; do
+    <span class="var">ALERT</span>+=<span class="str">"TABLESPACE ALERT: $tsname is $pct full ($used / $total)\n"</span>
+  done &lt;&lt;&lt; <span class="str">"$TS_OUTPUT"</span>
+fi
+
+<span class="cm"># Send single email if any alerts</span>
+if [ -n <span class="str">"$ALERT"</span> ]; then
+  <span class="kw">echo</span> <span class="flag">-e</span> <span class="str">"Space Alert on $ORACLE_SID:\n\n$ALERT"</span> | \
+    <span class="kw">mail</span> <span class="flag">-s</span> <span class="str">"[ALERT] Space Warning - $ORACLE_SID"</span> <span class="str">"$MAIL_TO"</span>
+fi</code></pre>
+    </div>
+  </div>
+
+  <!-- Health Check Script -->
+  <div class="tab-content" id="sh-health">
+    <div class="terminal reveal">
+      <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">/scripts/db_health_check.sh — Daily Health Report</span></div>
+      <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+<span class="var">ORACLE_SID</span>=<span class="str">ORCL</span>
+<span class="var">ORACLE_HOME</span>=<span class="str">/u01/app/oracle/product/19.0.0/dbhome_1</span>
+<span class="var">PATH</span>=<span class="str">$ORACLE_HOME/bin:$PATH</span>
+<span class="var">REPORT</span>=<span class="str">"/tmp/health_$(date +%Y%m%d).txt"</span>
+
+run_sql() {
+  <span class="kw">sqlplus</span> <span class="flag">-s</span> / as sysdba &lt;&lt;EOF
+SET PAGESIZE 50 LINESIZE 120 FEEDBACK OFF HEADING ON TRIMSPOOL ON
+$1
+EXIT;
+EOF
+}
+
+{
+<span class="kw">echo</span> <span class="str">"=========================================="</span>
+<span class="kw">echo</span> <span class="str">"  Oracle DB Health Check - $(date)"</span>
+<span class="kw">echo</span> <span class="str">"  Database: $ORACLE_SID | Host: $(hostname)"</span>
+<span class="kw">echo</span> <span class="str">"=========================================="</span>
+
+<span class="kw">echo</span> <span class="str">"\n--- DB Status ---"</span>
+run_sql <span class="str">"SELECT name, db_unique_name, open_mode, log_mode FROM v\$database;"</span>
+
+<span class="kw">echo</span> <span class="str">"\n--- Instance Status ---"</span>
+run_sql <span class="str">"SELECT instance_name, host_name, status, archiver, startup_time FROM v\$instance;"</span>
+
+<span class="kw">echo</span> <span class="str">"\n--- Failed Jobs (last 24h) ---"</span>
+run_sql <span class="str">"SELECT job_name, status, error#, run_duration FROM dba_scheduler_job_run_details WHERE status='FAILED' AND actual_start_date > SYSDATE-1;"</span>
+
+<span class="kw">echo</span> <span class="str">"\n--- Invalid Objects ---"</span>
+run_sql <span class="str">"SELECT owner, object_type, COUNT(*) cnt FROM dba_objects WHERE status='INVALID' GROUP BY owner, object_type ORDER BY 1,2;"</span>
+
+<span class="kw">echo</span> <span class="str">"\n--- Active Sessions ---"</span>
+run_sql <span class="str">"SELECT status, COUNT(*) FROM v\$session WHERE type='USER' GROUP BY status;"</span>
+
+<span class="kw">echo</span> <span class="str">"\n--- FRA Usage ---"</span>
+run_sql <span class="str">"SELECT name, space_limit/1073741824 limit_gb, space_used/1073741824 used_gb, space_reclaimable/1073741824 reclaimable_gb FROM v\$recovery_file_dest;"</span>
+
+} | <span class="kw">tee</span> <span class="str">"$REPORT"</span>
+
+<span class="kw">mail</span> <span class="flag">-s</span> <span class="str">"Daily DB Health Report - $ORACLE_SID - $(date +%Y-%m-%d)"</span> \
+  dba-team@company.com &lt; <span class="str">"$REPORT"</span></code></pre>
+    </div>
+  </div>
+
+  <!-- Alert Log Monitor -->
+  <div class="tab-content" id="sh-alert">
+    <div class="terminal reveal">
+      <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">/scripts/alert_log_monitor.sh — Real-time ORA- Error Alerting</span></div>
+      <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+<span class="cm"># Monitors alert log and emails on ORA- errors</span>
+<span class="cm"># Run as: nohup ./alert_log_monitor.sh &amp;</span>
+
+<span class="var">ORACLE_SID</span>=<span class="str">ORCL</span>
+<span class="var">ORACLE_BASE</span>=<span class="str">/u01/app/oracle</span>
+<span class="var">ALERT_LOG</span>=<span class="str">"$ORACLE_BASE/diag/rdbms/orcl/$ORACLE_SID/trace/alert_$ORACLE_SID.log"</span>
+<span class="var">MAIL_TO</span>=<span class="str">"dba-team@company.com"</span>
+<span class="var">IGNORE_PATTERN</span>=<span class="str">"ORA-01013\|ORA-00028"</span>  <span class="cm"># safe-to-ignore ORA-s</span>
+<span class="var">LAST_SIZE</span>=<span class="num">0</span>
+
+<span class="kw">echo</span> <span class="str">"Monitoring $ALERT_LOG for ORA- errors..."</span>
+
+<span class="kw">tail</span> <span class="flag">-0f</span> <span class="str">"$ALERT_LOG"</span> | while read LINE; do
+  if <span class="kw">echo</span> <span class="str">"$LINE"</span> | <span class="kw">grep</span> <span class="flag">-qE</span> <span class="str">"ORA-[0-9]+"</span>; then
+    if <span class="kw">echo</span> <span class="str">"$LINE"</span> | <span class="kw">grep</span> <span class="flag">-qv</span> <span class="str">"$IGNORE_PATTERN"</span>; then
+      <span class="var">TIMESTAMP</span>=$(<span class="kw">date</span> <span class="str">'+%Y-%m-%d %H:%M:%S'</span>)
+      <span class="var">MESSAGE</span>=<span class="str">"ORA- Error Detected on $ORACLE_SID\n\nTime: $TIMESTAMP\nError: $LINE\nHost: $(hostname)"</span>
+      <span class="kw">echo</span> <span class="flag">-e</span> <span class="str">"$MESSAGE"</span> | <span class="kw">mail</span> <span class="flag">-s</span> \
+        <span class="str">"[ALERT] ORA- Error on $ORACLE_SID"</span> <span class="str">"$MAIL_TO"</span>
+      <span class="kw">echo</span> <span class="str">"$TIMESTAMP - Alerted: $LINE"</span>
+    fi
+  fi
+done
+
+<span class="cm"># Manual alert log inspection commands:</span>
+<span class="kw">grep</span> <span class="str">"ORA-"</span> <span class="str">"$ALERT_LOG"</span> | <span class="kw">grep</span> <span class="flag">-oP</span> <span class="str">'ORA-[0-9]+'</span> | <span class="kw">sort</span> | <span class="kw">uniq</span> <span class="flag">-c</span> | <span class="kw">sort</span> <span class="flag">-rn</span>
+<span class="kw">grep</span> <span class="str">"$(date +'%a %b')"</span> <span class="str">"$ALERT_LOG"</span> | <span class="kw">grep</span> <span class="str">"ORA-"</span>  <span class="cm"># today's errors only</span></code></pre>
+    </div>
+  </div>
+
+  <!-- Trace File Purge -->
+  <div class="tab-content" id="sh-purge">
+    <div class="terminal reveal">
+      <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">/scripts/purge_diag.sh — Clean Old Trace &amp; Audit Files</span></div>
+      <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+<span class="cm"># Purge old diagnostic, audit, and temp files</span>
+<span class="cm"># Run weekly via cron</span>
+
+<span class="var">ORACLE_BASE</span>=<span class="str">/u01/app/oracle</span>
+<span class="var">ORACLE_SID</span>=<span class="str">ORCL</span>
+<span class="var">DIAG_DIR</span>=<span class="str">"$ORACLE_BASE/diag/rdbms/orcl/$ORACLE_SID"</span>
+<span class="var">ADUMP_DIR</span>=<span class="str">"$ORACLE_BASE/admin/$ORACLE_SID/adump"</span>
+<span class="var">KEEP_DAYS</span>=<span class="num">14</span>
+<span class="var">LOG</span>=<span class="str">"/tmp/purge_$(date +%Y%m%d).log"</span>
+
+log() { <span class="kw">echo</span> <span class="str">"$(date '+%H:%M:%S') $1"</span> | <span class="kw">tee</span> <span class="flag">-a</span> <span class="str">"$LOG"</span>; }
+
+log <span class="str">"Starting diagnostic cleanup (keep ${KEEP_DAYS} days)"</span>
+
+<span class="cm"># Trace files</span>
+<span class="var">TRC_COUNT</span>=$(<span class="kw">find</span> <span class="str">"$DIAG_DIR/trace"</span> <span class="flag">-name</span> <span class="str">"*.trc"</span> <span class="flag">-mtime</span> +<span class="str">$KEEP_DAYS</span> | <span class="kw">wc</span> <span class="flag">-l</span>)
+<span class="kw">find</span> <span class="str">"$DIAG_DIR/trace"</span> <span class="flag">-name</span> <span class="str">"*.trc"</span> <span class="flag">-mtime</span> +<span class="str">$KEEP_DAYS</span> <span class="flag">-exec</span> <span class="kw">rm</span> <span class="flag">-f</span> {} \;
+<span class="kw">find</span> <span class="str">"$DIAG_DIR/trace"</span> <span class="flag">-name</span> <span class="str">"*.trm"</span> <span class="flag">-mtime</span> +<span class="str">$KEEP_DAYS</span> <span class="flag">-exec</span> <span class="kw">rm</span> <span class="flag">-f</span> {} \;
+log <span class="str">"Deleted $TRC_COUNT trace files"</span>
+
+<span class="cm"># Core dump files (large!)</span>
+<span class="kw">find</span> <span class="str">"$DIAG_DIR/cdump"</span> <span class="flag">-mtime</span> +<span class="str">$KEEP_DAYS</span> <span class="flag">-exec</span> <span class="kw">rm</span> <span class="flag">-f</span> {} \;
+log <span class="str">"Cleared old core dumps"</span>
+
+<span class="cm"># Audit files (aud)</span>
+<span class="var">AUD_COUNT</span>=$(<span class="kw">find</span> <span class="str">"$ADUMP_DIR"</span> <span class="flag">-name</span> <span class="str">"*.aud"</span> <span class="flag">-mtime</span> +<span class="str">$KEEP_DAYS</span> | <span class="kw">wc</span> <span class="flag">-l</span>)
+<span class="kw">find</span> <span class="str">"$ADUMP_DIR"</span> <span class="flag">-name</span> <span class="str">"*.aud"</span> <span class="flag">-mtime</span> +<span class="str">$KEEP_DAYS</span> <span class="flag">-exec</span> <span class="kw">rm</span> <span class="flag">-f</span> {} \;
+log <span class="str">"Deleted $AUD_COUNT audit files"</span>
+
+<span class="cm"># Compress alert log if over 100MB</span>
+<span class="var">ALERT</span>=<span class="str">"$DIAG_DIR/trace/alert_$ORACLE_SID.log"</span>
+<span class="var">SIZE</span>=$(<span class="kw">du</span> <span class="flag">-m</span> <span class="str">"$ALERT"</span> | <span class="kw">cut</span> <span class="flag">-f1</span>)
+if [ <span class="str">"$SIZE"</span> <span class="flag">-gt</span> <span class="num">100</span> ]; then
+  <span class="kw">cp</span> <span class="str">"$ALERT"</span> <span class="str">"$ALERT.$(date +%Y%m%d)"</span>
+  <span class="kw">gzip</span> <span class="str">"$ALERT.$(date +%Y%m%d)"</span>
+  <span class="kw">cp</span> /dev/null <span class="str">"$ALERT"</span>   <span class="cm"># truncate (safer than rm)</span>
+  log <span class="str">"Alert log rotated (was ${SIZE}MB)"</span>
+fi
+
+log <span class="str">"Cleanup complete. Disk after: $(df -h $ORACLE_BASE | tail -1)"</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- CRON JOBS -->
+<section id="cron" class="py-24 bg-gradient-to-b from-transparent via-lime-500/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-blue mb-4">Automation</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Cron Jobs for DBAs</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">Schedule RMAN backups, space checks, health reports, stats gathering, and log cleanups — all running automatically without manual intervention.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6 mb-8">
+      <!-- Cron syntax -->
+      <div class="glass rounded-2xl p-6 border border-blue-500/20 reveal">
+        <h3 class="font-display font-semibold text-white text-lg mb-4 flex items-center gap-2"><i class="fas fa-clock text-blue-400"></i> Cron Syntax Explained</h3>
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">crontab syntax</span></div>
+          <pre class="p-4 text-sm"><code><span class="cm"># ┌──── minute        (0-59)</span>
+<span class="cm"># │ ┌── hour          (0-23)</span>
+<span class="cm"># │ │ ┌─ day of month (1-31)</span>
+<span class="cm"># │ │ │ ┌ month       (1-12)</span>
+<span class="cm"># │ │ │ │ ┌ day of week (0=Sun, 6=Sat)</span>
+<span class="cm"># │ │ │ │ │</span>
+<span class="cm"># * * * * *  command</span>
+
+<span class="cm"># Special syntax</span>
+<span class="cm"># *      = every (any value)</span>
+<span class="cm"># ,      = list  (1,3,5)</span>
+<span class="cm"># -      = range (1-5)</span>
+<span class="cm"># /      = step  (*/5 = every 5)</span>
+<span class="cm"># @reboot, @daily, @weekly, @monthly</span></code></pre>
+        </div>
+        <div class="space-y-3 text-sm">
+          <div class="glass rounded-lg p-3 border border-white/5 font-mono">
+            <span class="text-lime-400">0 2 * * *</span> <span class="text-neutral-400 ml-2">Every day at 2:00 AM</span>
+          </div>
+          <div class="glass rounded-lg p-3 border border-white/5 font-mono">
+            <span class="text-lime-400">0 0 * * 0</span> <span class="text-neutral-400 ml-2">Every Sunday at midnight</span>
+          </div>
+          <div class="glass rounded-lg p-3 border border-white/5 font-mono">
+            <span class="text-lime-400">30 6 * * 1-5</span> <span class="text-neutral-400 ml-2">Weekdays at 6:30 AM</span>
+          </div>
+          <div class="glass rounded-lg p-3 border border-white/5 font-mono">
+            <span class="text-lime-400">*/30 * * * *</span> <span class="text-neutral-400 ml-2">Every 30 minutes</span>
+          </div>
+          <div class="glass rounded-lg p-3 border border-white/5 font-mono">
+            <span class="text-lime-400">0 */4 * * *</span> <span class="text-neutral-400 ml-2">Every 4 hours</span>
+          </div>
+          <div class="glass rounded-lg p-3 border border-white/5 font-mono">
+            <span class="text-lime-400">0 20 1 * *</span> <span class="text-neutral-400 ml-2">1st of every month at 8 PM</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cron management -->
+      <div class="glass rounded-2xl p-6 border border-lime-500/20 reveal">
+        <h3 class="font-display font-semibold text-white text-lg mb-4 flex items-center gap-2"><i class="fas fa-gear text-lime-400"></i> Managing Crontab</h3>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">crontab commands</span></div>
+          <pre class="p-4 text-sm"><code><span class="cm"># As oracle user</span>
+
+<span class="cm"># List current cron jobs</span>
+<span class="kw">crontab</span> <span class="flag">-l</span>
+
+<span class="cm"># Edit crontab (opens vi/nano)</span>
+<span class="kw">crontab</span> <span class="flag">-e</span>
+
+<span class="cm"># Remove all cron jobs (CAREFUL!)</span>
+<span class="kw">crontab</span> <span class="flag">-r</span>
+
+<span class="cm"># View another user's crontab (root)</span>
+<span class="kw">crontab</span> <span class="flag">-l -u</span> oracle
+
+<span class="cm"># Import crontab from file</span>
+<span class="kw">crontab</span> crontab_backup.txt
+
+<span class="cm"># Backup current crontab</span>
+<span class="kw">crontab</span> <span class="flag">-l</span> &gt; /home/oracle/crontab.bak
+
+<span class="cm"># Verify cron daemon is running</span>
+<span class="kw">systemctl</span> status crond
+<span class="kw">ps</span> <span class="flag">-ef</span> | <span class="kw">grep</span> crond
+
+<span class="cm"># Cron execution logs</span>
+<span class="kw">tail</span> <span class="flag">-f</span> /var/log/cron
+<span class="kw">grep</span> oracle /var/log/cron | <span class="kw">tail</span> <span class="flag">-30</span>
+
+<span class="cm"># IMPORTANT: cron doesn't load .bash_profile!</span>
+<span class="cm"># Always source environment in scripts or inline:</span>
+<span class="cm"># 0 2 * * * . /home/oracle/.bash_profile; /scripts/backup.sh</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full DBA crontab -->
+    <div class="terminal reveal">
+      <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">oracle user crontab — Complete Production DBA Schedule</span></div>
+      <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Oracle DBA Production Crontab</span>
+<span class="cm"># Edit with: crontab -e (as oracle user)</span>
+
+<span class="cm"># ==== Environment ====</span>
+<span class="var">ORACLE_HOME</span>=<span class="str">/u01/app/oracle/product/19.0.0/dbhome_1</span>
+<span class="var">ORACLE_SID</span>=<span class="str">ORCL</span>
+<span class="var">PATH</span>=<span class="str">$ORACLE_HOME/bin:/usr/bin:/bin</span>
+<span class="var">MAIL</span>=<span class="str">""</span>   <span class="cm"># Suppress default cron mail (we handle our own)</span>
+
+<span class="cm"># ==== RMAN Backups ====</span>
+<span class="cm"># Daily incremental level 1 backup — 10:00 PM</span>
+<span class="kw">0 22 * * 1-6</span>  /scripts/rman_backup.sh INCR1 &gt;&gt; /u01/backup/logs/cron_incr1.log 2&gt;&amp;1
+
+<span class="cm"># Sunday full (level 0) backup — midnight</span>
+<span class="kw">0 0 * * 0</span>    /scripts/rman_backup.sh INCR0 &gt;&gt; /u01/backup/logs/cron_full.log 2&gt;&amp;1
+
+<span class="cm"># Archive log backup every 4 hours</span>
+<span class="kw">0 */4 * * *</span>  /scripts/rman_backup.sh ARCH &gt;&gt; /u01/backup/logs/cron_arch.log 2&gt;&amp;1
+
+<span class="cm"># ==== Space Monitoring ====</span>
+<span class="cm"># Check disk + tablespace space every 30 minutes</span>
+<span class="kw">*/30 * * * *</span> /scripts/check_space.sh &gt;&gt; /tmp/space_check.log 2&gt;&amp;1
+
+<span class="cm"># ==== Health Check ====</span>
+<span class="cm"># Daily health report at 7:00 AM</span>
+<span class="kw">0 7 * * *</span>    /scripts/db_health_check.sh &gt;&gt; /tmp/health.log 2&gt;&amp;1
+
+<span class="cm"># ==== Statistics Gathering ====</span>
+<span class="cm"># Gather schema stats Saturday night</span>
+<span class="kw">0 23 * * 6</span>   $ORACLE_HOME/bin/sqlplus -s / as sysdba @/scripts/gather_stats.sql &gt; /tmp/stats.log 2&gt;&amp;1
+
+<span class="cm"># ==== Maintenance ====</span>
+<span class="cm"># Purge old trace/audit files every Sunday at 3 AM</span>
+<span class="kw">0 3 * * 0</span>    /scripts/purge_diag.sh &gt;&gt; /tmp/purge.log 2&gt;&amp;1
+
+<span class="cm"># Alert log backup — monthly on 1st at 1 AM</span>
+<span class="kw">0 1 1 * *</span>    /scripts/rotate_alert_log.sh &gt;&gt; /tmp/rotate.log 2&gt;&amp;1
+
+<span class="cm"># ==== Monitoring ====</span>
+<span class="cm"># Check listener is up every 5 minutes</span>
+<span class="kw">*/5 * * * *</span>  /scripts/check_listener.sh &gt;&gt; /tmp/listener.log 2&gt;&amp;1</code></pre>
+    </div>
+
+    <!-- Troubleshooting cron -->
+    <div class="glass rounded-2xl p-6 border border-yellow-500/20 mt-6 reveal">
+      <h3 class="font-display font-semibold text-white text-lg mb-4 flex items-center gap-2"><i class="fas fa-triangle-exclamation text-yellow-400"></i> Common Cron Gotchas for DBAs</h3>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="glass rounded-xl p-4 border border-white/5">
+          <p class="text-yellow-400 font-semibold text-sm mb-2">No .bash_profile Loaded</p>
+          <p class="text-neutral-400 text-xs mb-2">Cron runs with a minimal environment. ORACLE_HOME, PATH, ORACLE_SID are not set automatically.</p>
+          <div class="font-mono text-xs text-lime-400">Fix: Source profile in the script or set vars in crontab header</div>
+        </div>
+        <div class="glass rounded-xl p-4 border border-white/5">
+          <p class="text-yellow-400 font-semibold text-sm mb-2">% Character in Cron</p>
+          <p class="text-neutral-400 text-xs mb-2">The % sign is treated as a newline in crontab. Shell date commands like date +%Y%m%d will break.</p>
+          <div class="font-mono text-xs text-lime-400">Fix: Escape with \% or wrap in a shell script instead of inline command</div>
+        </div>
+        <div class="glass rounded-xl p-4 border border-white/5">
+          <p class="text-yellow-400 font-semibold text-sm mb-2">Redirect Stderr</p>
+          <p class="text-neutral-400 text-xs mb-2">Without 2&gt;&amp;1, errors go to the oracle user's mail or disappear — you never know the job failed.</p>
+          <div class="font-mono text-xs text-lime-400">Fix: Always append &gt;&gt; logfile.log 2&gt;&amp;1</div>
+        </div>
+        <div class="glass rounded-xl p-4 border border-white/5">
+          <p class="text-yellow-400 font-semibold text-sm mb-2">Script Not Executable</p>
+          <p class="text-neutral-400 text-xs mb-2">Cron silently fails if the script doesn't have execute permission.</p>
+          <div class="font-mono text-xs text-lime-400">Fix: chmod 755 /scripts/rman_backup.sh</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PERFORMANCE MONITORING -->
+<section id="performance" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-red mb-4">OS-Level Diagnosis</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Performance Monitoring</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">When the database is slow, the answer isn't always inside Oracle. vmstat, iostat, sar, and free tell you what the operating system is experiencing.</p>
+  </div>
+
+  <div class="flex flex-wrap gap-2 mb-8 reveal">
+    <button class="tab-btn active" data-tab="pm-free" data-group="pm">free — Memory</button>
+    <button class="tab-btn" data-tab="pm-vmstat" data-group="pm">vmstat — CPU &amp; Memory</button>
+    <button class="tab-btn" data-tab="pm-iostat" data-group="pm">iostat — Disk I/O</button>
+    <button class="tab-btn" data-tab="pm-sar" data-group="pm">sar — Historical</button>
+    <button class="tab-btn" data-tab="pm-netstat" data-group="pm">Networking</button>
+  </div>
+
+  <!-- free -->
+  <div class="tab-content active" id="pm-free">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">free — Memory Analysis</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Check memory in MB and GB</span>
+<span class="kw">free</span> <span class="flag">-m</span>     <span class="cm"># megabytes</span>
+<span class="kw">free</span> <span class="flag">-g</span>     <span class="cm"># gigabytes</span>
+<span class="kw">free</span> <span class="flag">-h</span>     <span class="cm"># human-readable (auto unit)</span>
+
+<span class="cm"># Sample output (64GB server):</span>
+<span class="cm">#              total   used   free  shared  buff/cache  available</span>
+<span class="cm"># Mem:         64228  38640  12450    1204       13138      24044</span>
+<span class="cm"># Swap:         8192    392   7800</span>
+
+<span class="cm"># Continuous refresh every 2 seconds</span>
+<span class="kw">free</span> <span class="flag">-h -s 2</span>
+<span class="kw">watch</span> <span class="flag">-n 2</span> <span class="str">'free -h'</span>
+
+<span class="cm"># Detailed memory from /proc/meminfo</span>
+<span class="kw">cat</span> /proc/meminfo | <span class="kw">grep</span> <span class="flag">-E</span> <span class="str">"Mem|Swap|Huge|Cached|Dirty"</span>
+
+<span class="cm"># HugePages — CRITICAL for Oracle SGA</span>
+<span class="kw">cat</span> /proc/meminfo | <span class="kw">grep</span> <span class="flag">-i</span> <span class="str">huge</span>
+<span class="cm"># HugePages_Total:  8192   (8192 x 2MB = 16GB)</span>
+<span class="cm"># HugePages_Free:   6000   (6000 unallocated)</span>
+<span class="cm"># Hugepagesize:     2048 kB</span>
+
+<span class="cm"># Configure HugePages (root — set to cover SGA)</span>
+<span class="kw">echo</span> <span class="num">8192</span> &gt; /proc/sys/vm/nr_hugepages
+<span class="cm"># Add to /etc/sysctl.conf for persistence:</span>
+<span class="cm"># vm.nr_hugepages = 8192</span>
+
+<span class="cm"># Check SGA size in Oracle</span>
+<span class="cm">SQL&gt; SELECT name, value/1048576 mb FROM v$sga;</span></code></pre>
+      </div>
+      <div class="glass rounded-2xl p-6 border border-white/5 reveal">
+        <h3 class="font-display font-semibold text-white text-lg mb-4">Reading free Output</h3>
+        <div class="space-y-4">
+          <div class="glass rounded-xl p-4 border border-green-500/20">
+            <p class="text-green-400 font-semibold text-sm mb-1">available</p>
+            <p class="text-neutral-400 text-sm">The real "how much can be allocated" number. Linux uses free RAM as disk cache, so "free" is always low — "available" is what matters.</p>
+          </div>
+          <div class="glass rounded-xl p-4 border border-yellow-500/20">
+            <p class="text-yellow-400 font-semibold text-sm mb-1">buff/cache</p>
+            <p class="text-neutral-400 text-sm">Page cache used for disk reads. Linux reclaims this when applications need memory — it is not "wasted".</p>
+          </div>
+          <div class="glass rounded-xl p-4 border border-red-500/20">
+            <p class="text-red-400 font-semibold text-sm mb-1">Swap used &gt; 0</p>
+            <p class="text-neutral-400 text-sm">Oracle should NEVER be swapping. If swap is in use, your SGA or PGA is misconfigured or the server is under-provisioned.</p>
+          </div>
+          <div class="glass rounded-xl p-4 border border-lime-500/20">
+            <p class="text-lime-400 font-semibold text-sm mb-1">HugePages for Oracle</p>
+            <p class="text-neutral-400 text-sm">Configure HugePages equal to your SGA size. This prevents Oracle SGA pages from being swapped and eliminates TLB pressure.</p>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+            <pre class="p-3 text-xs"><code><span class="cm"># Script to calculate recommended HugePages</span>
+<span class="kw">grep</span> <span class="str">-i hugepagesize</span> /proc/meminfo
+<span class="cm"># HugePages_Total = ceil(SGA_SIZE / hugepagesize)</span>
+<span class="cm"># e.g., 16GB SGA / 2MB hugepage = 8192 pages</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- vmstat -->
+  <div class="tab-content" id="pm-vmstat">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">vmstat — Virtual Memory Statistics</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># vmstat interval count</span>
+<span class="kw">vmstat</span> <span class="num">2 10</span>     <span class="cm"># every 2 secs, 10 iterations</span>
+<span class="kw">vmstat</span> <span class="num">5</span>        <span class="cm"># continuous every 5 secs</span>
+<span class="kw">vmstat</span> <span class="flag">-SM 2</span>    <span class="cm"># show in megabytes</span>
+
+<span class="cm"># Sample output:</span>
+<span class="cm"># procs -----memory------ ---swap-- ---io--- -system-- ----cpu----</span>
+<span class="cm">#  r  b   swpd   free   buff  cache  si  so   bi   bo   in   cs  us sy id wa</span>
+<span class="cm">#  3  0      0 12450   1024 13000   0   0    0  650  800 1200 45  8 40  7</span>
+<span class="cm">#  ^r ^b   ^swpd                 ^si ^so  ^bi  ^bo</span>
+
+<span class="cm"># Column meanings:</span>
+<span class="cm"># r  = run queue (processes waiting for CPU)</span>
+<span class="cm"># b  = blocked (waiting for I/O)</span>
+<span class="cm"># swpd = swap used (should be 0)</span>
+<span class="cm"># si/so = swap in/out (should be 0)</span>
+<span class="cm"># bi/bo = blocks read/written (I/O rate)</span>
+<span class="cm"># us = user CPU %  sy = system CPU %</span>
+<span class="cm"># id = idle %  wa = iowait %</span>
+
+<span class="cm"># Disk statistics</span>
+<span class="kw">vmstat</span> <span class="flag">-d 2</span>   <span class="cm"># per-disk read/write stats</span>
+<span class="kw">vmstat</span> <span class="flag">-p</span> /dev/sdb1 <span class="num">2</span>  <span class="cm"># specific partition</span></code></pre>
+      </div>
+      <div class="glass rounded-2xl p-6 border border-white/5 reveal">
+        <h3 class="font-display font-semibold text-white text-lg mb-4">What to Watch in vmstat</h3>
+        <div class="space-y-3">
+          <div class="glass rounded-xl p-4 border border-red-500/20">
+            <div class="flex items-center gap-2 mb-1"><span class="badge badge-red">r &gt; nCPU</span><p class="text-white text-sm font-semibold">CPU Saturation</p></div>
+            <p class="text-neutral-400 text-xs">Run queue longer than CPU count = processes waiting. High-priority Oracle queries competing for CPU.</p>
+          </div>
+          <div class="glass rounded-xl p-4 border border-orange-500/20">
+            <div class="flex items-center gap-2 mb-1"><span class="badge badge-orange">si/so &gt; 0</span><p class="text-white text-sm font-semibold">Swapping Occurring</p></div>
+            <p class="text-neutral-400 text-xs">Any swap-in or swap-out is a crisis for Oracle. Immediately check SGA/PGA sizes and consider adding RAM.</p>
+          </div>
+          <div class="glass rounded-xl p-4 border border-yellow-500/20">
+            <div class="flex items-center gap-2 mb-1"><span class="badge badge-yellow">wa &gt; 10%</span><p class="text-white text-sm font-semibold">High I/O Wait</p></div>
+            <p class="text-neutral-400 text-xs">CPU is idle waiting for disk. Investigate with iostat — likely slow storage or missing Oracle indexes.</p>
+          </div>
+          <div class="glass rounded-xl p-4 border border-blue-500/20">
+            <div class="flex items-center gap-2 mb-1"><span class="badge badge-blue">sy &gt; 20%</span><p class="text-white text-sm font-semibold">High System CPU</p></div>
+            <p class="text-neutral-400 text-xs">Kernel spending high time. Could be excessive context switches (cs column) or IPC contention with Oracle.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- iostat -->
+  <div class="tab-content" id="pm-iostat">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">iostat — Disk I/O Statistics</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Install: yum install sysstat</span>
+
+<span class="cm"># Extended stats, human-readable, every 2s</span>
+<span class="kw">iostat</span> <span class="flag">-xh 2</span>
+
+<span class="cm"># Specific device monitoring</span>
+<span class="kw">iostat</span> <span class="flag">-x</span> /dev/sdb <span class="num">2 5</span>
+
+<span class="cm"># Sample output (-x extended):</span>
+<span class="cm"># Device  r/s   w/s  rkB/s  wkB/s  await  %util</span>
+<span class="cm"># sdb    120.0  85.0 2400.0 1700.0   4.50  65.0</span>
+<span class="cm"># sdc     10.0   5.0  200.0  100.0   1.20  12.0</span>
+
+<span class="cm"># Key columns explained:</span>
+<span class="cm"># r/s   = reads per second</span>
+<span class="cm"># w/s   = writes per second</span>
+<span class="cm"># rkB/s = kilobytes read per second</span>
+<span class="cm"># wkB/s = kilobytes written per second</span>
+<span class="cm"># await = average I/O latency (milliseconds)</span>
+<span class="cm"># %util = device busy percentage</span>
+
+<span class="cm"># CRITICAL thresholds for Oracle storage:</span>
+<span class="cm"># await &gt; 10ms   = slow storage (investigate)</span>
+<span class="cm"># await &gt; 20ms   = high latency (immediate concern)</span>
+<span class="cm"># %util &gt; 90%    = I/O saturation</span>
+
+<span class="cm"># Which datafile is on which device?</span>
+<span class="kw">ls</span> <span class="flag">-lh</span> /u01/oradata/ORCL/*.dbf
+<span class="kw">df</span> <span class="flag">-h</span> /u01/oradata/ORCL/</code></pre>
+      </div>
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Oracle I/O Correlation</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">-- Top I/O consuming datafiles (from Oracle)</span>
+<span class="kw">SELECT</span>
+  f.file#,
+  f.name,
+  s.phyrds,
+  s.phywrts,
+  s.readtim,
+  s.writetim,
+  ROUND(s.readtim/NULLIF(s.phyrds,0),2) avg_rd_ms,
+  ROUND(s.writetim/NULLIF(s.phywrts,0),2) avg_wr_ms
+<span class="kw">FROM</span>  v$filestat s
+<span class="kw">JOIN</span>  v$datafile f <span class="kw">ON</span> s.file# = f.file#
+<span class="kw">ORDER</span> <span class="kw">BY</span> s.phyrds + s.phywrts <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> ROWS ONLY;
+
+<span class="cm">-- Top I/O SQL statements</span>
+<span class="kw">SELECT</span>
+  sql_id,
+  disk_reads,
+  buffer_gets,
+  executions,
+  ROUND(disk_reads/NULLIF(executions,0)) reads_per_exec,
+  <span class="kw">SUBSTR</span>(sql_text,1,80) sql_preview
+<span class="kw">FROM</span> v$sqlarea
+<span class="kw">WHERE</span> disk_reads &gt; <span class="num">100000</span>
+<span class="kw">ORDER</span> <span class="kw">BY</span> disk_reads <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> ROWS ONLY;
+
+<span class="cm">-- Current sessions with high I/O wait</span>
+<span class="kw">SELECT</span> sid, username, event, seconds_in_wait, state
+<span class="kw">FROM</span>  v$session
+<span class="kw">WHERE</span> wait_class = <span class="str">'User I/O'</span>
+  <span class="kw">AND</span> status = <span class="str">'ACTIVE'</span>
+<span class="kw">ORDER</span> <span class="kw">BY</span> seconds_in_wait <span class="kw">DESC</span>;</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- sar -->
+  <div class="tab-content" id="pm-sar">
+    <div class="terminal reveal">
+      <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">sar — System Activity Reporter (Historical)</span></div>
+      <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># sar is part of sysstat package — collects historical OS stats</span>
+<span class="cm"># Enable: systemctl enable sysstat; systemctl start sysstat</span>
+<span class="cm"># Data stored in /var/log/sa/saDD (DD=day)</span>
+
+<span class="cm"># CPU usage — today</span>
+<span class="kw">sar</span> <span class="flag">-u</span>
+<span class="kw">sar</span> <span class="flag">-u 2 5</span>     <span class="cm"># live, every 2 secs</span>
+
+<span class="cm"># CPU — specific date (sar -f for older files)</span>
+<span class="kw">sar</span> <span class="flag">-u -f</span> /var/log/sa/sa12   <span class="cm"># 12th of this month</span>
+
+<span class="cm"># Memory usage history</span>
+<span class="kw">sar</span> <span class="flag">-r</span>
+<span class="kw">sar</span> <span class="flag">-r -f</span> /var/log/sa/sa12
+
+<span class="cm"># Disk I/O history</span>
+<span class="kw">sar</span> <span class="flag">-d -p</span>              <span class="cm"># -p = pretty device names</span>
+<span class="kw">sar</span> <span class="flag">-d -p -f</span> /var/log/sa/sa12
+
+<span class="cm"># Network stats</span>
+<span class="kw">sar</span> <span class="flag">-n DEV</span>           <span class="cm"># per-interface stats</span>
+<span class="kw">sar</span> <span class="flag">-n EDEV</span>          <span class="cm"># network errors</span>
+
+<span class="cm"># Load average history (great for capacity planning)</span>
+<span class="kw">sar</span> <span class="flag">-q</span>
+
+<span class="cm"># Swap usage history</span>
+<span class="kw">sar</span> <span class="flag">-S</span>
+
+<span class="cm"># Context switches and interrupts</span>
+<span class="kw">sar</span> <span class="flag">-w</span>
+
+<span class="cm"># Find the busiest period in the last week</span>
+for day in <span class="num">07 08 09 10 11 12 13</span>; do
+  <span class="kw">echo</span> <span class="str">"=== Day $day ==="</span>
+  <span class="kw">sar</span> <span class="flag">-u -f</span> /var/log/sa/sa$day 2&gt;/dev/null | \
+    <span class="kw">awk</span> <span class="str">'/[0-9]/{if($8<20) print "BUSY:",$0}'</span>
+done
+
+<span class="cm"># Generate HTML report for a day</span>
+<span class="kw">sar</span> <span class="flag">-A -f</span> /var/log/sa/sa12 | <span class="kw">sadf</span> <span class="flag">-dh</span> -- <span class="flag">-A</span> &gt; /tmp/sar_report.html</code></pre>
+    </div>
+  </div>
+
+  <!-- Networking -->
+  <div class="tab-content" id="pm-netstat">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Network Performance &amp; Connection Monitoring</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># Count Oracle connections by state</span>
+<span class="kw">ss</span> <span class="flag">-tnp</span> | <span class="kw">grep</span> <span class="num">1521</span> | <span class="kw">awk</span> <span class="str">'{print $1}'</span> | \
+  <span class="kw">sort</span> | <span class="kw">uniq</span> <span class="flag">-c</span>
+<span class="cm"># ESTAB 150  — 150 established DB connections</span>
+<span class="cm"># TIME-WAIT 20</span>
+<span class="cm"># CLOSE-WAIT 5  ← connections not properly closed</span>
+
+<span class="cm"># Count established Oracle connections</span>
+<span class="kw">netstat</span> <span class="flag">-an</span> | <span class="kw">grep</span> <span class="str">":1521"</span> | \
+  <span class="kw">grep</span> <span class="str">ESTABLISHED</span> | <span class="kw">wc</span> <span class="flag">-l</span>
+
+<span class="cm"># Which IPs are connecting to Oracle?</span>
+<span class="kw">ss</span> <span class="flag">-tnp</span> | <span class="kw">grep</span> <span class="num">1521</span> | <span class="kw">grep</span> ESTAB | \
+  <span class="kw">awk</span> <span class="str">'{print $5}'</span> | <span class="kw">cut</span> <span class="flag">-d: -f1</span> | <span class="kw">sort</span> | <span class="kw">uniq</span> <span class="flag">-c</span> | <span class="kw">sort</span> <span class="flag">-rn</span>
+
+<span class="cm"># Network interface bandwidth</span>
+<span class="kw">sar</span> <span class="flag">-n DEV 1 5</span>
+<span class="kw">nload</span> eth0        <span class="cm"># real-time bandwidth graph</span>
+<span class="kw">iftop</span> <span class="flag">-i</span> eth0     <span class="cm"># per-connection bandwidth</span>
+
+<span class="cm"># Check for network errors</span>
+<span class="kw">ip</span> <span class="flag">-s</span> link show eth0
+<span class="kw">netstat</span> <span class="flag">-s</span> | <span class="kw">grep</span> <span class="flag">-i</span> <span class="str">"error\|fail\|retran"</span>
+
+<span class="cm"># Bandwidth test to standby server</span>
+<span class="kw">iperf3</span> <span class="flag">-c</span> standby-server <span class="flag">-t 10</span>
+
+<span class="cm"># Latency to standby (DG redo transport)</span>
+<span class="kw">ping</span> <span class="flag">-c 100</span> standby-server | <span class="kw">tail</span> <span class="flag">-2</span></code></pre>
+      </div>
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">nmon &amp; All-in-One Monitoring</span></div>
+        <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm"># nmon — comprehensive performance dashboard</span>
+<span class="cm"># Install: yum install nmon</span>
+<span class="kw">nmon</span>
+
+<span class="cm"># nmon key shortcuts:</span>
+<span class="cm"># c = CPU stats</span>
+<span class="cm"># m = Memory</span>
+<span class="cm"># d = Disk I/O</span>
+<span class="cm"># n = Network</span>
+<span class="cm"># k = Kernel stats</span>
+<span class="cm"># t = Top processes (like top)</span>
+<span class="cm"># q = Quit</span>
+
+<span class="cm"># nmon data capture for analysis</span>
+<span class="kw">nmon</span> <span class="flag">-f -s 30 -c 2880</span>  <span class="cm"># capture 24h at 30s intervals</span>
+<span class="cm"># Creates nmon_HOSTNAME_YYYYMMDD.nmon</span>
+<span class="cm"># Analyze in nmon Analyser Excel tool</span>
+
+<span class="cm"># dstat — combines vmstat + iostat + ifstat</span>
+<span class="kw">dstat</span> <span class="flag">-cdnmsp --top-cpu 2</span>
+
+<span class="cm"># Quick performance snapshot script</span>
+<span class="cm">#!/bin/bash</span>
+<span class="kw">echo</span> <span class="str">"=== $(date) ==="</span>
+<span class="kw">echo</span> <span class="str">"--- UPTIME ---"</span>;  <span class="kw">uptime</span>
+<span class="kw">echo</span> <span class="str">"--- MEMORY ---"</span>;  <span class="kw">free</span> <span class="flag">-h</span>
+<span class="kw">echo</span> <span class="str">"--- DISK ---"</span>;    <span class="kw">df</span> <span class="flag">-h</span> | <span class="kw">grep</span> <span class="str">"^/dev"</span>
+<span class="kw">echo</span> <span class="str">"--- TOP PROC ---"</span>; <span class="kw">ps</span> <span class="flag">-eo</span> pid,user,%cpu,%mem,cmd \
+  | <span class="kw">sort</span> <span class="flag">-k3 -rn</span> | <span class="kw">head</span> <span class="flag">-10</span>
+<span class="kw">echo</span> <span class="str">"--- I/O ---"</span>;    <span class="kw">iostat</span> <span class="flag">-x 1 3</span> | <span class="kw">grep</span> <span class="flag">-E</span> <span class="str">"sd|Device"</span></code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOG MANAGEMENT -->
+<section id="logs" class="py-24 bg-gradient-to-b from-transparent via-lime-500/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-orange mb-4">Incident Detection</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Log File Management</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">The alert log is your first line of defence. Know how to read it, search it, archive it, and monitor it in real time.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6 mb-8">
+      <div class="glass rounded-2xl p-6 border border-orange-500/20 reveal">
+        <h3 class="font-display font-semibold text-white text-lg mb-4 flex items-center gap-2"><i class="fas fa-file-lines text-orange-400"></i> Oracle Alert Log</h3>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Alert log essentials</span></div>
+          <pre class="p-4 text-sm overflow-x-auto"><code><span class="cm"># Find alert log location</span>
+<span class="cm">SQL&gt; SELECT value FROM v$diag_info WHERE name='Diag Trace';</span>
+<span class="cm"># /u01/app/oracle/diag/rdbms/orcl/ORCL/trace</span>
+
+<span class="cm"># Set alias for quick access</span>
+<span class="kw">export</span> <span class="var">ALERT</span>=<span class="str">"$ORACLE_BASE/diag/rdbms/orcl/$ORACLE_SID/trace/alert_$ORACLE_SID.log"</span>
+
+<span class="cm"># Live monitoring</span>
+<span class="kw">tail</span> <span class="flag">-f</span> $ALERT
+
+<span class="cm"># Last 200 lines</span>
+<span class="kw">tail</span> <span class="flag">-200</span> $ALERT
+
+<span class="cm"># All ORA- errors</span>
+<span class="kw">grep</span> <span class="str">"ORA-"</span> $ALERT
+
+<span class="cm"># Today's ORA- errors only</span>
+<span class="kw">grep</span> <span class="str">"$(date +'%a %b')"</span> $ALERT | <span class="kw">grep</span> <span class="str">"ORA-"</span>
+
+<span class="cm"># Most frequent errors ranked</span>
+<span class="kw">grep</span> <span class="flag">-oP</span> <span class="str">'ORA-[0-9]+'</span> $ALERT | <span class="kw">sort</span> | \
+  <span class="kw">uniq</span> <span class="flag">-c</span> | <span class="kw">sort</span> <span class="flag">-rn</span> | <span class="kw">head</span> <span class="flag">-10</span>
+
+<span class="cm"># Errors with context (5 lines around each)</span>
+<span class="kw">grep</span> <span class="flag">-A5 -B1</span> <span class="str">"ORA-04031"</span> $ALERT | <span class="kw">tail</span> <span class="flag">-50</span>
+
+<span class="cm"># Log switches in last hour</span>
+<span class="kw">grep</span> <span class="str">"Thread 1 advanced"</span> $ALERT | <span class="kw">tail</span> <span class="flag">-20</span>
+
+<span class="cm"># Archive log generation rate</span>
+<span class="kw">grep</span> <span class="str">"Completed:"</span> $ALERT | <span class="kw">tail</span> <span class="flag">-20</span></code></pre>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-6 border border-lime-500/20 reveal">
+        <h3 class="font-display font-semibold text-white text-lg mb-4 flex items-center gap-2"><i class="fas fa-magnifying-glass text-lime-400"></i> Trace File Analysis</h3>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Trace file commands</span></div>
+          <pre class="p-4 text-sm overflow-x-auto"><code><span class="cm"># Find recent trace files</span>
+<span class="kw">ls</span> <span class="flag">-ltr</span> $ORACLE_BASE/diag/rdbms/orcl/$ORACLE_SID/trace/*.trc | <span class="kw">tail</span> <span class="flag">-10</span>
+
+<span class="cm"># Find large trace files</span>
+<span class="kw">find</span> $ORACLE_BASE/diag <span class="flag">-name</span> <span class="str">"*.trc"</span> <span class="flag">-size</span> +10M | \
+  <span class="kw">xargs</span> <span class="kw">ls</span> <span class="flag">-lh</span> | <span class="kw">sort</span> <span class="flag">-k5 -rh</span>
+
+<span class="cm"># Find ORA-00600 trace files</span>
+<span class="kw">grep</span> <span class="flag">-rl</span> <span class="str">"ORA-00600"</span> $ORACLE_BASE/diag/
+
+<span class="cm"># Read trace file summary</span>
+<span class="kw">head</span> <span class="flag">-50</span> /u01/diag/rdbms/orcl/ORCL/trace/ORCL_ora_14523.trc
+<span class="kw">grep</span> <span class="str">"PARSING\|END OF STMT\|call\|cpu"</span> trace.trc | <span class="kw">head</span> <span class="flag">-40</span>
+
+<span class="cm"># tkprof — format SQL trace files</span>
+<span class="kw">tkprof</span> ORCL_ora_14523.trc output.txt \
+  explain=/ sort=exeela,fchela \
+  sys=no
+
+<span class="cm"># ADR command-line interface</span>
+<span class="kw">adrci</span>
+<span class="cm">adrci&gt; show homes</span>
+<span class="cm">adrci&gt; set homepath diag/rdbms/orcl/ORCL</span>
+<span class="cm">adrci&gt; show alert -tail 50</span>
+<span class="cm">adrci&gt; show incident</span>
+<span class="cm">adrci&gt; ips pack incident 12345</span>
+<span class="cm">adrci&gt; purge -age 20160 -type TRACE</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Reference Table -->
+    <div class="glass rounded-2xl p-8 border border-white/5 reveal">
+      <h3 class="font-display font-semibold text-white text-xl mb-6">Important Log Files for Oracle DBAs</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-white/10">
+              <th class="text-left text-neutral-400 font-semibold py-3 pr-4">Log File</th>
+              <th class="text-left text-neutral-400 font-semibold py-3 pr-4">Location</th>
+              <th class="text-left text-neutral-400 font-semibold py-3">Purpose</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            <tr class="hover:bg-white/2 transition-colors">
+              <td class="py-3 pr-4 text-lime-400 font-mono text-xs">alert_SID.log</td>
+              <td class="py-3 pr-4 text-neutral-300 text-xs">$ORACLE_BASE/diag/rdbms/sid/SID/trace/</td>
+              <td class="py-3 text-neutral-400 text-xs">Primary DB log — ORA- errors, startup/shutdown, log switches, background events</td>
+            </tr>
+            <tr class="hover:bg-white/2 transition-colors">
+              <td class="py-3 pr-4 text-blue-400 font-mono text-xs">listener.log</td>
+              <td class="py-3 pr-4 text-neutral-300 text-xs">$ORACLE_BASE/diag/tnslsnr/hostname/listener/trace/</td>
+              <td class="py-3 text-neutral-400 text-xs">All connection attempts, TNS errors, listener events</td>
+            </tr>
+            <tr class="hover:bg-white/2 transition-colors">
+              <td class="py-3 pr-4 text-orange-400 font-mono text-xs">*.trc</td>
+              <td class="py-3 pr-4 text-neutral-300 text-xs">$ORACLE_BASE/diag/rdbms/sid/SID/trace/</td>
+              <td class="py-3 text-neutral-400 text-xs">Process trace files — one per Oracle server process, SQL trace output</td>
+            </tr>
+            <tr class="hover:bg-white/2 transition-colors">
+              <td class="py-3 pr-4 text-purple-400 font-mono text-xs">rman.log</td>
+              <td class="py-3 pr-4 text-neutral-300 text-xs">/u01/backup/logs/</td>
+              <td class="py-3 text-neutral-400 text-xs">RMAN backup/restore output — check for ORA- and RMAN- errors</td>
+            </tr>
+            <tr class="hover:bg-white/2 transition-colors">
+              <td class="py-3 pr-4 text-cyan-400 font-mono text-xs">/var/log/cron</td>
+              <td class="py-3 pr-4 text-neutral-300 text-xs">/var/log/</td>
+              <td class="py-3 text-neutral-400 text-xs">OS cron job execution log — verify scheduled DBA jobs ran</td>
+            </tr>
+            <tr class="hover:bg-white/2 transition-colors">
+              <td class="py-3 pr-4 text-green-400 font-mono text-xs">/var/log/messages</td>
+              <td class="py-3 pr-4 text-neutral-300 text-xs">/var/log/</td>
+              <td class="py-3 text-neutral-400 text-xs">OS system log — kernel messages, hardware errors, OOM killer events</td>
+            </tr>
+            <tr class="hover:bg-white/2 transition-colors">
+              <td class="py-3 pr-4 text-red-400 font-mono text-xs">/var/log/secure</td>
+              <td class="py-3 pr-4 text-neutral-300 text-xs">/var/log/</td>
+              <td class="py-3 text-neutral-400 text-xs">SSH logins, sudo usage, authentication failures — security audit</td>
+            </tr>
+            <tr class="hover:bg-white/2 transition-colors">
+              <td class="py-3 pr-4 text-yellow-400 font-mono text-xs">*.aud</td>
+              <td class="py-3 pr-4 text-neutral-300 text-xs">$ORACLE_BASE/admin/SID/adump/</td>
+              <td class="py-3 text-neutral-400 text-xs">Oracle OS audit files — SYSDBA connections, startup/shutdown audit</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- OOM Killer -->
+    <div class="glass rounded-2xl p-6 border border-red-500/20 mt-6 reveal">
+      <h3 class="font-display font-semibold text-white text-lg mb-3 flex items-center gap-2"><i class="fas fa-skull text-red-400"></i> OOM Killer — The DBA's Worst Nightmare</h3>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <p class="text-neutral-400 text-sm mb-4">The Linux Out-of-Memory killer terminates processes when RAM is exhausted. It can kill Oracle background processes (SMON, PMON, DBWn), causing the database to crash. Here's how to detect and prevent it.</p>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+            <pre class="p-4 text-xs"><code><span class="cm"># Check if OOM killer struck</span>
+<span class="kw">grep</span> <span class="flag">-i</span> <span class="str">"oom\|out of memory\|killed process"</span> \
+  /var/log/messages | <span class="kw">tail</span> <span class="flag">-20</span>
+
+<span class="cm"># dmesg for kernel OOM messages</span>
+<span class="kw">dmesg</span> | <span class="kw">grep</span> <span class="flag">-i</span> <span class="str">"oom\|killed"</span></code></pre>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Protect Oracle from OOM killer</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm"># Protect Oracle processes from OOM killer</span>
+<span class="cm"># Set oom_score_adj to -1000 for each Oracle PID</span>
+
+for pid in $(<span class="kw">pgrep</span> <span class="flag">-u</span> oracle); do
+  <span class="kw">echo</span> <span class="flag">-1000</span> &gt; /proc/$pid/oom_score_adj
+done
+
+<span class="cm"># Prevent SGA from being swapped out</span>
+<span class="cm"># (via HugePages — already covered)</span>
+
+<span class="cm"># Tune memory overcommit</span>
+<span class="kw">sysctl</span> <span class="flag">-w</span> vm.overcommit_memory=2
+<span class="kw">sysctl</span> <span class="flag">-w</span> vm.overcommit_ratio=80
+<span class="cm"># Add to /etc/sysctl.conf for persistence</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TROUBLESHOOTING ACCORDION -->
+<section id="troubleshooting" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-yellow mb-4">Common Scenarios</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Troubleshooting Scenarios</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">Real-world problems every Oracle DBA encounters on Linux — with step-by-step OS-level diagnosis and resolution.</p>
+  </div>
+
+  <div class="space-y-3 max-w-4xl mx-auto">
+    <!-- Scenario 1 -->
+    <div class="glass rounded-2xl border border-white/5 reveal overflow-hidden">
+      <button class="acc-btn w-full text-left p-5 flex items-center justify-between hover:bg-white/2 transition-colors">
+        <div class="flex items-center gap-3">
+          <span class="badge badge-red flex-shrink-0">01</span>
+          <span class="font-semibold text-white">Disk Space Full — Database Hung</span>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+      </button>
+      <div class="acc-content">
+        <div class="terminal m-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Disk full — diagnosis and recovery</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">STEP 1: Identify full filesystem</span>
+<span class="kw">df</span> <span class="flag">-h</span>
+<span class="cm"># /dev/sdb1  500G  500G  0G  100% /u01  ← FULL!</span>
+
+<span class="cm">STEP 2: Find what is consuming space</span>
+<span class="kw">du</span> <span class="flag">-h --max-depth=2</span> /u01/ | <span class="kw">sort</span> <span class="flag">-rh</span> | <span class="kw">head</span> <span class="flag">-15</span>
+
+<span class="cm">STEP 3: Quick wins — purge old trace files</span>
+<span class="kw">find</span> /u01/diag <span class="flag">-name</span> <span class="str">"*.trc"</span> <span class="flag">-mtime</span> +<span class="num">3</span> <span class="flag">-exec</span> <span class="kw">rm</span> <span class="flag">-f</span> {} \;
+<span class="kw">find</span> /u01/diag <span class="flag">-name</span> <span class="str">"*.trm"</span> <span class="flag">-mtime</span> +<span class="num">3</span> <span class="flag">-exec</span> <span class="kw">rm</span> <span class="flag">-f</span> {} \;
+<span class="kw">find</span> /u01/app/oracle/admin/ORCL/adump <span class="flag">-name</span> <span class="str">"*.aud"</span> <span class="flag">-mtime</span> +<span class="num">7</span> <span class="flag">-exec</span> <span class="kw">rm</span> <span class="flag">-f</span> {} \;
+
+<span class="cm">STEP 4: If FRA is full — purge via RMAN</span>
+<span class="kw">rman</span> target /
+<span class="cm">RMAN&gt; REPORT OBSOLETE;</span>
+<span class="cm">RMAN&gt; DELETE NOPROMPT OBSOLETE;</span>
+<span class="cm">RMAN&gt; CROSSCHECK ARCHIVELOG ALL;</span>
+<span class="cm">RMAN&gt; DELETE NOPROMPT EXPIRED ARCHIVELOG ALL;</span>
+
+<span class="cm">STEP 5: Increase FRA size (if needed)</span>
+<span class="cm">SQL&gt; ALTER SYSTEM SET db_recovery_file_dest_size=100G;</span>
+
+<span class="cm">STEP 6: Verify space recovered</span>
+<span class="kw">df</span> <span class="flag">-h</span> /u01</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario 2 -->
+    <div class="glass rounded-2xl border border-white/5 reveal overflow-hidden">
+      <button class="acc-btn w-full text-left p-5 flex items-center justify-between hover:bg-white/2 transition-colors">
+        <div class="flex items-center gap-3">
+          <span class="badge badge-orange flex-shrink-0">02</span>
+          <span class="font-semibold text-white">Database Not Starting — Diagnosing from OS</span>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+      </button>
+      <div class="acc-content">
+        <div class="terminal m-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">DB startup failure — OS-level investigation</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">STEP 1: Check if Oracle processes exist</span>
+<span class="kw">ps</span> <span class="flag">-ef</span> | <span class="kw">grep</span> <span class="str">ora_pmon</span>
+<span class="cm"># No output = DB is completely down</span>
+
+<span class="cm">STEP 2: Check alert log for the error</span>
+<span class="kw">tail</span> <span class="flag">-200</span> $ORACLE_BASE/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log
+
+<span class="cm">STEP 3: Check environment is correct</span>
+<span class="kw">echo</span> $ORACLE_SID $ORACLE_HOME
+<span class="kw">which</span> sqlplus
+<span class="kw">ls</span> <span class="flag">-lh</span> $ORACLE_HOME/dbs/spfileORCL.ora
+
+<span class="cm">STEP 4: Check /etc/oratab</span>
+<span class="kw">cat</span> /etc/oratab | <span class="kw">grep</span> <span class="flag">-v</span> <span class="str">"^#"</span>
+
+<span class="cm">STEP 5: Check kernel params are adequate</span>
+<span class="kw">sysctl</span> kernel.shmmax
+<span class="kw">sysctl</span> kernel.shmall
+<span class="kw">ulimit</span> <span class="flag">-a</span>
+
+<span class="cm">STEP 6: Try starting manually</span>
+<span class="kw">sqlplus</span> / as sysdba
+<span class="cm">SQL&gt; STARTUP;</span>
+<span class="cm"># Note the exact error message</span>
+
+<span class="cm">STEP 7: Check for stale lock files</span>
+<span class="kw">ls</span> <span class="flag">-lh</span> $ORACLE_HOME/dbs/lk*
+<span class="kw">ls</span> <span class="flag">-lh</span> /tmp/.oracle/ 2&gt;/dev/null
+<span class="cm"># If stale (no oracle process): rm -f $ORACLE_HOME/dbs/lkORCL</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario 3 -->
+    <div class="glass rounded-2xl border border-white/5 reveal overflow-hidden">
+      <button class="acc-btn w-full text-left p-5 flex items-center justify-between hover:bg-white/2 transition-colors">
+        <div class="flex items-center gap-3">
+          <span class="badge badge-yellow flex-shrink-0">03</span>
+          <span class="font-semibold text-white">High CPU — Finding the Culprit Process</span>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+      </button>
+      <div class="acc-content">
+        <div class="terminal m-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">High CPU investigation workflow</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">STEP 1: Confirm high CPU with top</span>
+<span class="kw">top</span> <span class="flag">-u</span> oracle
+<span class="cm"># PID=14523, %CPU=87.3</span>
+
+<span class="cm">STEP 2: Map OS PID to Oracle session</span>
+<span class="cm">SQL&gt; SELECT s.sid, s.serial#, s.username,</span>
+<span class="cm">     s.sql_id, p.spid</span>
+<span class="cm">     FROM v$session s JOIN v$process p ON s.paddr=p.addr</span>
+<span class="cm">     WHERE p.spid=14523;</span>
+
+<span class="cm">STEP 3: Check what SQL is running</span>
+<span class="cm">SQL&gt; SELECT sql_text FROM v$sql WHERE sql_id='9fxk3d2bq';</span>
+
+<span class="cm">STEP 4: Check AWR top SQL by CPU</span>
+<span class="cm">SQL&gt; SELECT sql_id, cpu_time_delta/1000000 cpu_secs</span>
+<span class="cm">     FROM dba_hist_sqlstat</span>
+<span class="cm">     WHERE snap_id = (SELECT MAX(snap_id) FROM dba_hist_snapshot)</span>
+<span class="cm">     ORDER BY cpu_time_delta DESC FETCH FIRST 5 ROWS ONLY;</span>
+
+<span class="cm">STEP 5: Profile OS-level CPU flame</span>
+<span class="kw">perf</span> top <span class="flag">-p</span> 14523 <span class="flag">-d 5</span>    <span class="cm"># if perf installed</span>
+
+<span class="cm">STEP 6: Kill if runaway</span>
+<span class="cm">SQL&gt; ALTER SYSTEM KILL SESSION '142,4891' IMMEDIATE;</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario 4 -->
+    <div class="glass rounded-2xl border border-white/5 reveal overflow-hidden">
+      <button class="acc-btn w-full text-left p-5 flex items-center justify-between hover:bg-white/2 transition-colors">
+        <div class="flex items-center gap-3">
+          <span class="badge badge-blue flex-shrink-0">04</span>
+          <span class="font-semibold text-white">Listener Not Starting — ORA-12541 / ORA-12514</span>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+      </button>
+      <div class="acc-content">
+        <div class="terminal m-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Listener troubleshooting</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">STEP 1: Check if listener process exists</span>
+<span class="kw">ps</span> <span class="flag">-ef</span> | <span class="kw">grep</span> tnslsnr
+
+<span class="cm">STEP 2: Check if port 1521 is in use</span>
+<span class="kw">ss</span> <span class="flag">-tlnp</span> | <span class="kw">grep</span> <span class="num">1521</span>
+
+<span class="cm">STEP 3: Check listener.log for errors</span>
+<span class="kw">tail</span> <span class="flag">-100</span> $ORACLE_BASE/diag/tnslsnr/$(hostname)/listener/trace/listener.log
+
+<span class="cm">STEP 4: Validate listener.ora syntax</span>
+<span class="kw">cat</span> $ORACLE_HOME/network/admin/listener.ora
+
+<span class="cm">STEP 5: Check hostname resolution</span>
+<span class="kw">hostname</span>
+<span class="kw">hostname</span> <span class="flag">-f</span>
+<span class="kw">ping</span> <span class="flag">-c2</span> $(hostname)   <span class="cm"># must resolve to correct IP</span>
+<span class="kw">cat</span> /etc/hosts          <span class="cm"># check for correct entry</span>
+
+<span class="cm">STEP 6: Try starting with debug</span>
+<span class="kw">lsnrctl</span> start
+<span class="kw">lsnrctl</span> status
+<span class="cm"># ORA-12541 = no listener → start it</span>
+<span class="cm"># ORA-12514 = service unknown → ALTER SYSTEM REGISTER</span>
+<span class="cm"># ORA-1067  = port in use → find what is on 1521</span>
+<span class="kw">ss</span> <span class="flag">-tlnp</span> | <span class="kw">grep</span> <span class="num">1521</span>   <span class="cm"># find conflicting process</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario 5 -->
+    <div class="glass rounded-2xl border border-white/5 reveal overflow-hidden">
+      <button class="acc-btn w-full text-left p-5 flex items-center justify-between hover:bg-white/2 transition-colors">
+        <div class="flex items-center gap-3">
+          <span class="badge badge-purple flex-shrink-0">05</span>
+          <span class="font-semibold text-white">Permission Denied — Oracle File Access Errors</span>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+      </button>
+      <div class="acc-content">
+        <div class="terminal m-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Permission errors — diagnosis and fix</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">STEP 1: Check permissions on the file or directory</span>
+<span class="kw">ls</span> <span class="flag">-lh</span> /u01/oradata/ORCL/
+<span class="cm"># Should show: oracle oinstall  640 for dbf files</span>
+<span class="cm"># Should show: oracle oinstall  750 for directories</span>
+
+<span class="cm">STEP 2: Verify oracle user can access it</span>
+<span class="kw">su</span> <span class="flag">-</span> oracle <span class="flag">-c</span> <span class="str">"ls -lh /u01/oradata/ORCL/"</span>
+
+<span class="cm">STEP 3: Fix ownership (most common fix)</span>
+<span class="kw">chown</span> <span class="flag">-R</span> oracle:oinstall /u01/oradata/
+<span class="kw">chown</span> <span class="flag">-R</span> oracle:oinstall /u01/fast_recovery_area/
+
+<span class="cm">STEP 4: Fix permissions</span>
+<span class="kw">chmod</span> <span class="flag">-R</span> <span class="num">750</span> /u01/oradata/
+<span class="kw">chmod</span> <span class="num">640</span> /u01/oradata/ORCL/*.dbf
+<span class="kw">chmod</span> <span class="num">640</span> /u01/oradata/ORCL/*.log
+
+<span class="cm">STEP 5: Check SELinux (common on OEL)</span>
+<span class="kw">getenforce</span>               <span class="cm"># Enforcing, Permissive, Disabled</span>
+<span class="kw">sestatus</span>                 <span class="cm"># detailed SELinux status</span>
+
+<span class="cm"># Temporarily disable SELinux for testing:</span>
+<span class="kw">setenforce</span> <span class="num">0</span>             <span class="cm"># sets Permissive mode (no reboot)</span>
+
+<span class="cm"># For Oracle, SELinux should be disabled or permissive:</span>
+<span class="cm"># /etc/selinux/config → SELINUX=permissive</span>
+
+<span class="cm">STEP 6: Check ACLs (if applicable)</span>
+<span class="kw">getfacl</span> /u01/oradata/ORCL/system01.dbf</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario 6 -->
+    <div class="glass rounded-2xl border border-white/5 reveal overflow-hidden">
+      <button class="acc-btn w-full text-left p-5 flex items-center justify-between hover:bg-white/2 transition-colors">
+        <div class="flex items-center gap-3">
+          <span class="badge badge-green flex-shrink-0">06</span>
+          <span class="font-semibold text-white">Cron Job Not Running — Silent Failure</span>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+      </button>
+      <div class="acc-content">
+        <div class="terminal m-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Cron troubleshooting checklist</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">STEP 1: Verify cron daemon is running</span>
+<span class="kw">systemctl</span> status crond
+
+<span class="cm">STEP 2: Check cron log to see if job ran</span>
+<span class="kw">grep</span> <span class="str">"oracle\|rman_backup"</span> /var/log/cron | <span class="kw">tail</span> <span class="flag">-20</span>
+
+<span class="cm">STEP 3: Verify crontab exists</span>
+<span class="kw">crontab</span> <span class="flag">-l -u</span> oracle
+
+<span class="cm">STEP 4: Test script manually as oracle user</span>
+<span class="kw">su</span> <span class="flag">-</span> oracle <span class="flag">-c</span> <span class="str">"/scripts/rman_backup.sh INCR1"</span>
+<span class="cm"># Does it work manually? If yes → environment issue in cron</span>
+
+<span class="cm">STEP 5: Check script has execute permission</span>
+<span class="kw">ls</span> <span class="flag">-lh</span> /scripts/rman_backup.sh
+<span class="cm"># Must show: -rwxr-xr-x</span>
+<span class="kw">chmod</span> <span class="num">755</span> /scripts/rman_backup.sh
+
+<span class="cm">STEP 6: Check if environment is loaded</span>
+<span class="cm"># Add to top of crontab:</span>
+<span class="var">ORACLE_HOME</span>=<span class="str">/u01/app/oracle/product/19.0.0/dbhome_1</span>
+<span class="var">ORACLE_SID</span>=<span class="str">ORCL</span>
+<span class="var">PATH</span>=<span class="str">$ORACLE_HOME/bin:/usr/bin:/bin</span>
+<span class="cm"># Or in the script itself: . /home/oracle/.bash_profile</span>
+
+<span class="cm">STEP 7: Check for % signs in crontab command</span>
+<span class="cm"># Replace % with \% in crontab if using date +%Y%m%d inline</span>
+<span class="cm"># Better: wrap in a script instead</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUICK REFERENCE CHEATSHEET -->
+<section id="cheatsheet" class="py-24 bg-gradient-to-b from-transparent via-lime-500/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-lime mb-4">Quick Reference</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">DBA Linux Cheatsheet</h2>
+      <p class="text-neutral-400 max-w-xl mx-auto">The commands you will run every single day — organized for speed.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-6 border border-lime-500/15 reveal">
+        <h3 class="font-display font-semibold text-lime-400 text-base mb-4 flex items-center gap-2"><i class="fas fa-eye"></i> Check / Monitor</h3>
+        <div class="space-y-2">
+          <div class="cmd-pill">df -h</div>
+          <div class="cmd-pill">du -sh /u01/oradata/</div>
+          <div class="cmd-pill">free -h</div>
+          <div class="cmd-pill">top -u oracle</div>
+          <div class="cmd-pill">ps -ef | grep ora_</div>
+          <div class="cmd-pill">uptime</div>
+          <div class="cmd-pill">iostat -xh 2</div>
+          <div class="cmd-pill">vmstat 2 5</div>
+          <div class="cmd-pill">tail -f $ALERT</div>
+          <div class="cmd-pill">lsnrctl status</div>
+          <div class="cmd-pill">ss -tlnp | grep 1521</div>
+          <div class="cmd-pill">crontab -l</div>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-6 border border-green-500/15 reveal">
+        <h3 class="font-display font-semibold text-green-400 text-base mb-4 flex items-center gap-2"><i class="fas fa-magnifying-glass"></i> Search / Find</h3>
+        <div class="space-y-2">
+          <div class="cmd-pill">grep "ORA-" $ALERT</div>
+          <div class="cmd-pill">grep -r "ORA-600" /u01/diag</div>
+          <div class="cmd-pill">find /u01/diag -name "*.trc" -mtime +7</div>
+          <div class="cmd-pill">find /u01 -size +100M</div>
+          <div class="cmd-pill">grep -oP 'ORA-[0-9]+' $ALERT | sort | uniq -c | sort -rn</div>
+          <div class="cmd-pill">awk -F: '{print $1}' /etc/oratab</div>
+          <div class="cmd-pill">ls -ltr /u01/oradata/</div>
+          <div class="cmd-pill">du -ah /u01/ | sort -rh | head -20</div>
+          <div class="cmd-pill">tail -100 listener.log</div>
+          <div class="cmd-pill">grep "$(date +'%a %b')" $ALERT | grep ORA-</div>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-6 border border-cyan-500/15 reveal">
+        <h3 class="font-display font-semibold text-cyan-400 text-base mb-4 flex items-center gap-2"><i class="fas fa-wrench"></i> Fix / Admin</h3>
+        <div class="space-y-2">
+          <div class="cmd-pill">. oraenv</div>
+          <div class="cmd-pill">sqlplus / as sysdba</div>
+          <div class="cmd-pill">lsnrctl start</div>
+          <div class="cmd-pill">lsnrctl stop</div>
+          <div class="cmd-pill">chmod -R 750 /u01/oradata/</div>
+          <div class="cmd-pill">chown -R oracle:oinstall /u01/</div>
+          <div class="cmd-pill">kill -9 [PID]</div>
+          <div class="cmd-pill">tar -czvf backup.tar.gz /scripts/</div>
+          <div class="cmd-pill">scp script.sh oracle@standby:/scripts/</div>
+          <div class="cmd-pill">systemctl restart crond</div>
+          <div class="cmd-pill">cp /dev/null $ALERT</div>
+          <div class="cmd-pill">rman target / nocatalog</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Oracle Environment Quick Ref -->
+    <div class="glass rounded-2xl p-6 border border-white/5 mt-6 reveal">
+      <h3 class="font-display font-semibold text-white text-lg mb-4">Oracle Environment Variables Reference</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-white/10">
+              <th class="text-left text-neutral-400 font-semibold py-2 pr-6">Variable</th>
+              <th class="text-left text-neutral-400 font-semibold py-2 pr-6">Example Value</th>
+              <th class="text-left text-neutral-400 font-semibold py-2">Purpose</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5 font-mono text-xs">
+            <tr class="hover:bg-white/2"><td class="py-2 pr-6 text-lime-400">ORACLE_SID</td><td class="py-2 pr-6 text-neutral-300">ORCL</td><td class="py-2 text-neutral-400">Instance name — must match DB name in /etc/oratab</td></tr>
+            <tr class="hover:bg-white/2"><td class="py-2 pr-6 text-lime-400">ORACLE_HOME</td><td class="py-2 pr-6 text-neutral-300">/u01/app/oracle/product/19.0.0/dbhome_1</td><td class="py-2 text-neutral-400">Oracle software installation directory</td></tr>
+            <tr class="hover:bg-white/2"><td class="py-2 pr-6 text-lime-400">ORACLE_BASE</td><td class="py-2 pr-6 text-neutral-300">/u01/app/oracle</td><td class="py-2 text-neutral-400">Top-level Oracle directory (OFA root)</td></tr>
+            <tr class="hover:bg-white/2"><td class="py-2 pr-6 text-lime-400">TNS_ADMIN</td><td class="py-2 pr-6 text-neutral-300">$ORACLE_HOME/network/admin</td><td class="py-2 text-neutral-400">Location of tnsnames.ora, sqlnet.ora, listener.ora</td></tr>
+            <tr class="hover:bg-white/2"><td class="py-2 pr-6 text-lime-400">PATH</td><td class="py-2 pr-6 text-neutral-300">$ORACLE_HOME/bin:$PATH</td><td class="py-2 text-neutral-400">Adds sqlplus, rman, lsnrctl, asmcmd to search path</td></tr>
+            <tr class="hover:bg-white/2"><td class="py-2 pr-6 text-lime-400">LD_LIBRARY_PATH</td><td class="py-2 pr-6 text-neutral-300">$ORACLE_HOME/lib</td><td class="py-2 text-neutral-400">Oracle shared libraries — required for OCI programs</td></tr>
+            <tr class="hover:bg-white/2"><td class="py-2 pr-6 text-lime-400">NLS_DATE_FORMAT</td><td class="py-2 pr-6 text-neutral-300">DD-MON-YYYY HH24:MI:SS</td><td class="py-2 text-neutral-400">Date display format in SQL*Plus output</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="py-16 border-t border-white/5">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid md:grid-cols-4 gap-10 mb-12">
+      <div class="md:col-span-2">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-lime-500 to-green-700 flex items-center justify-center">
+            <i class="fab fa-linux text-white text-sm"></i>
+          </div>
+          <span class="font-display font-bold text-white text-lg">Oracle DBA Simplified</span>
+        </div>
+        <p class="text-neutral-500 text-sm leading-relaxed mb-6 max-w-sm">Practical Linux skills for Oracle DBAs — from day-to-day commands to advanced performance monitoring and automation.</p>
+        <div class="flex gap-3">
+          <a href="index.html" class="btn-ghost text-xs py-2 px-4">← Back to Home</a>
+          <a href="rman-backup-recovery.html" class="btn-ghost text-xs py-2 px-4">RMAN Guide</a>
+          <a href="data-guard.html" class="btn-ghost text-xs py-2 px-4">Data Guard</a>
+        </div>
+      </div>
+      <div>
+        <h4 class="font-display font-semibold text-white text-sm mb-4">On This Page</h4>
+        <ul class="space-y-2 text-sm text-neutral-500">
+          <li><a href="#overview" class="hover:text-lime-400 transition-colors">Overview</a></li>
+          <li><a href="#commands" class="hover:text-lime-400 transition-colors">Command Explorer</a></li>
+          <li><a href="#oracle-linux" class="hover:text-lime-400 transition-colors">Oracle on Linux</a></li>
+          <li><a href="#top-command" class="hover:text-lime-400 transition-colors">top &amp; ps</a></li>
+          <li><a href="#scripting" class="hover:text-lime-400 transition-colors">Shell Scripting</a></li>
+          <li><a href="#cron" class="hover:text-lime-400 transition-colors">Cron Jobs</a></li>
+          <li><a href="#performance" class="hover:text-lime-400 transition-colors">Performance</a></li>
+          <li><a href="#logs" class="hover:text-lime-400 transition-colors">Log Management</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-display font-semibold text-white text-sm mb-4">Other Topics</h4>
+        <ul class="space-y-2 text-sm text-neutral-500">
+          <li><a href="oracle-architecture.html" class="hover:text-oracle-red transition-colors">Oracle Architecture</a></li>
+          <li><a href="rman-backup-recovery.html" class="hover:text-oracle-red transition-colors">RMAN Backup &amp; Recovery</a></li>
+          <li><a href="data-guard.html" class="hover:text-oracle-red transition-colors">Data Guard</a></li>
+          <li><a href="linux-for-dbas.html" class="hover:text-lime-400 transition-colors">Linux for DBAs</a></li>
+          <li><a href="#" class="hover:text-oracle-red transition-colors">Performance Tuning</a></li>
+          <li><a href="#" class="hover:text-oracle-red transition-colors">Interview Questions</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <p class="text-neutral-600 text-sm">Content for educational purposes. Oracle is a trademark of Oracle Corporation.</p>
+      <div class="flex items-center gap-4 text-sm text-neutral-600">
+        <span>Sources: Oracle Docs, Gavin Soorma, DBA Genesis, Oracle DBW</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- BACK TO TOP -->
+<button id="btt" class="fixed bottom-6 right-6 w-10 h-10 rounded-full glass-strong border border-lime-500/30 text-lime-400 text-sm items-center justify-center hidden hover:bg-lime-500/20 transition-all z-50 flex"><i class="fas fa-arrow-up"></i></button>
+
+<script>
+// ===================== TABS =====================
+function initTabs(group) {
+  const btns = document.querySelectorAll(`[data-group="${group}"]`);
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const id = btn.getAttribute('data-tab');
+      document.querySelectorAll(`#${id}`).forEach(el => {
+        // hide all siblings in same parent
+        const parent = el.parentElement;
+        parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+      });
+    });
+  });
+}
+initTabs('cmd');
+initTabs('ol');
+initTabs('sh');
+initTabs('pm');
+
+// ===================== ACCORDION =====================
+document.querySelectorAll('.acc-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const content = btn.nextElementSibling;
+    const isOpen = content.classList.contains('open');
+    // close all
+    document.querySelectorAll('.acc-content').forEach(c => c.classList.remove('open'));
+    document.querySelectorAll('.acc-btn').forEach(b => b.classList.remove('open'));
+    if (!isOpen) {
+      content.classList.add('open');
+      btn.classList.add('open');
+    }
+  });
+});
+
+// ===================== SCROLL REVEAL =====================
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ===================== NAV ACTIVE =====================
+const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+const sections = document.querySelectorAll('section[id]');
+const navObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navLinks.forEach(l => {
+        l.classList.toggle('active', l.getAttribute('href') === `#${id}`);
+      });
+    }
+  });
+}, { rootMargin: '-40% 0px -55% 0px' });
+sections.forEach(s => navObserver.observe(s));
+
+// ===================== MOBILE MENU =====================
+const mobBtn = document.getElementById('mob-btn');
+const mobMenu = document.getElementById('mob-menu');
+if (mobBtn && mobMenu) {
+  mobBtn.addEventListener('click', () => {
+    mobMenu.classList.toggle('open');
+  });
+  mobMenu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => mobMenu.classList.remove('open'));
+  });
+}
+
+// ===================== BACK TO TOP =====================
+const btt = document.getElementById('btt');
+window.addEventListener('scroll', () => {
+  btt.classList.toggle('hidden', window.scrollY < 400);
+});
+btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+</script>
+</body>
+</html>

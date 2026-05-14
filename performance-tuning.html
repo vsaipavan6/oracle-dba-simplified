@@ -1,0 +1,2743 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Oracle Performance Tuning | Oracle DBA Simplified</title>
+  <meta name="description" content="Complete Oracle 19c Performance Tuning guide — AWR, ASH, ADDM, wait events, SQL tuning, memory, indexes, statistics, locking, and real-life scenarios with full SQL."/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config={darkMode:'class',theme:{extend:{colors:{oracle:{red:'#C74634',dark:'#8B2E22',light:'#E8604A'}},fontFamily:{display:['Sora','sans-serif'],body:['DM Sans','sans-serif'],mono:['JetBrains Mono','monospace']}}}}
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{--color-primary:#22d3ee;--color-surface:#111118;--color-border:#1e1e2e;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#0a0a0f;color:#e2e8f0;overflow-x:hidden;}
+    ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:#0a0a0f;}::-webkit-scrollbar-thumb{background:#22d3ee;border-radius:3px;}
+    .glass{background:rgba(255,255,255,0.04);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);}
+    .glass-strong{background:rgba(255,255,255,0.07);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);}
+    .gradient-text{background:linear-gradient(135deg,#22d3ee,#38bdf8,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .gradient-text-w{background:linear-gradient(135deg,#fff,#cbd5e1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12;pointer-events:none;}
+    .grid-bg{background-image:linear-gradient(rgba(34,211,238,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.03) 1px,transparent 1px);background-size:64px 64px;}
+    .nav-link{font-size:.875rem;color:#94a3b8;transition:color .2s;}
+    .nav-link:hover,.nav-link.active{color:#22d3ee;}
+    .btn-primary{background:linear-gradient(135deg,#22d3ee,#0891b2);color:#0a0a0f;border-radius:6px;padding:10px 24px;font-weight:700;font-size:.875rem;transition:all .2s;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(34,211,238,.4);}
+    .btn-ghost{background:transparent;color:#e2e8f0;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:10px 24px;font-weight:500;font-size:.875rem;transition:all .2s;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-ghost:hover{border-color:rgba(34,211,238,.5);color:#22d3ee;}
+    .badge{font-size:.75rem;padding:3px 10px;border-radius:100px;font-weight:600;display:inline-block;}
+    .badge-red{background:rgba(199,70,52,.15);color:#E8604A;border:1px solid rgba(199,70,52,.25);}
+    .badge-amber{background:rgba(34,211,238,.15);color:#22d3ee;border:1px solid rgba(34,211,238,.25);}
+    .badge-blue{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.25);}
+    .badge-green{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);}
+    .badge-purple{background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.25);}
+    .badge-orange{background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.25);}
+    .badge-cyan{background:rgba(6,182,212,.15);color:#22d3ee;border:1px solid rgba(6,182,212,.25);}
+    .badge-yellow{background:rgba(234,179,8,.15);color:#facc15;border:1px solid rgba(234,179,8,.25);}
+    .badge-pink{background:rgba(236,72,153,.15);color:#f472b6;border:1px solid rgba(236,72,153,.25);}
+    .reveal{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease;}
+    .reveal.visible{opacity:1;transform:none;}
+    .terminal{background:#0d0d14;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden;}
+    .terminal-bar{background:#1a1a25;padding:10px 16px;display:flex;align-items:center;gap:8px;}
+    .t-dot{width:11px;height:11px;border-radius:50%;}
+    code .kw{color:#22d3ee;} code .fn{color:#78d4f4;} code .str{color:#a8ff78;} code .cm{color:#6b7280;font-style:italic;} code .num{color:#fb923c;} code .op{color:#e2e8f0;} code .var{color:#c084fc;} code .flag{color:#22d3ee;} code .err{color:#f87171;}
+    .tab-btn{padding:8px 18px;border-radius:8px;font-size:.8rem;font-weight:600;transition:all .2s;cursor:pointer;border:1px solid transparent;color:#64748b;white-space:nowrap;}
+    .tab-btn.active,.tab-btn:hover{background:rgba(34,211,238,.12);color:#22d3ee;border-color:rgba(34,211,238,.3);}
+    .tab-content{display:none;}.tab-content.active{display:block;}
+    .acc-content{max-height:0;overflow:hidden;transition:max-height .5s ease;}
+    .acc-content.open{max-height:5000px;}
+    .acc-icon{transition:transform .3s;}
+    .acc-btn.open .acc-icon{transform:rotate(180deg);}
+    #mob-menu{max-height:0;overflow:hidden;transition:max-height .4s;}
+    #mob-menu.open{max-height:600px;}
+    .wait-card{transition:all .25s;cursor:pointer;border:1px solid rgba(255,255,255,.06);}
+    .wait-card:hover{border-color:rgba(34,211,238,.4);transform:translateY(-2px);}
+    .wait-card.selected{border-color:#22d3ee;box-shadow:0 0 0 1px #22d3ee,0 0 20px rgba(34,211,238,.25);}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+    .cursor{animation:blink 1s infinite;color:#22d3ee;}
+    .metric-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;}
+    .metric-fill{height:100%;border-radius:3px;transition:width 1s ease;}
+    .flow-step:not(:last-child)::after{content:'';display:block;width:2px;height:24px;background:linear-gradient(to bottom,#22d3ee,transparent);margin:4px auto;}
+    .perf-pulse{animation:perfpulse 2s ease-in-out infinite;}
+    @keyframes perfpulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:.8}}
+  </style>
+</head>
+<body class="dark grid-bg">
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/5">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="flex items-center gap-2 text-neutral-400 hover:text-cyan-400 transition-colors text-sm font-medium">
+        <i class="fas fa-arrow-left text-xs"></i> Back to Home
+      </a>
+      <span class="text-neutral-700">|</span>
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-md bg-gradient-to-br from-cyan-500 to-sky-600 flex items-center justify-center">
+          <i class="fas fa-gauge-high text-white text-xs"></i>
+        </div>
+        <span class="font-display font-bold text-white text-sm">Oracle DBA Simplified</span>
+      </div>
+    </div>
+    <div class="hidden md:flex items-center gap-5">
+      <a href="#methodology" class="nav-link">Methodology</a>
+      <a href="#awr" class="nav-link">AWR</a>
+      <a href="#ash" class="nav-link">ASH</a>
+      <a href="#wait-events" class="nav-link">Wait Events</a>
+      <a href="#sql-tuning" class="nav-link">SQL Tuning</a>
+      <a href="#memory" class="nav-link">Memory</a>
+      <a href="#indexes" class="nav-link">Indexes</a>
+      <a href="#scenarios" class="nav-link">Scenarios</a>
+    </div>
+    <button id="mob-btn" class="md:hidden text-neutral-400 hover:text-white"><i class="fas fa-bars"></i></button>
+  </div>
+  <div id="mob-menu" class="md:hidden px-6 pb-4">
+    <div class="flex flex-col gap-3 pt-2">
+      <a href="#methodology" class="nav-link">Methodology</a><a href="#awr" class="nav-link">AWR</a>
+      <a href="#ash" class="nav-link">ASH</a><a href="#wait-events" class="nav-link">Wait Events</a>
+      <a href="#sql-tuning" class="nav-link">SQL Tuning</a><a href="#memory" class="nav-link">Memory</a>
+      <a href="#indexes" class="nav-link">Indexes</a><a href="#scenarios" class="nav-link">Scenarios</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
+  <div class="orb w-96 h-96 bg-cyan-500 top-20 -left-20"></div>
+  <div class="orb w-80 h-80 bg-orange-600 bottom-20 right-10"></div>
+  <div class="orb w-64 h-64 bg-purple-600 top-40 right-1/3"></div>
+  <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
+    <div>
+      <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-6 border border-cyan-500/20">
+        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+        <span class="text-sm text-neutral-400 font-medium">Oracle 19c Performance Tuning — Complete Guide</span>
+      </div>
+      <h1 class="font-display font-bold text-5xl md:text-6xl mb-6 leading-tight">
+        <span class="gradient-text-w">Oracle</span><br/>
+        <span class="gradient-text">Performance Tuning</span>
+      </h1>
+      <p class="text-neutral-400 text-lg mb-8 leading-relaxed">
+        Master Oracle performance from the ground up — AWR, ASH, ADDM, wait event analysis, SQL tuning, memory management, indexes, statistics, and real-life scenario walkthroughs with complete SQL.
+      </p>
+      <div class="flex flex-wrap gap-3 mb-10">
+        <a href="#awr" class="badge badge-amber py-2 px-4 cursor-pointer hover:scale-105 transition-transform">AWR / ASH / ADDM</a>
+        <a href="#wait-events" class="badge badge-red py-2 px-4 cursor-pointer hover:scale-105 transition-transform">Wait Events</a>
+        <a href="#sql-tuning" class="badge badge-blue py-2 px-4 cursor-pointer hover:scale-105 transition-transform">SQL Tuning</a>
+        <a href="#memory" class="badge badge-purple py-2 px-4 cursor-pointer hover:scale-105 transition-transform">Memory (SGA/PGA)</a>
+        <a href="#indexes" class="badge badge-green py-2 px-4 cursor-pointer hover:scale-105 transition-transform">Indexes &amp; Stats</a>
+        <a href="#scenarios" class="badge badge-orange py-2 px-4 cursor-pointer hover:scale-105 transition-transform">Real-Life Scenarios</a>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="glass rounded-xl p-3 border border-cyan-500/20 text-center">
+          <div class="font-display font-bold text-2xl gradient-text">150+</div>
+          <div class="text-neutral-500 text-xs mt-1">SQL Queries</div>
+        </div>
+        <div class="glass rounded-xl p-3 border border-orange-500/20 text-center">
+          <div class="font-display font-bold text-2xl" style="color:#fb923c">7</div>
+          <div class="text-neutral-500 text-xs mt-1">Real Scenarios</div>
+        </div>
+        <div class="glass rounded-xl p-3 border border-purple-500/20 text-center">
+          <div class="font-display font-bold text-2xl" style="color:#a78bfa">19c</div>
+          <div class="text-neutral-500 text-xs mt-1">Oracle Version</div>
+        </div>
+        <div class="glass rounded-xl p-3 border border-blue-500/20 text-center">
+          <div class="font-display font-bold text-2xl" style="color:#60a5fa">AWR</div>
+          <div class="text-neutral-500 text-xs mt-1">Driven Approach</div>
+        </div>
+      </div>
+    </div>
+    <!-- Hero — Live performance terminal -->
+    <div class="terminal reveal">
+      <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Top 5 Timed Events — AWR Snapshot</span></div>
+      <div class="p-5 font-mono text-xs space-y-1" style="min-height:320px">
+        <div class="text-cyan-400 mb-2">Event                             Waits   Time(s)  Avg(ms)  %DB Time</div>
+        <div class="text-white">DB CPU                                      18,432           <span class="text-cyan-400">41.2%</span></div>
+        <div class="flex items-center gap-3">
+          <div class="text-red-400">db file sequential read     145,231   9,847    67.8     <span class="text-cyan-400">22.0%</span></div>
+        </div>
+        <div class="text-orange-400">log file sync               22,104    4,210   190.4     <span class="text-cyan-400"> 9.4%</span></div>
+        <div class="text-yellow-400">enq: TX - row lock contention  8,432  3,891   461.9     <span class="text-cyan-400"> 8.7%</span></div>
+        <div class="text-blue-400">db file scattered read      98,234    2,108    21.5     <span class="text-cyan-400"> 4.7%</span></div>
+        <div class="mt-3 text-neutral-500">─────────────────────────────────────────────</div>
+        <div class="mt-2 text-neutral-400">Top SQL by CPU (last hour):</div>
+        <div class="text-white mt-1">SQL_ID        EXECS    CPU_SEC  READS  PLAN_HASH</div>
+        <div class="text-red-300">9fxk3d2bqhq7  1,204  <span class="text-red-400">3,842</span>   245K  2891583419</div>
+        <div class="text-orange-300">f4t2m9nxkpr1    892    1,234    89K  1204837291</div>
+        <div class="text-yellow-300">bq8n2c7wr5kj    3,892    892   421K  3948271023</div>
+        <div class="flex items-center gap-1 mt-3"><span class="text-cyan-400">SQL&gt;</span> <span class="cursor">|</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-neutral-600"><i class="fas fa-chevron-down"></i></div>
+</section>
+
+<!-- METHODOLOGY -->
+<section id="methodology" class="py-24 max-w-7xl mx-auto px-6">
+  <div class="text-center mb-16 reveal">
+    <span class="badge badge-amber mb-4">Where to Start</span>
+    <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">Performance Tuning Methodology</h2>
+    <p class="text-neutral-400 max-w-2xl mx-auto">A structured, repeatable approach is the difference between a lucky fix and a permanent solution. Always follow the data — not gut instinct.</p>
+  </div>
+
+  <!-- 6-step methodology flow -->
+  <div class="grid md:grid-cols-6 gap-4 mb-14 reveal">
+    <div class="glass rounded-2xl p-5 border border-cyan-500/20 text-center">
+      <div class="w-10 h-10 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center mx-auto mb-3 font-display font-bold text-cyan-400">1</div>
+      <p class="text-white font-semibold text-sm mb-1">Baseline</p>
+      <p class="text-neutral-500 text-xs">Capture current AWR snapshot and performance metrics</p>
+    </div>
+    <div class="glass rounded-2xl p-5 border border-orange-500/20 text-center">
+      <div class="w-10 h-10 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center justify-center mx-auto mb-3 font-display font-bold text-orange-400">2</div>
+      <p class="text-white font-semibold text-sm mb-1">Identify</p>
+      <p class="text-neutral-500 text-xs">AWR Top 5 Wait Events, ADDM findings, top SQL</p>
+    </div>
+    <div class="glass rounded-2xl p-5 border border-red-500/20 text-center">
+      <div class="w-10 h-10 rounded-full bg-red-500/15 border border-red-500/30 flex items-center justify-center mx-auto mb-3 font-display font-bold text-red-400">3</div>
+      <p class="text-white font-semibold text-sm mb-1">Analyse</p>
+      <p class="text-neutral-500 text-xs">Root cause — SQL plan, memory, I/O, locking</p>
+    </div>
+    <div class="glass rounded-2xl p-5 border border-purple-500/20 text-center">
+      <div class="w-10 h-10 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center mx-auto mb-3 font-display font-bold text-purple-400">4</div>
+      <p class="text-white font-semibold text-sm mb-1">Tune</p>
+      <p class="text-neutral-500 text-xs">One change at a time — SQL, indexes, memory, parameters</p>
+    </div>
+    <div class="glass rounded-2xl p-5 border border-blue-500/20 text-center">
+      <div class="w-10 h-10 rounded-full bg-blue-500/15 border border-blue-500/30 flex items-center justify-center mx-auto mb-3 font-display font-bold text-blue-400">5</div>
+      <p class="text-white font-semibold text-sm mb-1">Measure</p>
+      <p class="text-neutral-500 text-xs">Generate new AWR, compare before/after metrics</p>
+    </div>
+    <div class="glass rounded-2xl p-5 border border-green-500/20 text-center">
+      <div class="w-10 h-10 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center mx-auto mb-3 font-display font-bold text-green-400">6</div>
+      <p class="text-white font-semibold text-sm mb-1">Monitor</p>
+      <p class="text-neutral-500 text-xs">Watch for regressions, automate alerts</p>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="glass rounded-2xl p-6 border border-cyan-500/15 reveal">
+      <h3 class="font-display font-semibold text-white text-lg mb-4 flex items-center gap-2"><i class="fas fa-layer-group text-cyan-400"></i> Oracle Diagnostic Toolkit</h3>
+      <div class="space-y-3">
+        <div class="flex items-start gap-3 glass rounded-xl p-3 border border-white/5">
+          <span class="badge badge-amber flex-shrink-0 mt-0.5">AWR</span>
+          <div><p class="text-white text-sm font-semibold">Automatic Workload Repository</p><p class="text-neutral-400 text-xs mt-0.5">Historical snapshots every 60 min (default). Source of truth for all tuning. Requires Diagnostics Pack.</p></div>
+        </div>
+        <div class="flex items-start gap-3 glass rounded-xl p-3 border border-white/5">
+          <span class="badge badge-blue flex-shrink-0 mt-0.5">ASH</span>
+          <div><p class="text-white text-sm font-semibold">Active Session History</p><p class="text-neutral-400 text-xs mt-0.5">Samples active sessions every 1 second. Real-time visibility. Stored in SGA, some written to AWR.</p></div>
+        </div>
+        <div class="flex items-start gap-3 glass rounded-xl p-3 border border-white/5">
+          <span class="badge badge-purple flex-shrink-0 mt-0.5">ADDM</span>
+          <div><p class="text-white text-sm font-semibold">Automatic DB Diagnostic Monitor</p><p class="text-neutral-400 text-xs mt-0.5">Automatically analyses AWR snapshots, identifies root causes, and gives actionable recommendations.</p></div>
+        </div>
+        <div class="flex items-start gap-3 glass rounded-xl p-3 border border-white/5">
+          <span class="badge badge-orange flex-shrink-0 mt-0.5">STA</span>
+          <div><p class="text-white text-sm font-semibold">SQL Tuning Advisor</p><p class="text-neutral-400 text-xs mt-0.5">Analyses specific SQL and suggests indexes, SQL profiles, and plan changes to improve performance.</p></div>
+        </div>
+        <div class="flex items-start gap-3 glass rounded-xl p-3 border border-white/5">
+          <span class="badge badge-green flex-shrink-0 mt-0.5">SPM</span>
+          <div><p class="text-white text-sm font-semibold">SQL Plan Management</p><p class="text-neutral-400 text-xs mt-0.5">Pins SQL execution plans so they cannot regress after upgrades, stats changes, or parameter changes.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="glass rounded-2xl p-6 border border-white/5 reveal">
+      <h3 class="font-display font-semibold text-white text-lg mb-4 flex items-center gap-2"><i class="fas fa-triangle-exclamation text-red-400"></i> The DBA's Golden Rules of Tuning</h3>
+      <div class="space-y-3 text-sm">
+        <div class="glass rounded-xl p-4 border border-cyan-500/10"><p class="text-cyan-400 font-semibold mb-1">Tune the application first, then the database</p><p class="text-neutral-400 text-xs">A bad SQL query cannot be fixed by any amount of memory or hardware. Fix the SQL before adding RAM.</p></div>
+        <div class="glass rounded-xl p-4 border border-red-500/10"><p class="text-red-400 font-semibold mb-1">One change at a time</p><p class="text-neutral-400 text-xs">Making multiple changes simultaneously makes it impossible to know what helped or hurt.</p></div>
+        <div class="glass rounded-xl p-4 border border-blue-500/10"><p class="text-blue-400 font-semibold mb-1">Measure before you tune</p><p class="text-neutral-400 text-xs">Take an AWR snapshot before any change. You cannot prove improvement without a baseline.</p></div>
+        <div class="glass rounded-xl p-4 border border-green-500/10"><p class="text-green-400 font-semibold mb-1">DB Time is the only metric that matters</p><p class="text-neutral-400 text-xs">DB Time = CPU time + Wait time. Everything else is a component. Tune what consumes the most DB Time.</p></div>
+        <div class="glass rounded-xl p-4 border border-purple-500/10"><p class="text-purple-400 font-semibold mb-1">Always check statistics currency</p><p class="text-neutral-400 text-xs">90% of "sudden" slow SQL is caused by stale statistics producing a bad execution plan.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AWR -->
+<section id="awr" class="py-24 bg-gradient-to-b from-transparent via-cyan-500/2 to-transparent">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="badge badge-amber mb-4">Historical Diagnostics</span>
+      <h2 class="font-display font-bold text-4xl md:text-5xl gradient-text-w mb-4">AWR — Automatic Workload Repository</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto">AWR is Oracle's built-in performance warehouse — snapshots of every key metric every 60 minutes, retained for 8 days (default). The foundation of all performance tuning.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-2 mb-8 reveal">
+      <button class="tab-btn active" data-tab="awr-snapshots" data-group="awr">Snapshots &amp; Reports</button>
+      <button class="tab-btn" data-tab="awr-topsql" data-group="awr">Top SQL Queries</button>
+      <button class="tab-btn" data-tab="awr-metrics" data-group="awr">Key Metrics</button>
+      <button class="tab-btn" data-tab="awr-addm" data-group="awr">ADDM</button>
+    </div>
+
+    <!-- Snapshots -->
+    <div class="tab-content active" id="awr-snapshots">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">AWR Snapshot Management</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">-- List recent AWR snapshots</span>
+<span class="kw">SELECT</span> snap_id,
+       begin_interval_time,
+       end_interval_time,
+       snap_level
+<span class="kw">FROM</span>   dba_hist_snapshot
+<span class="kw">ORDER</span> <span class="kw">BY</span> snap_id <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> ROWS ONLY;
+
+<span class="cm">-- Create manual AWR snapshot NOW</span>
+<span class="kw">EXEC</span> DBMS_WORKLOAD_REPOSITORY.CREATE_SNAPSHOT;
+
+<span class="cm">-- Change snapshot interval and retention</span>
+<span class="kw">BEGIN</span>
+  DBMS_WORKLOAD_REPOSITORY.MODIFY_SNAPSHOT_SETTINGS(
+    retention  => <span class="num">43200</span>,   <span class="cm">-- 30 days in minutes</span>
+    interval   => <span class="num">30</span>,      <span class="cm">-- every 30 minutes</span>
+    topnsql    => <span class="num">100</span>     <span class="cm">-- top 100 SQL captured</span>
+  );
+<span class="kw">END</span>;
+/
+
+<span class="cm">-- Purge snapshots older than range</span>
+<span class="kw">BEGIN</span>
+  DBMS_WORKLOAD_REPOSITORY.DROP_SNAPSHOT_RANGE(
+    low_snap_id  => <span class="num">1</span>,
+    high_snap_id => <span class="num">50</span>
+  );
+<span class="kw">END</span>;
+/
+
+<span class="cm">-- Generate AWR HTML report (from SQL*Plus)</span>
+<span class="fn">@$ORACLE_HOME/rdbms/admin/awrrpt.sql</span>
+<span class="cm">-- Select: html, snap range</span>
+
+<span class="cm">-- Or generate programmatically</span>
+<span class="kw">SELECT</span> DBMS_WORKLOAD_REPOSITORY.AWR_REPORT_HTML(
+  l_dbid    => (<span class="kw">SELECT</span> dbid <span class="kw">FROM</span> v$database),
+  l_inst_num => <span class="num">1</span>,
+  l_bid      => <span class="num">1120</span>,   <span class="cm">-- start snap</span>
+  l_eid      => <span class="num">1125</span>    <span class="cm">-- end snap</span>
+) <span class="kw">FROM</span> dual;</code></pre>
+        </div>
+        <div class="glass rounded-2xl p-6 border border-white/5 reveal">
+          <h3 class="font-display font-semibold text-white text-lg mb-4">Key AWR Report Sections — Reading Order</h3>
+          <div class="space-y-3">
+            <div class="glass rounded-xl p-3 border border-cyan-500/20">
+              <div class="flex items-center gap-2 mb-1"><span class="badge badge-amber text-xs">1st</span><p class="text-white font-semibold text-sm">Top 5 Timed Events</p></div>
+              <p class="text-neutral-400 text-xs">Lists the five events consuming most DB Time. This tells you WHERE the bottleneck is. Start here every time.</p>
+            </div>
+            <div class="glass rounded-xl p-3 border border-orange-500/20">
+              <div class="flex items-center gap-2 mb-1"><span class="badge badge-orange text-xs">2nd</span><p class="text-white font-semibold text-sm">Load Profile</p></div>
+              <p class="text-neutral-400 text-xs">DB Time, Logical Reads/sec, Physical Reads/sec, Hard Parses/sec, Redo Size/sec. Compare to baseline to spot anomalies.</p>
+            </div>
+            <div class="glass rounded-xl p-3 border border-blue-500/20">
+              <div class="flex items-center gap-2 mb-1"><span class="badge badge-blue text-xs">3rd</span><p class="text-white font-semibold text-sm">SQL Statistics</p></div>
+              <p class="text-neutral-400 text-xs">Top SQL by CPU, Elapsed Time, Disk Reads, Buffer Gets, Parse Calls. Identifies which SQL drives the most load.</p>
+            </div>
+            <div class="glass rounded-xl p-3 border border-purple-500/20">
+              <div class="flex items-center gap-2 mb-1"><span class="badge badge-purple text-xs">4th</span><p class="text-white font-semibold text-sm">Instance Efficiency</p></div>
+              <p class="text-neutral-400 text-xs">Buffer Cache Hit %, Library Cache Hit %, Soft Parse %. Green metrics here = healthy memory configuration.</p>
+            </div>
+            <div class="glass rounded-xl p-3 border border-green-500/20">
+              <div class="flex items-center gap-2 mb-1"><span class="badge badge-green text-xs">5th</span><p class="text-white font-semibold text-sm">Memory Statistics</p></div>
+              <p class="text-neutral-400 text-xs">SGA/PGA usage, buffer cache advice, shared pool advice. Used to validate memory sizing decisions.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top SQL -->
+    <div class="tab-content" id="awr-topsql">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">Top SQL — Current (v$sql / v$sqlarea)</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">-- Top 15 SQL by elapsed time — current SGA</span>
+<span class="kw">SELECT</span>
+  sql_id,
+  executions,
+  <span class="kw">ROUND</span>(elapsed_time / <span class="num">1e6</span>, <span class="num">2</span>)     elapsed_sec,
+  <span class="kw">ROUND</span>(cpu_time     / <span class="num">1e6</span>, <span class="num">2</span>)     cpu_sec,
+  <span class="kw">ROUND</span>(elapsed_time / <span class="num">1e6</span>
+    / <span class="kw">NULLIF</span>(executions,<span class="num">0</span>), <span class="num">4</span>)    avg_elapsed_sec,
+  disk_reads,
+  buffer_gets,
+  <span class="kw">ROUND</span>(buffer_gets
+    / <span class="kw">NULLIF</span>(executions,<span class="num">0</span>), <span class="num">0</span>)     avg_gets,
+  <span class="kw">SUBSTR</span>(sql_text,<span class="num">1</span>,<span class="num">60</span>)            sql_preview
+<span class="kw">FROM</span>   v$sqlarea
+<span class="kw">WHERE</span>  executions > <span class="num">0</span>
+<span class="kw">ORDER</span> <span class="kw">BY</span> elapsed_time <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">15</span> ROWS ONLY;
+
+<span class="cm">-- Top SQL by disk reads (I/O hogs)</span>
+<span class="kw">SELECT</span>
+  sql_id,
+  disk_reads,
+  executions,
+  <span class="kw">ROUND</span>(disk_reads/<span class="kw">NULLIF</span>(executions,<span class="num">0</span>), <span class="num">0</span>) reads_per_exec,
+  <span class="kw">SUBSTR</span>(sql_text,<span class="num">1</span>,<span class="num">80</span>) sql_preview
+<span class="kw">FROM</span>   v$sqlarea
+<span class="kw">WHERE</span>  disk_reads > executions * <span class="num">1000</span>
+<span class="kw">ORDER</span> <span class="kw">BY</span> disk_reads <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> ROWS ONLY;
+
+<span class="cm">-- Top SQL by parse rate (high hard parse ratio)</span>
+<span class="kw">SELECT</span>
+  sql_id,
+  parse_calls,
+  executions,
+  <span class="kw">ROUND</span>(<span class="num">100</span>*parse_calls/<span class="kw">NULLIF</span>(executions,<span class="num">0</span>),<span class="num">1</span>) parse_pct,
+  <span class="kw">SUBSTR</span>(sql_text,<span class="num">1</span>,<span class="num">80</span>)
+<span class="kw">FROM</span>   v$sqlarea
+<span class="kw">WHERE</span>  parse_calls > executions * <span class="num">0.8</span>
+  <span class="kw">AND</span>  executions > <span class="num">100</span>
+<span class="kw">ORDER</span> <span class="kw">BY</span> parse_calls <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> ROWS ONLY;
+
+<span class="cm">-- Get full SQL text for a sql_id</span>
+<span class="kw">SELECT</span> sql_text <span class="kw">FROM</span> v$sqltext
+<span class="kw">WHERE</span>  sql_id = <span class="str">'9fxk3d2bqhq7'</span>
+<span class="kw">ORDER</span> <span class="kw">BY</span> piece;</code></pre>
+        </div>
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">AWR Historical Top SQL (dba_hist_sqlstat)</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">-- AWR top SQL — all snapshots in last 24h</span>
+<span class="kw">SELECT</span>
+  s.sql_id,
+  s.plan_hash_value,
+  <span class="kw">SUM</span>(s.executions_delta)             executions,
+  <span class="kw">ROUND</span>(<span class="kw">SUM</span>(s.elapsed_time_delta)/<span class="num">1e6</span>,<span class="num">1</span>) elapsed_sec,
+  <span class="kw">ROUND</span>(<span class="kw">SUM</span>(s.cpu_time_delta)/<span class="num">1e6</span>,<span class="num">1</span>)     cpu_sec,
+  <span class="kw">SUM</span>(s.disk_reads_delta)             disk_reads,
+  <span class="kw">SUM</span>(s.buffer_gets_delta)            buffer_gets,
+  <span class="kw">SUBSTR</span>(t.sql_text,<span class="num">1</span>,<span class="num">60</span>)             sql_preview
+<span class="kw">FROM</span>   dba_hist_sqlstat s
+<span class="kw">JOIN</span>   dba_hist_sqltext t
+       <span class="kw">ON</span> s.sql_id = t.sql_id
+<span class="kw">JOIN</span>   dba_hist_snapshot sn
+       <span class="kw">ON</span> s.snap_id = sn.snap_id
+<span class="kw">WHERE</span>  sn.begin_interval_time >= <span class="kw">SYSDATE</span> - <span class="num">1</span>
+  <span class="kw">AND</span>  s.executions_delta > <span class="num">0</span>
+<span class="kw">GROUP</span> <span class="kw">BY</span> s.sql_id, s.plan_hash_value,
+         <span class="kw">SUBSTR</span>(t.sql_text,<span class="num">1</span>,<span class="num">60</span>)
+<span class="kw">ORDER</span> <span class="kw">BY</span> <span class="kw">SUM</span>(s.elapsed_time_delta) <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">15</span> ROWS ONLY;
+
+<span class="cm">-- Detect SQL plan changes (regression detection)</span>
+<span class="kw">SELECT</span>
+  sql_id,
+  plan_hash_value,
+  <span class="kw">COUNT</span>(<span class="kw">DISTINCT</span> snap_id)             snaps,
+  <span class="kw">ROUND</span>(<span class="kw">AVG</span>(elapsed_time_delta
+    /<span class="kw">NULLIF</span>(executions_delta,<span class="num">0</span>))/<span class="num">1e6</span>,<span class="num">3</span>) avg_elapsed_sec,
+  <span class="kw">MIN</span>(sn.begin_interval_time)          first_seen,
+  <span class="kw">MAX</span>(sn.begin_interval_time)          last_seen
+<span class="kw">FROM</span>   dba_hist_sqlstat s
+<span class="kw">JOIN</span>   dba_hist_snapshot sn
+       <span class="kw">ON</span> s.snap_id = sn.snap_id
+<span class="kw">WHERE</span>  s.sql_id = <span class="str">'&amp;sql_id'</span>
+  <span class="kw">AND</span>  s.executions_delta > <span class="num">0</span>
+<span class="kw">GROUP</span> <span class="kw">BY</span> sql_id, plan_hash_value
+<span class="kw">ORDER</span> <span class="kw">BY</span> first_seen;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="tab-content" id="awr-metrics">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">AWR Instance Efficiency Metrics</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">-- Buffer Cache Hit Ratio</span>
+<span class="kw">SELECT</span>
+  <span class="kw">ROUND</span>(<span class="num">100</span> * (<span class="num">1</span> - (phys / (dblk + cons))), <span class="num">2</span>) bchr_pct
+<span class="kw">FROM</span> (
+  <span class="kw">SELECT</span>
+    <span class="kw">SUM</span>(<span class="kw">CASE</span> <span class="kw">WHEN</span> name=<span class="str">'physical reads'</span>
+             <span class="kw">THEN</span> value <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) phys,
+    <span class="kw">SUM</span>(<span class="kw">CASE</span> <span class="kw">WHEN</span> name=<span class="str">'db block gets'</span>
+             <span class="kw">THEN</span> value <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) dblk,
+    <span class="kw">SUM</span>(<span class="kw">CASE</span> <span class="kw">WHEN</span> name=<span class="str">'consistent gets'</span>
+             <span class="kw">THEN</span> value <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) cons
+  <span class="kw">FROM</span> v$sysstat
+);
+<span class="cm">-- Target: > 95% (ideally > 99% for OLTP)</span>
+
+<span class="cm">-- Library Cache Hit Ratio</span>
+<span class="kw">SELECT</span>
+  namespace,
+  <span class="kw">ROUND</span>(<span class="num">100</span>*(pins-reloads)/<span class="kw">NULLIF</span>(pins,<span class="num">0</span>),<span class="num">2</span>) hit_pct,
+  reloads, invalidations
+<span class="kw">FROM</span>   v$librarycache
+<span class="kw">WHERE</span>  namespace <span class="kw">IN</span> (<span class="str">'SQL AREA'</span>,<span class="str">'TABLE/PROCEDURE'</span>,<span class="str">'BODY'</span>)
+<span class="kw">ORDER</span> <span class="kw">BY</span> hit_pct;
+<span class="cm">-- Target: > 99%</span>
+
+<span class="cm">-- Hard vs. Soft parse ratio</span>
+<span class="kw">SELECT</span>
+  hard_parses,
+  total_parses,
+  <span class="kw">ROUND</span>(<span class="num">100</span>*hard_parses/<span class="kw">NULLIF</span>(total_parses,<span class="num">0</span>),<span class="num">2</span>) hard_pct
+<span class="kw">FROM</span> (
+  <span class="kw">SELECT</span>
+    <span class="kw">SUM</span>(<span class="kw">CASE</span> <span class="kw">WHEN</span> name=<span class="str">'parse count (hard)'</span>
+             <span class="kw">THEN</span> value <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) hard_parses,
+    <span class="kw">SUM</span>(<span class="kw">CASE</span> <span class="kw">WHEN</span> name=<span class="str">'parse count (total)'</span>
+             <span class="kw">THEN</span> value <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) total_parses
+  <span class="kw">FROM</span> v$sysstat
+);
+<span class="cm">-- Target: hard parse% < 5%</span>
+
+<span class="cm">-- Redo log switches per hour (should be &lt; 4)</span>
+<span class="kw">SELECT</span>
+  <span class="kw">TRUNC</span>(completion_time,<span class="str">'HH'</span>) hr,
+  <span class="kw">COUNT</span>(*)                      switches
+<span class="kw">FROM</span>   v$archived_log
+<span class="kw">WHERE</span>  completion_time >= <span class="kw">SYSDATE</span> - <span class="num">1</span>
+<span class="kw">GROUP</span> <span class="kw">BY</span> <span class="kw">TRUNC</span>(completion_time,<span class="str">'HH'</span>)
+<span class="kw">ORDER</span> <span class="kw">BY</span> hr <span class="kw">DESC</span>;</code></pre>
+        </div>
+        <div class="glass rounded-2xl p-6 border border-white/5 reveal">
+          <h3 class="font-display font-semibold text-white text-lg mb-5">AWR Metric Reference Card</h3>
+          <div class="space-y-3 text-sm">
+            <div class="grid grid-cols-3 gap-2 text-xs text-neutral-400 font-semibold border-b border-white/10 pb-2"><span>Metric</span><span>Target</span><span>If Failed</span></div>
+            <div class="grid grid-cols-3 gap-2 py-2 border-b border-white/5 text-xs">
+              <span class="text-cyan-400">Buffer Cache Hit %</span><span class="text-green-400">&gt; 99%</span><span class="text-neutral-400">Increase DB_CACHE_SIZE</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 py-2 border-b border-white/5 text-xs">
+              <span class="text-cyan-400">Library Cache Hit %</span><span class="text-green-400">&gt; 99%</span><span class="text-neutral-400">Increase SHARED_POOL_SIZE</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 py-2 border-b border-white/5 text-xs">
+              <span class="text-cyan-400">Soft Parse %</span><span class="text-green-400">&gt; 95%</span><span class="text-neutral-400">Use bind variables / CURSOR_SHARING</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 py-2 border-b border-white/5 text-xs">
+              <span class="text-cyan-400">PGA Cache Hit %</span><span class="text-green-400">&gt; 80%</span><span class="text-neutral-400">Increase PGA_AGGREGATE_TARGET</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 py-2 border-b border-white/5 text-xs">
+              <span class="text-cyan-400">Log Switches/hr</span><span class="text-green-400">&lt; 4</span><span class="text-neutral-400">Increase redo log file size</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 py-2 border-b border-white/5 text-xs">
+              <span class="text-cyan-400">I/O Wait % DB Time</span><span class="text-green-400">&lt; 20%</span><span class="text-neutral-400">Buffer cache, indexes, storage</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 py-2 border-b border-white/5 text-xs">
+              <span class="text-cyan-400">DB CPU % DB Time</span><span class="text-green-400">40-60%</span><span class="text-neutral-400">SQL tuning if &gt; 80% CPU</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 py-2 text-xs">
+              <span class="text-cyan-400">Multipass Executions</span><span class="text-green-400">0</span><span class="text-neutral-400">Increase PGA_AGGREGATE_TARGET</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADDM -->
+    <div class="tab-content" id="awr-addm">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="terminal reveal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2 font-mono">ADDM — Auto Diagnostic Monitor</span></div>
+          <pre class="p-5 text-sm overflow-x-auto"><code><span class="cm">-- Generate ADDM report</span>
+<span class="fn">@$ORACLE_HOME/rdbms/admin/addmrpt.sql</span>
+
+<span class="cm">-- List recent ADDM tasks</span>
+<span class="kw">SELECT</span>
+  task_id,
+  task_name,
+  execution_start,
+  execution_end,
+  status
+<span class="kw">FROM</span>   dba_advisor_tasks
+<span class="kw">WHERE</span>  advisor_name =
+         <span class="str">'Automatic Database Diagnostic Monitor'</span>
+<span class="kw">ORDER</span> <span class="kw">BY</span> task_id <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> ROWS ONLY;
+
+<span class="cm">-- View ADDM findings for latest task</span>
+<span class="kw">SELECT</span>
+  impact_type,
+  <span class="kw">ROUND</span>(impact, <span class="num">1</span>)      impact_pct,
+  finding,
+  <span class="kw">SUBSTR</span>(message, <span class="num">1</span>, <span class="num">120</span>) message
+<span class="kw">FROM</span>   dba_advisor_findings
+<span class="kw">WHERE</span>  task_id = (
+    <span class="kw">SELECT</span> <span class="kw">MAX</span>(task_id)
+    <span class="kw">FROM</span>   dba_advisor_tasks
+    <span class="kw">WHERE</span>  advisor_name =
+             <span class="str">'Automatic Database Diagnostic Monitor'</span>
+)
+<span class="kw">ORDER</span> <span class="kw">BY</span> impact <span class="kw">DESC</span>;
+
+<span class="cm">-- View ADDM recommendations</span>
+<span class="kw">SELECT</span>
+  benefit,
+  reco_id,
+  <span class="kw">SUBSTR</span>(message, <span class="num">1</span>, <span class="num">200</span>) recommendation
+<span class="kw">FROM</span>   dba_advisor_recommendations
+<span class="kw">WHERE</span>  task_id = (
+    <span class="kw">SELECT</span> <span class="kw">MAX</span>(task_id)
+    <span class="kw">FROM</span>   dba_advisor_tasks
+    <span class="kw">WHERE</span>  advisor_name =
+             <span class="str">'Automatic Database Diagnostic Monitor'</span>
+)
+<span class="kw">ORDER</span> <span class="kw">BY</span> benefit <span class="kw">DESC</span>;</code></pre>
+        </div>
+        <div class="glass rounded-2xl p-6 border border-purple-500/15 reveal">
+          <h3 class="font-display font-semibold text-white text-lg mb-4 flex items-center gap-2"><i class="fas fa-robot text-purple-400"></i> How ADDM Works</h3>
+          <div class="space-y-4 text-sm">
+            <p class="text-neutral-400 text-sm">ADDM automatically runs after every AWR snapshot and analyses the data between the two most recent snapshots. It identifies root causes — not just symptoms — and quantifies their impact as a percentage of DB Time.</p>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="glass rounded-xl p-3 border border-purple-500/20 text-center">
+                <i class="fas fa-database text-purple-400 text-lg mb-2"></i>
+                <p class="text-white text-xs font-semibold">What it finds</p>
+                <p class="text-neutral-500 text-xs mt-1">SQL hogging resources, memory pressure, I/O saturation, locking, high parse rates, undo usage</p>
+              </div>
+              <div class="glass rounded-xl p-3 border border-cyan-500/20 text-center">
+                <i class="fas fa-lightbulb text-cyan-400 text-lg mb-2"></i>
+                <p class="text-white text-xs font-semibold">What it recommends</p>
+                <p class="text-neutral-500 text-xs mt-1">Run SQL Tuning Advisor, increase SGA, use bind variables, create indexes, resize redo logs</p>
+              </div>
+            </div>
+            <div class="terminal mt-2">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+              <pre class="p-4 text-xs"><code><span class="cm">-- Run ADDM manually for a custom snapshot range</span>
+<span class="kw">DECLARE</span>
+  task_name <span class="kw">VARCHAR2</span>(<span class="num">30</span>) := <span class="str">'my_addm_task'</span>;
+<span class="kw">BEGIN</span>
+  DBMS_ADVISOR.CREATE_TASK(<span class="str">'ADDM'</span>, task_name);
+  DBMS_ADVISOR.SET_TASK_PARAMETER(
+    task_name, <span class="str">'START_SNAPSHOT'</span>, <span class="num">1120</span>);
+  DBMS_ADVISOR.SET_TASK_PARAMETER(
+    task_name, <span class="str">'END_SNAPSHOT'</span>,   <span class="num">1125</span>);
+  DBMS_ADVISOR.EXECUTE_TASK(task_name);
+<span class="kw">END</span>;
+/</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== ASH ==================== -->
+<section id="ash" class="py-20 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <span class="badge badge-cyan mb-3">Real-Time Diagnostics</span>
+      <h2 class="text-3xl md:text-4xl font-display font-bold gradient-text-w mb-4">Active Session History (ASH)</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto text-sm">ASH samples every active session every second, storing a rolling 1-hour in-memory history. The richest tool for diagnosing transient performance spikes that have already ended.</p>
+    </div>
+
+    <!-- ASH Overview -->
+    <div class="grid md:grid-cols-3 gap-6 mb-10">
+      <div class="glass rounded-2xl p-6 reveal">
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center mb-4">
+          <i class="fas fa-clock text-cyan-400"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">1-Second Sampling</h3>
+        <p class="text-neutral-400 text-sm">MMNL background process samples <code class="text-cyan-400">v$session</code> every second, recording active sessions (status=ACTIVE and not idle). This gives sub-minute granularity AWR lacks.</p>
+      </div>
+      <div class="glass rounded-2xl p-6 reveal">
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center mb-4">
+          <i class="fas fa-database text-cyan-400"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">In-Memory → AWR</h3>
+        <p class="text-neutral-400 text-sm">Up to ~1 hour in <code class="text-cyan-400">v$active_session_history</code> (memory). Every 10th row flushed to <code class="text-cyan-400">dba_hist_active_sess_history</code> (disk) for long-term analysis.</p>
+      </div>
+      <div class="glass rounded-2xl p-6 reveal">
+        <div class="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center mb-4">
+          <i class="fas fa-magnifying-glass-chart text-green-400"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">What ASH Tells You</h3>
+        <p class="text-neutral-400 text-sm">Top wait events per SQL, per user, per time window. Identify blocking sessions, top offenders, spikes that lasted only 2 minutes — invisible in AWR snapshots.</p>
+      </div>
+    </div>
+
+    <!-- ASH Queries — tabs -->
+    <div class="glass rounded-2xl p-6 reveal">
+      <div class="flex gap-2 flex-wrap mb-6" id="ash-tabs">
+        <button class="tab-btn active" data-tab="ash-realtime" data-group="ash">Real-Time ASH</button>
+        <button class="tab-btn" data-tab="ash-topsql" data-group="ash">Top SQL by Wait</button>
+        <button class="tab-btn" data-tab="ash-historical" data-group="ash">Historical Analysis</button>
+        <button class="tab-btn" data-tab="ash-report" data-group="ash">ASH Report</button>
+      </div>
+
+      <!-- Real-Time ASH -->
+      <div class="tab-content active" id="ash-realtime">
+        <p class="text-neutral-400 text-xs mb-3">Run these queries while a problem is happening for instant insight.</p>
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">v$active_session_history — live</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- What are sessions waiting on RIGHT NOW?</span>
+<span class="kw">SELECT</span> event, COUNT(*) sessions,
+       ROUND(COUNT(*) * <span class="num">100</span> / SUM(COUNT(*)) OVER(), <span class="num">1</span>) pct
+<span class="kw">FROM</span>   v$active_session_history
+<span class="kw">WHERE</span>  sample_time >= SYSDATE - INTERVAL <span class="str">'5'</span> MINUTE
+  <span class="kw">AND</span>  session_state = <span class="str">'WAITING'</span>
+<span class="kw">GROUP BY</span> event
+<span class="kw">ORDER BY</span> <span class="num">2</span> DESC
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> ROWS ONLY;
+
+<span class="cm">-- Top sessions by activity in last 5 minutes</span>
+<span class="kw">SELECT</span> s.sid, s.serial#, s.username,
+       ash.event, COUNT(*) samples,
+       s.sql_id, s.blocking_session
+<span class="kw">FROM</span>   v$active_session_history ash
+<span class="kw">JOIN</span>   v$session s ON ash.session_id = s.sid
+<span class="kw">WHERE</span>  ash.sample_time >= SYSDATE - INTERVAL <span class="str">'5'</span> MINUTE
+<span class="kw">GROUP BY</span> s.sid, s.serial#, s.username, ash.event, s.sql_id, s.blocking_session
+<span class="kw">ORDER BY</span> samples DESC
+<span class="kw">FETCH FIRST</span> <span class="num">15</span> ROWS ONLY;
+
+<span class="cm">-- CPU consumers RIGHT NOW (no wait event = on CPU)</span>
+<span class="kw">SELECT</span> session_id, session_serial#, user_id,
+       sql_id, sql_plan_hash_value, COUNT(*) cpu_samples
+<span class="kw">FROM</span>   v$active_session_history
+<span class="kw">WHERE</span>  sample_time >= SYSDATE - INTERVAL <span class="str">'2'</span> MINUTE
+  <span class="kw">AND</span>  session_state = <span class="str">'ON CPU'</span>
+<span class="kw">GROUP BY</span> session_id, session_serial#, user_id, sql_id, sql_plan_hash_value
+<span class="kw">ORDER BY</span> cpu_samples DESC;
+</code></pre>
+        </div>
+      </div>
+
+      <!-- Top SQL by Wait -->
+      <div class="tab-content" id="ash-topsql">
+        <p class="text-neutral-400 text-xs mb-3">Find the SQL statements causing the most waits — and what they're waiting for.</p>
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">ASH — top SQL by wait event</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Top SQL by total wait time in last hour</span>
+<span class="kw">SELECT</span> sql_id,
+       event,
+       COUNT(*) * <span class="num">1</span> AS est_wait_secs,
+       <span class="fn">SUBSTR</span>(sql_text, <span class="num">1</span>, <span class="num">80</span>) sql_preview
+<span class="kw">FROM</span>   v$active_session_history ash
+<span class="kw">LEFT JOIN</span> v$sql sq USING (sql_id)
+<span class="kw">WHERE</span>  ash.sample_time >= SYSDATE - <span class="num">1</span>/<span class="num">24</span>
+  <span class="kw">AND</span>  session_state = <span class="str">'WAITING'</span>
+  <span class="kw">AND</span>  sql_id IS NOT NULL
+<span class="kw">GROUP BY</span> sql_id, event, <span class="fn">SUBSTR</span>(sql_text, <span class="num">1</span>, <span class="num">80</span>)
+<span class="kw">ORDER BY</span> <span class="num">3</span> DESC
+<span class="kw">FETCH FIRST</span> <span class="num">20</span> ROWS ONLY;
+
+<span class="cm">-- Wait event breakdown per SQL (drill-down)</span>
+<span class="kw">SELECT</span> event,
+       wait_class,
+       COUNT(*) samples,
+       ROUND(COUNT(*) * <span class="num">100</span> / SUM(COUNT(*)) OVER(), <span class="num">1</span>) pct
+<span class="kw">FROM</span>   v$active_session_history
+<span class="kw">WHERE</span>  sql_id = <span class="str">'&your_sql_id'</span>
+  <span class="kw">AND</span>  sample_time >= SYSDATE - <span class="num">1</span>/<span class="num">24</span>
+<span class="kw">GROUP BY</span> event, wait_class
+<span class="kw">ORDER BY</span> samples DESC;
+
+<span class="cm">-- Time-series activity for a specific SQL (every 5 min bucket)</span>
+<span class="kw">SELECT</span> <span class="fn">TRUNC</span>(sample_time, <span class="str">'MI'</span>) - MOD(<span class="fn">TO_NUMBER</span>(<span class="fn">TO_CHAR</span>(sample_time,<span class="str">'MI'</span>)),<span class="num">5</span>)/(<span class="num">24</span>*<span class="num">60</span>) tm,
+       session_state,
+       COUNT(*) samples
+<span class="kw">FROM</span>   v$active_session_history
+<span class="kw">WHERE</span>  sql_id = <span class="str">'&your_sql_id'</span>
+  <span class="kw">AND</span>  sample_time >= SYSDATE - <span class="num">2</span>/<span class="num">24</span>
+<span class="kw">GROUP BY</span> <span class="fn">TRUNC</span>(sample_time,<span class="str">'MI'</span>) - MOD(<span class="fn">TO_NUMBER</span>(<span class="fn">TO_CHAR</span>(sample_time,<span class="str">'MI'</span>)),<span class="num">5</span>)/(<span class="num">24</span>*<span class="num">60</span>), session_state
+<span class="kw">ORDER BY</span> <span class="num">1</span>;
+</code></pre>
+        </div>
+      </div>
+
+      <!-- Historical Analysis -->
+      <div class="tab-content" id="ash-historical">
+        <p class="text-neutral-400 text-xs mb-3">Use <code class="text-cyan-400">dba_hist_active_sess_history</code> for incidents that happened hours or days ago.</p>
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">dba_hist_active_sess_history — historical</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Top wait events during a past incident window</span>
+<span class="kw">SELECT</span> event,
+       wait_class,
+       COUNT(*) * <span class="num">10</span> est_secs,  <span class="cm">-- ×10 because 1-in-10 sampling</span>
+       ROUND(COUNT(*) * <span class="num">1000</span> / SUM(COUNT(*)) OVER(), <span class="num">1</span>) pct_x10
+<span class="kw">FROM</span>   dba_hist_active_sess_history
+<span class="kw">WHERE</span>  sample_time BETWEEN
+         <span class="fn">TO_TIMESTAMP</span>(<span class="str">'2025-01-15 09:00'</span>, <span class="str">'YYYY-MM-DD HH24:MI'</span>)
+     <span class="kw">AND</span> <span class="fn">TO_TIMESTAMP</span>(<span class="str">'2025-01-15 09:30'</span>, <span class="str">'YYYY-MM-DD HH24:MI'</span>)
+  <span class="kw">AND</span>  dbid = (SELECT dbid FROM v$database)
+<span class="kw">GROUP BY</span> event, wait_class
+<span class="kw">ORDER BY</span> <span class="num">3</span> DESC;
+
+<span class="cm">-- Top SQL during incident (historical, ranked by samples)</span>
+<span class="kw">SELECT</span> ash.sql_id,
+       COUNT(*) * <span class="num">10</span> est_secs,
+       <span class="fn">SUBSTR</span>(txt.sql_text, <span class="num">1</span>, <span class="num">100</span>) sql_preview,
+       ash.event
+<span class="kw">FROM</span>   dba_hist_active_sess_history ash
+<span class="kw">LEFT JOIN</span> dba_hist_sqltext txt ON ash.sql_id = txt.sql_id AND ash.dbid = txt.dbid
+<span class="kw">WHERE</span>  ash.sample_time BETWEEN
+         <span class="fn">TO_TIMESTAMP</span>(<span class="str">'2025-01-15 09:00'</span>, <span class="str">'YYYY-MM-DD HH24:MI'</span>)
+     <span class="kw">AND</span> <span class="fn">TO_TIMESTAMP</span>(<span class="str">'2025-01-15 09:30'</span>, <span class="str">'YYYY-MM-DD HH24:MI'</span>)
+  <span class="kw">AND</span>  ash.dbid = (SELECT dbid FROM v$database)
+  <span class="kw">AND</span>  ash.sql_id IS NOT NULL
+<span class="kw">GROUP BY</span> ash.sql_id, <span class="fn">SUBSTR</span>(txt.sql_text,<span class="num">1</span>,<span class="num">100</span>), ash.event
+<span class="kw">ORDER BY</span> <span class="num">2</span> DESC
+<span class="kw">FETCH FIRST</span> <span class="num">15</span> ROWS ONLY;
+
+<span class="cm">-- Blocking chain history</span>
+<span class="kw">SELECT</span> sample_time, session_id, blocking_session,
+       event, wait_class, sql_id
+<span class="kw">FROM</span>   dba_hist_active_sess_history
+<span class="kw">WHERE</span>  blocking_session IS NOT NULL
+  <span class="kw">AND</span>  sample_time >= SYSDATE - <span class="num">1</span>
+  <span class="kw">AND</span>  dbid = (SELECT dbid FROM v$database)
+<span class="kw">ORDER BY</span> sample_time, session_id;
+</code></pre>
+        </div>
+      </div>
+
+      <!-- ASH Report -->
+      <div class="tab-content" id="ash-report">
+        <p class="text-neutral-400 text-xs mb-3">Generate a full HTML ASH report for a specific time window — the fastest way to share incident analysis.</p>
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">DBMS_WORKLOAD_REPOSITORY — ASH report</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Generate ASH report for a 30-minute incident window</span>
+<span class="kw">SELECT</span> *
+<span class="kw">FROM</span> <span class="kw">TABLE</span>(
+  DBMS_WORKLOAD_REPOSITORY.ASH_REPORT_HTML(
+    l_dbid    => (SELECT dbid FROM v$database),
+    l_inst_num => <span class="num">1</span>,
+    l_btime   => <span class="fn">TO_DATE</span>(<span class="str">'2025-01-15 09:00:00'</span>,<span class="str">'YYYY-MM-DD HH24:MI:SS'</span>),
+    l_etime   => <span class="fn">TO_DATE</span>(<span class="str">'2025-01-15 09:30:00'</span>,<span class="str">'YYYY-MM-DD HH24:MI:SS'</span>),
+    l_options => <span class="num">0</span>
+  )
+);
+
+<span class="cm">-- Quick ASH report sections to focus on:</span>
+<span class="cm">-- 1. Top User Events          → primary wait bottleneck</span>
+<span class="cm">-- 2. Top SQL with Top Events  → which SQL + which wait</span>
+<span class="cm">-- 3. Top Sessions             → who is the offender?</span>
+<span class="cm">-- 4. Activity Over Time       → when did it spike?</span>
+<span class="cm">-- 5. Top Blocking Sessions    → deadlock/lock waiter tree</span>
+
+<span class="cm">-- Spool ASH report to file (SQL*Plus)</span>
+SET LINESIZE 300 PAGESIZE 0 LONG 1000000 LONGCHUNKSIZE 1000000
+SPOOL /tmp/ash_report.html
+SELECT output FROM TABLE(
+  DBMS_WORKLOAD_REPOSITORY.ASH_REPORT_HTML(
+    (SELECT dbid FROM v$database), 1,
+    SYSDATE - <span class="num">2</span>/<span class="num">24</span>, SYSDATE));
+SPOOL OFF;
+</code></pre>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4 mt-4">
+          <div class="glass rounded-xl p-4 border border-cyan-500/20">
+            <p class="text-cyan-400 text-xs font-bold mb-2"><i class="fas fa-lightbulb mr-1"></i> ASH vs AWR</p>
+            <p class="text-neutral-400 text-xs">AWR: 1-hour snapshot intervals, ideal for trends and baselines. ASH: 1-second samples, ideal for "what happened at 9:15 AM for 3 minutes." Use both together — AWR for context, ASH for precision.</p>
+          </div>
+          <div class="glass rounded-xl p-4 border border-cyan-500/20">
+            <p class="text-cyan-400 text-xs font-bold mb-2"><i class="fas fa-triangle-exclamation mr-1"></i> Sampling Caveat</p>
+            <p class="text-neutral-400 text-xs">ASH is sampled, not exact. A query that runs 0.5s and completes between samples may not appear at all. It's statistically representative, not forensically precise. For very short queries, use SQL trace or extended statistics.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== WAIT EVENTS ==================== -->
+<section id="wait-events" class="py-20 px-6 bg-white/[0.01]">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <span class="badge badge-red mb-3">Bottleneck Identification</span>
+      <h2 class="text-3xl md:text-4xl font-display font-bold gradient-text-w mb-4">Wait Events Deep Dive</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto text-sm">Every second a session is active it's either on CPU or waiting. Wait events name exactly what Oracle is waiting for. Click any event below to see diagnostic SQL and resolution steps.</p>
+    </div>
+
+    <!-- Wait class overview -->
+    <div class="grid md:grid-cols-4 gap-4 mb-10 reveal">
+      <div class="glass rounded-xl p-4 text-center">
+        <div class="text-2xl font-display font-bold text-cyan-400">User I/O</div>
+        <p class="text-neutral-500 text-xs mt-1">Reading/writing user data — db file sequential/scattered reads</p>
+      </div>
+      <div class="glass rounded-xl p-4 text-center">
+        <div class="text-2xl font-display font-bold text-cyan-400">Concurrency</div>
+        <p class="text-neutral-500 text-xs mt-1">Waiting for another session — locks, latches, enqueues</p>
+      </div>
+      <div class="glass rounded-xl p-4 text-center">
+        <div class="text-2xl font-display font-bold text-green-400">Commit</div>
+        <p class="text-neutral-500 text-xs mt-1">Waiting for redo to disk — log file sync</p>
+      </div>
+      <div class="glass rounded-xl p-4 text-center">
+        <div class="text-2xl font-display font-bold text-purple-400">Network</div>
+        <p class="text-neutral-500 text-xs mt-1">SQL*Net message waits, client fetch delays</p>
+      </div>
+    </div>
+
+    <!-- Wait Event Cards -->
+    <div class="grid md:grid-cols-3 lg:grid-cols-3 gap-4 mb-8 reveal" id="wait-cards">
+      <div class="wait-card glass rounded-xl p-5 selected" onclick="showWait('w1')">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center"><i class="fas fa-hard-drive text-red-400 text-sm"></i></div>
+          <span class="text-white font-semibold text-sm">db file sequential read</span>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-red text-xs">User I/O</span>
+          <span class="badge badge-amber text-xs">High Impact</span>
+        </div>
+        <p class="text-neutral-500 text-xs mt-3">Single-block reads — index lookups, FTS on small tables. Most common wait in OLTP databases.</p>
+      </div>
+      <div class="wait-card glass rounded-xl p-5" onclick="showWait('w2')">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center"><i class="fas fa-table text-orange-400 text-sm"></i></div>
+          <span class="text-white font-semibold text-sm">db file scattered read</span>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-orange text-xs">User I/O</span>
+          <span class="badge badge-red text-xs">FTS Signal</span>
+        </div>
+        <p class="text-neutral-500 text-xs mt-3">Multi-block reads — full table/index scans. High value = missing indexes or poor selectivity.</p>
+      </div>
+      <div class="wait-card glass rounded-xl p-5" onclick="showWait('w3')">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><i class="fas fa-pen-to-square text-yellow-400 text-sm"></i></div>
+          <span class="text-white font-semibold text-sm">log file sync</span>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-yellow text-xs">Commit</span>
+          <span class="badge badge-amber text-xs">LGWR Wait</span>
+        </div>
+        <p class="text-neutral-500 text-xs mt-3">Session waiting for LGWR to write redo to disk on COMMIT. Slow disk or too-frequent commits.</p>
+      </div>
+      <div class="wait-card glass rounded-xl p-5" onclick="showWait('w4')">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center"><i class="fas fa-lock text-purple-400 text-sm"></i></div>
+          <span class="text-white font-semibold text-sm">enq: TX - row lock</span>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-purple text-xs">Concurrency</span>
+          <span class="badge badge-red text-xs">Blocking</span>
+        </div>
+        <p class="text-neutral-500 text-xs mt-3">Session waiting for a row locked by another transaction. Classic blocking scenario.</p>
+      </div>
+      <div class="wait-card glass rounded-xl p-5" onclick="showWait('w5')">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><i class="fas fa-book text-blue-400 text-sm"></i></div>
+          <span class="text-white font-semibold text-sm">library cache lock</span>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-blue text-xs">Concurrency</span>
+          <span class="badge badge-amber text-xs">Shared Pool</span>
+        </div>
+        <p class="text-neutral-500 text-xs mt-3">DDL or hard parse competing with active SQL. Invalidation storms, missing bind variables.</p>
+      </div>
+      <div class="wait-card glass rounded-xl p-5" onclick="showWait('w6')">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center"><i class="fas fa-boxes-stacked text-cyan-400 text-sm"></i></div>
+          <span class="text-white font-semibold text-sm">buffer busy waits</span>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge badge-cyan text-xs">Concurrency</span>
+          <span class="badge badge-orange text-xs">Hot Block</span>
+        </div>
+        <p class="text-neutral-500 text-xs mt-3">Multiple sessions competing for the same buffer. Hot index root blocks, unordered inserts.</p>
+      </div>
+    </div>
+
+    <!-- Wait Event Detail Panel -->
+    <div class="glass-strong rounded-2xl p-6 reveal" id="wait-detail">
+      <!-- w1 detail -->
+      <div id="w1" class="wait-detail-pane">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center"><i class="fas fa-hard-drive text-red-400"></i></div>
+          <div>
+            <h3 class="font-bold text-white text-lg">db file sequential read</h3>
+            <p class="text-neutral-500 text-xs">P1=file# · P2=first block# · P3=block count (usually 1)</p>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <p class="text-cyan-400 text-xs font-bold mb-2">Root Causes</p>
+            <ul class="text-neutral-400 text-xs space-y-1">
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Inefficient index range scans (low selectivity)</li>
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Missing indexes on joined columns</li>
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Nested loops with large outer result set</li>
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Slow I/O subsystem (check await in iostat)</li>
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Buffer cache too small</li>
+            </ul>
+          </div>
+          <div>
+            <p class="text-green-400 text-xs font-bold mb-2">Resolution Steps</p>
+            <ul class="text-neutral-400 text-xs space-y-1">
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Review execution plan — is index appropriate?</li>
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Check index selectivity (NDV / NUM_ROWS)</li>
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Consider composite index for covered queries</li>
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Increase DB_CACHE_SIZE</li>
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Verify storage latency (< 5ms target)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">Diagnose db file sequential read</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Top SQL generating this wait (last 1 hour)</span>
+<span class="kw">SELECT</span> ash.sql_id, COUNT(*) waits,
+       <span class="fn">SUBSTR</span>(sq.sql_text, <span class="num">1</span>, <span class="num">80</span>) sql_preview
+<span class="kw">FROM</span>   v$active_session_history ash
+<span class="kw">JOIN</span>   v$sql sq ON ash.sql_id = sq.sql_id
+<span class="kw">WHERE</span>  ash.event = <span class="str">'db file sequential read'</span>
+  <span class="kw">AND</span>  ash.sample_time >= SYSDATE - <span class="num">1</span>/<span class="num">24</span>
+<span class="kw">GROUP BY</span> ash.sql_id, <span class="fn">SUBSTR</span>(sq.sql_text, <span class="num">1</span>, <span class="num">80</span>)
+<span class="kw">ORDER BY</span> <span class="num">2</span> DESC;
+
+<span class="cm">-- Check average wait time system-wide</span>
+<span class="kw">SELECT</span> event, total_waits, time_waited_micro/<span class="num">1000</span> ms,
+       ROUND(time_waited_micro/total_waits/<span class="num">1000</span>,<span class="num">2</span>) avg_ms
+<span class="kw">FROM</span>   v$system_event
+<span class="kw">WHERE</span>  event = <span class="str">'db file sequential read'</span>;
+<span class="cm">-- avg_ms > 10ms → storage is the problem, not Oracle</span>
+</code></pre>
+        </div>
+      </div>
+
+      <!-- w2 detail -->
+      <div id="w2" class="wait-detail-pane" style="display:none">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center"><i class="fas fa-table text-orange-400"></i></div>
+          <div>
+            <h3 class="font-bold text-white text-lg">db file scattered read</h3>
+            <p class="text-neutral-500 text-xs">P1=file# · P2=first block# · P3=block count (multi-block read count)</p>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <p class="text-cyan-400 text-xs font-bold mb-2">Root Causes</p>
+            <ul class="text-neutral-400 text-xs space-y-1">
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Full table or index scans on large objects</li>
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Stale or missing optimizer statistics</li>
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Wrong join method chosen by optimizer</li>
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Parallel query spawning excessive I/O</li>
+            </ul>
+          </div>
+          <div>
+            <p class="text-green-400 text-xs font-bold mb-2">Resolution Steps</p>
+            <ul class="text-neutral-400 text-xs space-y-1">
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Create or rebuild missing indexes</li>
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Gather fresh statistics (DBMS_STATS)</li>
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Use hints to test alternate plans</li>
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Tune DB_FILE_MULTIBLOCK_READ_COUNT</li>
+            </ul>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">Find full scans</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Find FTS operations in current SQL plans</span>
+<span class="kw">SELECT</span> s.sql_id, p.object_name, p.object_type,
+       s.executions, s.disk_reads, s.rows_processed
+<span class="kw">FROM</span>   v$sql s
+<span class="kw">JOIN</span>   v$sql_plan p ON s.sql_id = p.sql_id AND s.child_number = p.child_number
+<span class="kw">WHERE</span>  p.operation = <span class="str">'TABLE ACCESS'</span>
+  <span class="kw">AND</span>  p.options  = <span class="str">'FULL'</span>
+  <span class="kw">AND</span>  s.disk_reads > <span class="num">10000</span>
+<span class="kw">ORDER BY</span> s.disk_reads DESC;
+</code></pre>
+        </div>
+      </div>
+
+      <!-- w3 detail -->
+      <div id="w3" class="wait-detail-pane" style="display:none">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center"><i class="fas fa-pen-to-square text-yellow-400"></i></div>
+          <div>
+            <h3 class="font-bold text-white text-lg">log file sync</h3>
+            <p class="text-neutral-500 text-xs">P1=buffer# synced — occurs on every COMMIT/ROLLBACK</p>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <p class="text-cyan-400 text-xs font-bold mb-2">Root Causes</p>
+            <ul class="text-neutral-400 text-xs space-y-1">
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Slow redo log storage (non-SSD redo logs)</li>
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Committing inside a loop (row-by-row commits)</li>
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Redo logs too small → frequent log switches</li>
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>I/O contention on shared storage</li>
+            </ul>
+          </div>
+          <div>
+            <p class="text-green-400 text-xs font-bold mb-2">Resolution Steps</p>
+            <ul class="text-neutral-400 text-xs space-y-1">
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Move redo logs to fastest storage (NVMe/SSD)</li>
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Batch commits — commit every N rows, not every row</li>
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Increase redo log size (target 1 switch per 15-30 min)</li>
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Use COMMIT_WRITE=BATCH,NOWAIT for non-critical apps</li>
+            </ul>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">Diagnose log file sync</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Average log file sync time (target < 2ms)</span>
+<span class="kw">SELECT</span> event, total_waits,
+       ROUND(time_waited_micro/total_waits/<span class="num">1000</span>,<span class="num">2</span>) avg_ms,
+       ROUND(time_waited_micro/<span class="num">1000000</span>,<span class="num">1</span>) total_secs
+<span class="kw">FROM</span>   v$system_event
+<span class="kw">WHERE</span>  event IN (<span class="str">'log file sync'</span>, <span class="str">'log file parallel write'</span>);
+
+<span class="cm">-- Log switch frequency (should be ~20-30 min)</span>
+<span class="kw">SELECT</span> <span class="fn">TO_CHAR</span>(first_time,<span class="str">'YYYY-MM-DD HH24'</span>) hr,
+       COUNT(*) switches
+<span class="kw">FROM</span>   v$log_history
+<span class="kw">WHERE</span>  first_time >= SYSDATE - <span class="num">2</span>
+<span class="kw">GROUP BY</span> <span class="fn">TO_CHAR</span>(first_time,<span class="str">'YYYY-MM-DD HH24'</span>)
+<span class="kw">ORDER BY</span> <span class="num">1</span>;
+</code></pre>
+        </div>
+      </div>
+
+      <!-- w4 detail -->
+      <div id="w4" class="wait-detail-pane" style="display:none">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center"><i class="fas fa-lock text-purple-400"></i></div>
+          <div>
+            <h3 class="font-bold text-white text-lg">enq: TX - row lock contention</h3>
+            <p class="text-neutral-500 text-xs">P1=lock type (TX=1415053318) · P2=TX slot · P3=sequence</p>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <p class="text-cyan-400 text-xs font-bold mb-2">Root Causes</p>
+            <ul class="text-neutral-400 text-xs space-y-1">
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Long-running uncommitted transactions</li>
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Application-level commit missing</li>
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Batch job holding locks during peak hours</li>
+              <li><i class="fas fa-circle text-xs text-cyan-500 mr-2"></i>Deadlock chains (ORA-00060)</li>
+            </ul>
+          </div>
+          <div>
+            <p class="text-green-400 text-xs font-bold mb-2">Resolution Steps</p>
+            <ul class="text-neutral-400 text-xs space-y-1">
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Identify blocker via v$session.blocking_session</li>
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Kill blocking session if safe: ALTER SYSTEM KILL</li>
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>Fix application to commit/rollback promptly</li>
+              <li><i class="fas fa-check text-xs text-green-500 mr-2"></i>For deadlocks: check alert log for ORA-00060</li>
+            </ul>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">Find & resolve row lock contention</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Show complete blocking chain</span>
+<span class="kw">SELECT</span>
+  LPAD(<span class="str">' '</span>, LEVEL*<span class="num">2</span>) || s.sid                  AS session_tree,
+  s.username, s.status, s.sql_id,
+  s.blocking_session                           AS blocked_by,
+  s.wait_class, s.event,
+  <span class="fn">FLOOR</span>(s.seconds_in_wait/<span class="num">60</span>) wait_min
+<span class="kw">FROM</span>   v$session s
+<span class="kw">WHERE</span>  s.blocking_session IS NOT NULL
+   OR  s.sid IN (SELECT blocking_session FROM v$session WHERE blocking_session IS NOT NULL)
+<span class="kw">CONNECT BY</span> PRIOR s.sid = s.blocking_session
+<span class="kw">START WITH</span> s.blocking_session IS NULL AND s.sid IN
+  (SELECT blocking_session FROM v$session WHERE blocking_session IS NOT NULL)
+<span class="kw">ORDER SIBLINGS BY</span> s.sid;
+
+<span class="cm">-- Kill the root blocker (DBA only, confirm first!)</span>
+<span class="kw">ALTER SYSTEM KILL SESSION</span> <span class="str">'&sid,&serial#'</span> IMMEDIATE;
+</code></pre>
+        </div>
+      </div>
+
+      <!-- w5 detail -->
+      <div id="w5" class="wait-detail-pane" style="display:none">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center"><i class="fas fa-book text-blue-400"></i></div>
+          <div>
+            <h3 class="font-bold text-white text-lg">library cache lock / pin</h3>
+            <p class="text-neutral-500 text-xs">Hard parse contention in the shared pool library cache</p>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">Diagnose library cache issues</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Hard parse ratio (target < 1%)</span>
+<span class="kw">SELECT</span>
+  ROUND(
+    (SELECT value FROM v$sysstat WHERE name=<span class="str">'parse count (hard)'</span>) * <span class="num">100</span> /
+    NULLIF((SELECT value FROM v$sysstat WHERE name=<span class="str">'parse count (total)'</span>), <span class="num">0</span>), <span class="num">2</span>
+  ) hard_parse_pct
+<span class="kw">FROM</span> dual;
+
+<span class="cm">-- Top hard-parsing SQL (missing bind variables)</span>
+<span class="kw">SELECT</span> <span class="fn">SUBSTR</span>(sql_text, <span class="num">1</span>, <span class="num">60</span>) sql_preview,
+       COUNT(*) versions, SUM(parse_calls) parses
+<span class="kw">FROM</span>   v$sql
+<span class="kw">WHERE</span>  parse_calls > <span class="num">100</span>
+<span class="kw">GROUP BY</span> <span class="fn">SUBSTR</span>(sql_text, <span class="num">1</span>, <span class="num">60</span>)
+<span class="kw">HAVING</span> COUNT(*) > <span class="num">5</span>
+<span class="kw">ORDER BY</span> <span class="num">3</span> DESC;
+
+<span class="cm">-- Enable CURSOR_SHARING (emergency fix only)</span>
+<span class="kw">ALTER SYSTEM SET</span> cursor_sharing = FORCE;
+<span class="cm">-- Better fix: rewrite application SQL to use bind variables</span>
+</code></pre>
+        </div>
+      </div>
+
+      <!-- w6 detail -->
+      <div id="w6" class="wait-detail-pane" style="display:none">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center"><i class="fas fa-boxes-stacked text-cyan-400"></i></div>
+          <div>
+            <h3 class="font-bold text-white text-lg">buffer busy waits</h3>
+            <p class="text-neutral-500 text-xs">P1=file# · P2=block# · P3=class# — hot block contention</p>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">Diagnose buffer busy waits</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Find the hot blocks (from ASH p1, p2 parameters)</span>
+<span class="kw">SELECT</span> p1 file#, p2 block#, COUNT(*) waits
+<span class="kw">FROM</span>   v$active_session_history
+<span class="kw">WHERE</span>  event = <span class="str">'buffer busy waits'</span>
+  <span class="kw">AND</span>  sample_time >= SYSDATE - <span class="num">1</span>/<span class="num">24</span>
+<span class="kw">GROUP BY</span> p1, p2
+<span class="kw">ORDER BY</span> <span class="num">3</span> DESC;
+
+<span class="cm">-- Map block to segment</span>
+<span class="kw">SELECT</span> owner, segment_name, segment_type
+<span class="kw">FROM</span>   dba_extents
+<span class="kw">WHERE</span>  file_id  = <span class="num">&file#</span>
+  <span class="kw">AND</span>  <span class="num">&block#</span> BETWEEN block_id AND block_id + blocks - <span class="num">1</span>;
+<span class="cm">-- Hot index root block → reverse key index</span>
+<span class="cm">-- Hot data block → use ASSM / increase PCTFREE</span>
+</code></pre>
+        </div>
+      </div>
+
+      <!-- System-wide wait view -->
+      <div class="mt-5 pt-5 border-t border-white/5">
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">System-wide wait analysis</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Top 10 wait events (cumulative since startup)</span>
+<span class="kw">SELECT</span> event, wait_class,
+       total_waits,
+       ROUND(time_waited_micro/<span class="num">1000000</span>,<span class="num">1</span>) secs_waited,
+       ROUND(time_waited_micro/total_waits/<span class="num">1000</span>,<span class="num">2</span>) avg_wait_ms
+<span class="kw">FROM</span>   v$system_event
+<span class="kw">WHERE</span>  wait_class != <span class="str">'Idle'</span>
+<span class="kw">ORDER BY</span> time_waited_micro DESC
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> ROWS ONLY;
+
+<span class="cm">-- Current active sessions and their wait events</span>
+<span class="kw">SELECT</span> sid, serial#, username, status,
+       event, wait_class, seconds_in_wait,
+       sql_id, module, machine
+<span class="kw">FROM</span>   v$session
+<span class="kw">WHERE</span>  status = <span class="str">'ACTIVE'</span>
+  <span class="kw">AND</span>  username IS NOT NULL
+<span class="kw">ORDER BY</span> seconds_in_wait DESC;
+</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SQL TUNING ==================== -->
+<section id="sql-tuning" class="py-20 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <span class="badge badge-amber mb-3">Query Optimization</span>
+      <h2 class="text-3xl md:text-4xl font-display font-bold gradient-text-w mb-4">SQL Tuning</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto text-sm">From reading execution plans to locking in good plans with SQL Plan Management — the complete SQL tuning workflow used by production DBAs.</p>
+    </div>
+
+    <div class="glass rounded-2xl p-6 reveal">
+      <div class="flex gap-2 flex-wrap mb-6">
+        <button class="tab-btn active" data-tab="sql-plans" data-group="sqlt">Execution Plans</button>
+        <button class="tab-btn" data-tab="sql-top" data-group="sqlt">Top SQL Queries</button>
+        <button class="tab-btn" data-tab="sql-advisor" data-group="sqlt">SQL Tuning Advisor</button>
+        <button class="tab-btn" data-tab="sql-spm" data-group="sqlt">SQL Plan Management</button>
+      </div>
+
+      <!-- Execution Plans -->
+      <div class="tab-content active" id="sql-plans">
+        <div class="grid md:grid-cols-2 gap-6 mb-4">
+          <div>
+            <p class="text-cyan-400 text-xs font-bold mb-2">EXPLAIN PLAN — static (pre-execution)</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+              <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Generate plan (does not execute the SQL)</span>
+EXPLAIN PLAN <span class="kw">FOR</span>
+<span class="kw">SELECT</span> e.ename, d.dname
+<span class="kw">FROM</span>   emp e <span class="kw">JOIN</span> dept d ON e.deptno = d.deptno
+<span class="kw">WHERE</span>  e.sal > <span class="num">3000</span>;
+
+<span class="cm">-- Read the plan</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">TABLE</span>(DBMS_XPLAN.DISPLAY(
+  format => <span class="str">'ALLSTATS LAST'</span>));
+
+<span class="cm">-- Columns to read:</span>
+<span class="cm">-- Operation: TABLE ACCESS FULL vs INDEX RANGE SCAN</span>
+<span class="cm">-- Rows (E-Rows): optimizer estimate</span>
+<span class="cm">-- Cost: relative optimizer cost (lower = better)</span>
+<span class="cm">-- TQ / PQ Distrib: parallel query info</span>
+</code></pre>
+            </div>
+          </div>
+          <div>
+            <p class="text-cyan-400 text-xs font-bold mb-2">DISPLAY_CURSOR — actual runtime stats</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+              <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Run with GATHER_PLAN_STATISTICS hint first</span>
+<span class="kw">SELECT</span> <span class="cm">/*+ GATHER_PLAN_STATISTICS */</span>
+       e.ename, d.dname
+<span class="kw">FROM</span>   emp e <span class="kw">JOIN</span> dept d ON e.deptno = d.deptno
+<span class="kw">WHERE</span>  e.sal > <span class="num">3000</span>;
+
+<span class="cm">-- Get actual stats for the last executed SQL</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">TABLE</span>(DBMS_XPLAN.DISPLAY_CURSOR(
+  sql_id      => NULL,   <span class="cm">-- NULL = last in session</span>
+  cursor_child_no => <span class="num">0</span>,
+  format      => <span class="str">'ALLSTATS LAST +PEEKED_BINDS'</span>));
+
+<span class="cm">-- Compare E-Rows vs A-Rows:</span>
+<span class="cm">-- E-Rows=1 A-Rows=50000 → stale statistics!</span>
+<span class="cm">-- E-Rows=50000 A-Rows=1 → histogram needed</span>
+</code></pre>
+            </div>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Plan from shared pool (any SQL, any time)</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Get plan for any SQL currently in shared pool</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">TABLE</span>(DBMS_XPLAN.DISPLAY_CURSOR(
+  sql_id          => <span class="str">'&sql_id'</span>,
+  cursor_child_no => <span class="num">0</span>,
+  format          => <span class="str">'ADVANCED ALLSTATS LAST'</span>));
+
+<span class="cm">-- Historical plans from AWR (after the fact)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">TABLE</span>(DBMS_XPLAN.DISPLAY_AWR(
+  sql_id       => <span class="str">'&sql_id'</span>,
+  plan_hash_value => <span class="num">&plan_hash</span>,
+  format       => <span class="str">'ALL'</span>));
+
+<span class="cm">-- Detect plan regression: multiple plan_hash_values for same SQL</span>
+<span class="kw">SELECT</span> sql_id, plan_hash_value,
+       COUNT(*) snap_count,
+       MIN(snap_id) first_seen, MAX(snap_id) last_seen,
+       ROUND(AVG(elapsed_time_total/1e6/executions_total),2) avg_elapsed_s
+<span class="kw">FROM</span>   dba_hist_sqlstat
+<span class="kw">WHERE</span>  sql_id = <span class="str">'&sql_id'</span>
+  <span class="kw">AND</span>  executions_total > <span class="num">0</span>
+<span class="kw">GROUP BY</span> sql_id, plan_hash_value
+<span class="kw">ORDER BY</span> last_seen DESC;
+</code></pre>
+        </div>
+        <!-- Plan reading guide -->
+        <div class="grid md:grid-cols-4 gap-3 mt-5">
+          <div class="glass rounded-xl p-4">
+            <p class="text-cyan-400 text-xs font-bold mb-2">TABLE ACCESS FULL</p>
+            <p class="text-neutral-500 text-xs">Full table scan. Bad for OLTP on large tables. Good for DSS bulk reads. Missing index or stale stats?</p>
+          </div>
+          <div class="glass rounded-xl p-4">
+            <p class="text-cyan-400 text-xs font-bold mb-2">INDEX RANGE SCAN</p>
+            <p class="text-neutral-500 text-xs">Good for OLTP with high selectivity. Check if columns in WHERE match leading index columns.</p>
+          </div>
+          <div class="glass rounded-xl p-4">
+            <p class="text-green-400 text-xs font-bold mb-2">NESTED LOOPS</p>
+            <p class="text-neutral-500 text-xs">Efficient join when outer set is small. Scales linearly. Can be slow if driving row count is large.</p>
+          </div>
+          <div class="glass rounded-xl p-4">
+            <p class="text-purple-400 text-xs font-bold mb-2">HASH JOIN</p>
+            <p class="text-neutral-500 text-xs">Efficient for large unsorted sets. Uses PGA workarea. Spills to temp if PGA_AGGREGATE_TARGET too small.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top SQL Queries -->
+      <div class="tab-content" id="sql-top">
+        <p class="text-neutral-400 text-xs mb-3">Identify the worst offending SQL statements — your tuning list starts here.</p>
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Top SQL — v$sql and AWR</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Top 10 SQL by elapsed time (current shared pool)</span>
+<span class="kw">SELECT</span> sql_id, executions,
+       ROUND(elapsed_time/<span class="num">1e6</span>,<span class="num">1</span>)              elapsed_s,
+       ROUND(elapsed_time/<span class="num">1e6</span>/NULLIF(executions,<span class="num">0</span>),<span class="num">3</span>) avg_s,
+       ROUND(cpu_time/<span class="num">1e6</span>,<span class="num">1</span>)                cpu_s,
+       disk_reads,
+       buffer_gets,
+       rows_processed,
+       <span class="fn">SUBSTR</span>(sql_text,<span class="num">1</span>,<span class="num">80</span>)                 sql_preview
+<span class="kw">FROM</span>   v$sqlarea
+<span class="kw">WHERE</span>  executions > <span class="num">0</span>
+<span class="kw">ORDER BY</span> elapsed_time DESC
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> ROWS ONLY;
+
+<span class="cm">-- Top SQL by disk reads (I/O hogs)</span>
+<span class="kw">SELECT</span> sql_id,
+       disk_reads,
+       ROUND(disk_reads/NULLIF(executions,<span class="num">0</span>),<span class="num">0</span>) reads_per_exec,
+       <span class="fn">SUBSTR</span>(sql_text,<span class="num">1</span>,<span class="num">80</span>) sql_preview
+<span class="kw">FROM</span>   v$sqlarea
+<span class="kw">WHERE</span>  executions > <span class="num">0</span>
+<span class="kw">ORDER BY</span> disk_reads DESC
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> ROWS ONLY;
+
+<span class="cm">-- Top SQL by hard parses (missing bind variables)</span>
+<span class="kw">SELECT</span> sql_id, parse_calls, executions,
+       ROUND(parse_calls/<span class="num">100</span>)<span class="cm">/*ratio%*/</span>,
+       <span class="fn">SUBSTR</span>(sql_text,<span class="num">1</span>,<span class="num">80</span>) sql_preview
+<span class="kw">FROM</span>   v$sqlarea
+<span class="kw">WHERE</span>  parse_calls > <span class="num">500</span>
+<span class="kw">ORDER BY</span> parse_calls DESC
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> ROWS ONLY;
+
+<span class="cm">-- Full SQL text for a given sql_id</span>
+<span class="kw">SELECT</span> sql_fulltext
+<span class="kw">FROM</span>   v$sql
+<span class="kw">WHERE</span>  sql_id = <span class="str">'&sql_id'</span>
+<span class="kw">FETCH FIRST</span> <span class="num">1</span> ROW ONLY;
+
+<span class="cm">-- Historical top SQL from AWR (past periods)</span>
+<span class="kw">SELECT</span> s.sql_id,
+       SUM(s.elapsed_time_total)/<span class="num">1e6</span>         total_elapsed_s,
+       SUM(s.executions_total)                 total_execs,
+       ROUND(SUM(s.elapsed_time_total)/<span class="num">1e6</span>/
+             NULLIF(SUM(s.executions_total),<span class="num">0</span>),<span class="num">3</span>) avg_s,
+       <span class="fn">SUBSTR</span>(t.sql_text,<span class="num">1</span>,<span class="num">80</span>)               sql_preview
+<span class="kw">FROM</span>   dba_hist_sqlstat s
+<span class="kw">JOIN</span>   dba_hist_sqltext t USING (sql_id, dbid)
+<span class="kw">WHERE</span>  s.snap_id BETWEEN <span class="num">1120</span> AND <span class="num">1125</span>
+  <span class="kw">AND</span>  s.dbid = (SELECT dbid FROM v$database)
+<span class="kw">GROUP BY</span> s.sql_id, <span class="fn">SUBSTR</span>(t.sql_text,<span class="num">1</span>,<span class="num">80</span>)
+<span class="kw">ORDER BY</span> <span class="num">2</span> DESC
+<span class="kw">FETCH FIRST</span> <span class="num">15</span> ROWS ONLY;
+</code></pre>
+        </div>
+      </div>
+
+      <!-- SQL Tuning Advisor -->
+      <div class="tab-content" id="sql-advisor">
+        <p class="text-neutral-400 text-xs mb-3">SQL Tuning Advisor (STA) analyzes a SQL and recommends index creation, stats refresh, SQL profiles, or rewrites.</p>
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">DBMS_SQLTUNE — complete workflow</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Step 1: Create tuning task for a specific SQL</span>
+<span class="kw">DECLARE</span>
+  task_name VARCHAR2(<span class="num">30</span>);
+<span class="kw">BEGIN</span>
+  task_name := DBMS_SQLTUNE.CREATE_TUNING_TASK(
+    sql_id      => <span class="str">'&sql_id'</span>,
+    scope       => DBMS_SQLTUNE.SCOPE_COMPREHENSIVE,
+    time_limit  => <span class="num">600</span>,   <span class="cm">-- max 10 minutes</span>
+    task_name   => <span class="str">'tune_my_sql'</span>,
+    description => <span class="str">'Tuning slow report SQL'</span>
+  );
+  DBMS_OUTPUT.PUT_LINE('Task: ' || task_name);
+<span class="kw">END</span>;
+/
+
+<span class="cm">-- Step 2: Execute the task</span>
+<span class="kw">EXEC</span> DBMS_SQLTUNE.EXECUTE_TUNING_TASK(task_name => <span class="str">'tune_my_sql'</span>);
+
+<span class="cm">-- Step 3: Check status</span>
+<span class="kw">SELECT</span> task_name, status, advisor_name
+<span class="kw">FROM</span>   dba_advisor_tasks
+<span class="kw">WHERE</span>  task_name = <span class="str">'tune_my_sql'</span>;
+
+<span class="cm">-- Step 4: Read the report</span>
+<span class="kw">SELECT</span> DBMS_SQLTUNE.REPORT_TUNING_TASK(
+  task_name   => <span class="str">'tune_my_sql'</span>,
+  type        => <span class="str">'TEXT'</span>,
+  level       => <span class="str">'TYPICAL'</span>
+) <span class="kw">FROM</span> dual;
+
+<span class="cm">-- Step 5: Accept SQL profile (if recommended)</span>
+<span class="kw">EXEC</span> DBMS_SQLTUNE.ACCEPT_SQL_PROFILE(
+  task_name  => <span class="str">'tune_my_sql'</span>,
+  replace    => TRUE,
+  force_match => FALSE
+);
+
+<span class="cm">-- Verify SQL profile applied</span>
+<span class="kw">SELECT</span> name, sql_text, status, force_matching
+<span class="kw">FROM</span>   dba_sql_profiles;
+
+<span class="cm">-- STA on a SQL from AWR (not in shared pool)</span>
+task_name := DBMS_SQLTUNE.CREATE_TUNING_TASK(
+  begin_snap  => <span class="num">1120</span>,
+  end_snap    => <span class="num">1125</span>,
+  sql_id      => <span class="str">'&sql_id'</span>,
+  scope       => DBMS_SQLTUNE.SCOPE_COMPREHENSIVE
+);
+
+<span class="cm">-- Drop completed task</span>
+<span class="kw">EXEC</span> DBMS_SQLTUNE.DROP_TUNING_TASK(<span class="str">'tune_my_sql'</span>);
+</code></pre>
+        </div>
+      </div>
+
+      <!-- SQL Plan Management -->
+      <div class="tab-content" id="sql-spm">
+        <p class="text-neutral-400 text-xs mb-3">SPM freezes known-good execution plans. Even if the optimizer finds a "better" plan after a stats refresh or upgrade, it won't use it until you approve it.</p>
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">DBMS_SPM — SQL Plan Baselines</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Load current plan as a baseline from shared pool</span>
+DECLARE
+  plans_loaded PLS_INTEGER;
+BEGIN
+  plans_loaded := DBMS_SPM.LOAD_PLANS_FROM_CURSOR_CACHE(
+    sql_id          => <span class="str">'&sql_id'</span>,
+    plan_hash_value => <span class="num">&plan_hash</span>
+  );
+  DBMS_OUTPUT.PUT_LINE(plans_loaded || ' plan(s) loaded');
+END;
+/
+
+<span class="cm">-- View all baselines</span>
+<span class="kw">SELECT</span> sql_handle, plan_name, enabled, accepted,
+       fixed, reproduced,
+       <span class="fn">TO_CHAR</span>(created,<span class="str">'YYYY-MM-DD HH24:MI'</span>) created,
+       <span class="fn">SUBSTR</span>(sql_text,<span class="num">1</span>,<span class="num">80</span>) sql_preview
+<span class="kw">FROM</span>   dba_sql_plan_baselines
+<span class="kw">ORDER BY</span> created DESC;
+
+<span class="cm">-- Fix a specific plan (won't allow any other plan)</span>
+DECLARE
+  plans PLS_INTEGER;
+BEGIN
+  plans := DBMS_SPM.ALTER_SQL_PLAN_BASELINE(
+    sql_handle => <span class="str">'SQL_xxxx'</span>,
+    plan_name  => <span class="str">'SQL_PLAN_xxxx'</span>,
+    attribute_name  => <span class="str">'FIXED'</span>,
+    attribute_value => <span class="str">'YES'</span>
+  );
+END;
+/
+
+<span class="cm">-- Evolve new plans (accept if they perform better)</span>
+DECLARE
+  report CLOB;
+BEGIN
+  report := DBMS_SPM.EVOLVE_SQL_PLAN_BASELINE(
+    sql_handle => <span class="str">'SQL_xxxx'</span>,
+    time_limit => <span class="num">60</span>,
+    verify     => <span class="str">'YES'</span>,
+    commit     => <span class="str">'YES'</span>
+  );
+  DBMS_OUTPUT.PUT_LINE(report);
+END;
+/
+
+<span class="cm">-- Drop a baseline</span>
+DECLARE
+  plans PLS_INTEGER;
+BEGIN
+  plans := DBMS_SPM.DROP_SQL_PLAN_BASELINE(
+    sql_handle => <span class="str">'SQL_xxxx'</span>,
+    plan_name  => <span class="str">'SQL_PLAN_xxxx'</span>
+  );
+END;
+/
+
+<span class="cm">-- Auto-capture baselines (use carefully — fills SYSAUX)</span>
+<span class="kw">ALTER SYSTEM SET</span> optimizer_capture_sql_plan_baselines = TRUE;
+<span class="kw">ALTER SYSTEM SET</span> optimizer_use_sql_plan_baselines     = TRUE;
+</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== MEMORY ==================== -->
+<section id="memory" class="py-20 px-6 bg-white/[0.01]">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <span class="badge badge-purple mb-3">SGA · PGA · AMM</span>
+      <h2 class="text-3xl md:text-4xl font-display font-bold gradient-text-w mb-4">Memory Tuning</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto text-sm">Oracle memory management — from manually sizing each SGA component to letting AMM self-tune. Right-sized memory eliminates the majority of I/O-related wait events.</p>
+    </div>
+
+    <!-- Memory Architecture Visual -->
+    <div class="glass rounded-2xl p-6 mb-10 reveal">
+      <h3 class="font-bold text-white mb-4 text-center text-sm">Oracle Memory Architecture</h3>
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- SGA -->
+        <div class="glass rounded-xl p-5 border border-cyan-500/20">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center"><i class="fas fa-server text-cyan-400 text-sm"></i></div>
+            <span class="text-cyan-400 font-bold text-sm">System Global Area (SGA)</span>
+            <span class="badge badge-amber ml-auto">Shared</span>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-3">
+              <div class="w-3 h-3 rounded bg-cyan-500 flex-shrink-0"></div>
+              <div><span class="text-white text-xs font-semibold">Buffer Cache</span><span class="text-neutral-500 text-xs ml-2">— Cached data blocks. Largest component.</span></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-3 h-3 rounded bg-orange-500 flex-shrink-0"></div>
+              <div><span class="text-white text-xs font-semibold">Shared Pool</span><span class="text-neutral-500 text-xs ml-2">— Library cache + data dictionary cache.</span></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-3 h-3 rounded bg-yellow-500 flex-shrink-0"></div>
+              <div><span class="text-white text-xs font-semibold">Large Pool</span><span class="text-neutral-500 text-xs ml-2">— RMAN, parallel query, shared server.</span></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-3 h-3 rounded bg-red-500 flex-shrink-0"></div>
+              <div><span class="text-white text-xs font-semibold">Redo Log Buffer</span><span class="text-neutral-500 text-xs ml-2">— Pre-write redo buffer for LGWR.</span></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-3 h-3 rounded bg-pink-500 flex-shrink-0"></div>
+              <div><span class="text-white text-xs font-semibold">Java Pool / Streams</span><span class="text-neutral-500 text-xs ml-2">— Java VM and Streams/GoldenGate memory.</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- PGA -->
+        <div class="glass rounded-xl p-5 border border-cyan-500/20">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center"><i class="fas fa-user text-cyan-400 text-sm"></i></div>
+            <span class="text-cyan-400 font-bold text-sm">Program Global Area (PGA)</span>
+            <span class="badge badge-cyan ml-auto">Per Session</span>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-3">
+              <div class="w-3 h-3 rounded bg-cyan-500 flex-shrink-0"></div>
+              <div><span class="text-white text-xs font-semibold">Sort Area</span><span class="text-neutral-500 text-xs ml-2">— ORDER BY, GROUP BY, DISTINCT in memory.</span></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-3 h-3 rounded bg-blue-500 flex-shrink-0"></div>
+              <div><span class="text-white text-xs font-semibold">Hash Area</span><span class="text-neutral-500 text-xs ml-2">— Hash join build side. Spills to temp if too small.</span></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-3 h-3 rounded bg-indigo-500 flex-shrink-0"></div>
+              <div><span class="text-white text-xs font-semibold">Bitmap Merge Area</span><span class="text-neutral-500 text-xs ml-2">— Bitmap index operations.</span></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-3 h-3 rounded bg-violet-500 flex-shrink-0"></div>
+              <div><span class="text-white text-xs font-semibold">Session Stack / Variables</span><span class="text-neutral-500 text-xs ml-2">— Cursor state, bind variable storage.</span></div>
+            </div>
+          </div>
+          <div class="mt-4 p-3 rounded-lg bg-cyan-500/5 border border-cyan-500/20">
+            <p class="text-cyan-400 text-xs font-bold">PGA spill → temp tablespace I/O</p>
+            <p class="text-neutral-500 text-xs mt-1">When PGA workarea overflows, Oracle writes to TEMP. Monitor <code class="text-cyan-400">v$sql_workarea_histogram</code> for MULTIPASS operations — each is a performance penalty.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6 reveal">
+      <div class="flex gap-2 flex-wrap mb-6">
+        <button class="tab-btn active" data-tab="mem-sga" data-group="mem">SGA Tuning</button>
+        <button class="tab-btn" data-tab="mem-pga" data-group="mem">PGA Tuning</button>
+        <button class="tab-btn" data-tab="mem-amm" data-group="mem">AMM vs ASMM</button>
+        <button class="tab-btn" data-tab="mem-advisor" data-group="mem">Memory Advisors</button>
+      </div>
+
+      <!-- SGA Tuning -->
+      <div class="tab-content active" id="mem-sga">
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">SGA component sizing</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Current SGA layout</span>
+<span class="kw">SELECT</span> name, ROUND(bytes/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">0</span>) MB
+<span class="kw">FROM</span>   v$sgastat
+<span class="kw">WHERE</span>  pool IS NULL OR pool = <span class="str">'shared pool'</span>
+<span class="kw">ORDER BY</span> bytes DESC;
+
+<span class="cm">-- Buffer cache hit ratio (target > 95%)</span>
+<span class="kw">SELECT</span>
+  ROUND(
+    (<span class="num">1</span> - (phyrds.value / (db_blk_gets.value + consist_gets.value))) * <span class="num">100</span>
+  , <span class="num">2</span>) buffer_cache_hit_pct
+<span class="kw">FROM</span>
+  (SELECT value FROM v$sysstat WHERE name = <span class="str">'physical reads'</span>)          phyrds,
+  (SELECT value FROM v$sysstat WHERE name = <span class="str">'db block gets'</span>)           db_blk_gets,
+  (SELECT value FROM v$sysstat WHERE name = <span class="str">'consistent gets'</span>)         consist_gets;
+
+<span class="cm">-- Shared pool: library cache hit ratio (target > 99%)</span>
+<span class="kw">SELECT</span>
+  namespace, gethits, gets,
+  ROUND(gethitratio * <span class="num">100</span>, <span class="num">2</span>) hit_pct,
+  reloads, invalidations
+<span class="kw">FROM</span>   v$librarycache
+<span class="kw">ORDER BY</span> gets DESC;
+
+<span class="cm">-- Shared pool free memory (fragmentation check)</span>
+<span class="kw">SELECT</span> pool, name,
+       ROUND(bytes/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">1</span>) MB
+<span class="kw">FROM</span>   v$sgastat
+<span class="kw">WHERE</span>  name IN (<span class="str">'free memory'</span>)
+<span class="kw">ORDER BY</span> pool;
+<span class="cm">-- Shared pool free < 5% → ORA-04031 risk</span>
+
+<span class="cm">-- Resize SGA components dynamically (no restart!)</span>
+<span class="kw">ALTER SYSTEM SET</span> db_cache_size       = <span class="num">4G</span>;
+<span class="kw">ALTER SYSTEM SET</span> shared_pool_size    = <span class="num">1G</span>;
+<span class="kw">ALTER SYSTEM SET</span> large_pool_size     = <span class="num">512M</span>;
+<span class="kw">ALTER SYSTEM SET</span> log_buffer          = <span class="num">64M</span>;
+</code></pre>
+        </div>
+      </div>
+
+      <!-- PGA Tuning -->
+      <div class="tab-content" id="mem-pga">
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">PGA sizing and monitoring</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- PGA usage summary</span>
+<span class="kw">SELECT</span>
+  ROUND(value/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">0</span>) MB, name
+<span class="kw">FROM</span>   v$pgastat
+<span class="kw">WHERE</span>  name IN (
+  <span class="str">'total PGA inuse'</span>,
+  <span class="str">'total PGA allocated'</span>,
+  <span class="str">'maximum PGA allocated'</span>,
+  <span class="str">'total PGA used for auto workareas'</span>,
+  <span class="str">'over allocation count'</span>       <span class="cm">-- > 0 means PGA_TARGET too small!</span>
+);
+
+<span class="cm">-- Workarea execution mode breakdown</span>
+<span class="kw">SELECT</span>
+  operation_type,
+  OPTIMAL_EXECUTIONS,
+  ONEPASS_EXECUTIONS,   <span class="cm">-- 1 pass to temp — slightly bad</span>
+  MULTIPASSES_EXECUTIONS <span class="cm">-- many passes — very bad</span>
+<span class="kw">FROM</span>   v$sql_workarea_histogram
+<span class="kw">WHERE</span>  OPTIMAL_EXECUTIONS + ONEPASS_EXECUTIONS + MULTIPASSES_EXECUTIONS > <span class="num">0</span>;
+
+<span class="cm">-- Per-session PGA usage (find hogs)</span>
+<span class="kw">SELECT</span> s.sid, s.serial#, s.username, s.program,
+       ROUND(sa.pga_max_mem/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">0</span>) pga_max_mb,
+       ROUND(sa.pga_used_mem/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">0</span>) pga_used_mb,
+       s.sql_id
+<span class="kw">FROM</span>   v$session s
+<span class="kw">JOIN</span>   v$process p ON s.paddr = p.addr
+<span class="kw">JOIN</span>   (SELECT sid, pga_used_mem, pga_max_mem FROM v$sesstat ss
+        JOIN v$statname sn ON ss.statistic# = sn.statistic#
+        WHERE sn.name = 'session pga memory max') sa ON sa.sid = s.sid
+<span class="kw">ORDER BY</span> pga_max_mb DESC
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> ROWS ONLY;
+
+<span class="cm">-- Set PGA target (restart not needed)</span>
+<span class="kw">ALTER SYSTEM SET</span> pga_aggregate_target = <span class="num">4G</span>;
+<span class="cm">-- Oracle allocates each workarea up to 5% of this target</span>
+</code></pre>
+        </div>
+      </div>
+
+      <!-- AMM vs ASMM -->
+      <div class="tab-content" id="mem-amm">
+        <div class="grid md:grid-cols-2 gap-6 mb-4">
+          <div class="glass rounded-xl p-5 border border-cyan-500/20">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-7 h-7 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-xs font-bold">AMM</div>
+              <span class="text-white font-bold text-sm">Automatic Memory Management</span>
+            </div>
+            <p class="text-neutral-500 text-xs mb-3">Set only <code class="text-cyan-400">MEMORY_TARGET</code>. Oracle self-adjusts both SGA and PGA. Simple but can cause issues with HugePages on Linux (AMM uses tmpfs, HugePages requires fixed SGA).</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+              <pre class="p-3 text-xs"><code><span class="cm">-- AMM parameters</span>
+MEMORY_TARGET       = <span class="num">12G</span>  <span class="cm">-- total Oracle memory</span>
+MEMORY_MAX_TARGET   = <span class="num">14G</span>  <span class="cm">-- upper ceiling</span>
+SGA_TARGET          = <span class="num">0</span>    <span class="cm">-- 0 = let AMM control</span>
+PGA_AGGREGATE_TARGET = <span class="num">0</span>   <span class="cm">-- 0 = let AMM control</span>
+</code></pre>
+            </div>
+          </div>
+          <div class="glass rounded-xl p-5 border border-cyan-500/20">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-7 h-7 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-xs font-bold">ASMM</div>
+              <span class="text-white font-bold text-sm">Auto Shared Memory Mgmt</span>
+            </div>
+            <p class="text-neutral-500 text-xs mb-3">Set <code class="text-cyan-400">SGA_TARGET</code> (Oracle auto-sizes SGA components) and <code class="text-cyan-400">PGA_AGGREGATE_TARGET</code> separately. Recommended for Linux with HugePages — much more predictable performance.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+              <pre class="p-3 text-xs"><code><span class="cm">-- ASMM parameters</span>
+MEMORY_TARGET       = <span class="num">0</span>    <span class="cm">-- 0 = disable AMM</span>
+SGA_TARGET          = <span class="num">8G</span>   <span class="cm">-- SGA auto-managed</span>
+SGA_MAX_SIZE        = <span class="num">10G</span>  <span class="cm">-- upper ceiling</span>
+PGA_AGGREGATE_TARGET = <span class="num">4G</span>  <span class="cm">-- PGA managed separately</span>
+</code></pre>
+            </div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 border border-green-500/20">
+          <p class="text-green-400 text-xs font-bold mb-2"><i class="fas fa-lightbulb mr-1"></i> Production Recommendation</p>
+          <p class="text-neutral-400 text-xs">Use <strong class="text-white">ASMM on Linux</strong> with HugePages (set vm.nr_hugepages to cover SGA_MAX_SIZE). Disable AMM (<code class="text-cyan-400">MEMORY_TARGET=0</code>). AMM on Linux uses /dev/shm which doesn't support HugePages — you lose a significant performance benefit. For Windows and Exadata, AMM is fine.</p>
+        </div>
+      </div>
+
+      <!-- Memory Advisors -->
+      <div class="tab-content" id="mem-advisor">
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">v$db_cache_advice · v$sga_target_advice · v$pga_target_advice</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Buffer cache advisor (how much to increase buffer cache?)</span>
+<span class="kw">SELECT</span> size_for_estimate                              cache_mb,
+       ROUND(size_factor, <span class="num">2</span>)                          size_factor,
+       estd_physical_read_factor                       read_factor,
+       estd_physical_reads                             est_reads
+<span class="kw">FROM</span>   v$db_cache_advice
+<span class="kw">WHERE</span>  name = <span class="str">'DEFAULT'</span>
+  <span class="kw">AND</span>  block_size = (SELECT value FROM v$parameter WHERE name=<span class="str">'db_block_size'</span>)
+<span class="kw">ORDER BY</span> size_for_estimate;
+<span class="cm">-- read_factor < 1.0 at larger size = fewer physical reads</span>
+<span class="cm">-- diminishing returns when read_factor stops dropping</span>
+
+<span class="cm">-- SGA target advisor</span>
+<span class="kw">SELECT</span> sga_size               proposed_sga_mb,
+       sga_size_factor,
+       estd_db_time_factor     db_time_factor
+<span class="kw">FROM</span>   v$sga_target_advice
+<span class="kw">ORDER BY</span> sga_size;
+
+<span class="cm">-- PGA advisor (how much PGA to reduce temp I/O?)</span>
+<span class="kw">SELECT</span> pga_target_for_estimate/<span class="num">1024</span>/<span class="num">1024</span>  target_mb,
+       ROUND(pga_target_factor,<span class="num">2</span>)          size_factor,
+       estd_pga_cache_hit_percentage        cache_hit_pct,
+       estd_overalloc_count                 overalloc_count
+<span class="kw">FROM</span>   v$pga_target_advice
+<span class="kw">ORDER BY</span> pga_target_for_estimate;
+<span class="cm">-- cache_hit_pct > 90% = minimal temp I/O</span>
+<span class="cm">-- overalloc_count > 0 = target too small</span>
+
+<span class="cm">-- Enable DB_CACHE_ADVICE (minimal overhead)</span>
+<span class="kw">ALTER SYSTEM SET</span> db_cache_advice = ON;
+</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== STATISTICS & INDEXES ==================== -->
+<section id="indexes" class="py-20 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <span class="badge badge-green mb-3">Optimizer Foundation</span>
+      <h2 class="text-3xl md:text-4xl font-display font-bold gradient-text-w mb-4">Statistics &amp; Index Management</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto text-sm">The CBO is only as good as its statistics. Stale stats = wrong cardinality estimates = bad plans. And an unused index is a drag on every DML operation.</p>
+    </div>
+
+    <div class="glass rounded-2xl p-6 reveal">
+      <div class="flex gap-2 flex-wrap mb-6">
+        <button class="tab-btn active" data-tab="stat-gather" data-group="stat">Gather Statistics</button>
+        <button class="tab-btn" data-tab="stat-stale" data-group="stat">Stale Detection</button>
+        <button class="tab-btn" data-tab="idx-analysis" data-group="stat">Index Analysis</button>
+        <button class="tab-btn" data-tab="idx-advanced" data-group="stat">Advanced Indexes</button>
+      </div>
+
+      <!-- Gather Statistics -->
+      <div class="tab-content active" id="stat-gather">
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">DBMS_STATS — the complete toolkit</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Gather for a single table (most common)</span>
+EXEC DBMS_STATS.GATHER_TABLE_STATS(
+  ownname    => <span class="str">'SCOTT'</span>,
+  tabname    => <span class="str">'EMP'</span>,
+  estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE, <span class="cm">-- Oracle auto-computes best %</span>
+  method_opt => <span class="str">'FOR ALL COLUMNS SIZE AUTO'</span>,        <span class="cm">-- auto histograms</span>
+  cascade    => TRUE,                               <span class="cm">-- also gather index stats</span>
+  degree     => 4                                   <span class="cm">-- parallel gather</span>
+);
+
+<span class="cm">-- Gather for entire schema</span>
+EXEC DBMS_STATS.GATHER_SCHEMA_STATS(
+  ownname    => <span class="str">'SCOTT'</span>,
+  options    => <span class="str">'GATHER STALE'</span>,   <span class="cm">-- only stale objects</span>
+  estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE,
+  method_opt => <span class="str">'FOR ALL COLUMNS SIZE SKEWONLY'</span>  <span class="cm">-- histograms where skewed</span>
+);
+
+<span class="cm">-- Gather for specific column (force histogram)</span>
+EXEC DBMS_STATS.GATHER_TABLE_STATS(
+  ownname    => <span class="str">'SCOTT'</span>,
+  tabname    => <span class="str">'ORDERS'</span>,
+  method_opt => <span class="str">'FOR COLUMNS ORDER_STATUS SIZE 254'</span>
+);
+
+<span class="cm">-- Lock stats (prevent auto stats from overwriting good stats)</span>
+EXEC DBMS_STATS.LOCK_TABLE_STATS(<span class="str">'SCOTT'</span>, <span class="str">'EMP'</span>);
+EXEC DBMS_STATS.UNLOCK_TABLE_STATS(<span class="str">'SCOTT'</span>, <span class="str">'EMP'</span>);
+
+<span class="cm">-- Restore previous stats (stat rollback)</span>
+EXEC DBMS_STATS.RESTORE_TABLE_STATS(
+  ownname   => <span class="str">'SCOTT'</span>,
+  tabname   => <span class="str">'EMP'</span>,
+  as_of_timestamp => SYSTIMESTAMP - INTERVAL <span class="str">'2'</span> HOUR
+);
+
+<span class="cm">-- Delete stats (force next query to use dynamic sampling)</span>
+EXEC DBMS_STATS.DELETE_TABLE_STATS(<span class="str">'SCOTT'</span>, <span class="str">'EMP'</span>);
+
+<span class="cm">-- Check auto stats job (runs nightly in maintenance window)</span>
+<span class="kw">SELECT</span> client_name, status, attributes
+<span class="kw">FROM</span>   dba_autotask_client
+<span class="kw">WHERE</span>  client_name = <span class="str">'auto optimizer stats collection'</span>;
+</code></pre>
+        </div>
+      </div>
+
+      <!-- Stale Detection -->
+      <div class="tab-content" id="stat-stale">
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Stale statistics detection</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Find stale or missing stats (> 10% row change)</span>
+<span class="kw">SELECT</span> owner, table_name, num_rows,
+       last_analyzed,
+       stale_stats,
+       ROUND((SELECT mon.inserts + mon.updates + mon.deletes
+              FROM   dba_tab_modifications mon
+              WHERE  mon.table_owner = t.owner
+                AND  mon.table_name  = t.table_name) * <span class="num">100</span>
+             / NULLIF(t.num_rows, <span class="num">0</span>), <span class="num">1</span>) pct_changed
+<span class="kw">FROM</span>   dba_tab_statistics t
+<span class="kw">WHERE</span>  owner NOT IN (<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>,<span class="str">'SYSMAN'</span>)
+  <span class="kw">AND</span>  (stale_stats = <span class="str">'YES'</span> OR last_analyzed IS NULL)
+<span class="kw">ORDER BY</span> pct_changed DESC NULLS LAST;
+
+<span class="cm">-- Column stats: check NDV and histogram presence</span>
+<span class="kw">SELECT</span> column_name, num_distinct ndv,
+       num_nulls, density,
+       histogram, num_buckets,
+       last_analyzed
+<span class="kw">FROM</span>   dba_col_statistics
+<span class="kw">WHERE</span>  owner      = <span class="str">'SCOTT'</span>
+  <span class="kw">AND</span>  table_name = <span class="str">'ORDERS'</span>
+<span class="kw">ORDER BY</span> column_name;
+<span class="cm">-- High num_buckets = frequency/height-balanced histogram present</span>
+<span class="cm">-- density = 1/NDV (without histogram), low NDV + skew = needs histogram</span>
+
+<span class="cm">-- Objects with no stats at all</span>
+<span class="kw">SELECT</span> owner, table_name, num_rows, last_analyzed
+<span class="kw">FROM</span>   dba_tables
+<span class="kw">WHERE</span>  last_analyzed IS NULL
+  <span class="kw">AND</span>  owner NOT IN (<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>)
+<span class="kw">ORDER BY</span> owner, table_name;
+</code></pre>
+        </div>
+      </div>
+
+      <!-- Index Analysis -->
+      <div class="tab-content" id="idx-analysis">
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Index health &amp; usage monitoring</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Index fragmentation (blevel > 3 → consider rebuild)</span>
+<span class="kw">SELECT</span> owner, index_name, table_name,
+       blevel,             <span class="cm">-- B-tree depth (target ≤ 3)</span>
+       leaf_blocks,
+       distinct_keys,
+       clustering_factor,  <span class="cm">-- close to num_rows = random I/O</span>
+       last_analyzed
+<span class="kw">FROM</span>   dba_indexes
+<span class="kw">WHERE</span>  owner NOT IN (<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>)
+  <span class="kw">AND</span>  blevel > <span class="num">3</span>
+<span class="kw">ORDER BY</span> blevel DESC;
+
+<span class="cm">-- Monitor index usage (enable monitoring)</span>
+<span class="kw">ALTER INDEX</span> scott.emp_idx MONITORING USAGE;
+
+<span class="cm">-- Check after representative workload period</span>
+<span class="kw">SELECT</span> index_name, table_name, monitoring, used, start_monitoring, end_monitoring
+<span class="kw">FROM</span>   v$object_usage
+<span class="kw">WHERE</span>  table_name = <span class="str">'EMP'</span>;
+<span class="cm">-- used='NO' after 2+ weeks = candidate for drop</span>
+
+<span class="cm">-- Make index invisible (test without dropping)</span>
+<span class="kw">ALTER INDEX</span> scott.emp_idx INVISIBLE;
+<span class="cm">-- Optimizer won't use it, but it still gets maintained</span>
+<span class="cm">-- Run workload → check performance → drop if safe</span>
+<span class="kw">ALTER INDEX</span> scott.emp_idx VISIBLE;   <span class="cm">-- rollback</span>
+
+<span class="cm">-- Rebuild fragmented index</span>
+<span class="kw">ALTER INDEX</span> scott.emp_idx REBUILD ONLINE;      <span class="cm">-- no downtime</span>
+<span class="kw">ALTER INDEX</span> scott.emp_idx REBUILD NOLOGGING;   <span class="cm">-- faster, needs redo after</span>
+<span class="kw">ALTER INDEX</span> scott.emp_idx COALESCE;            <span class="cm">-- merge leaf blocks only</span>
+
+<span class="cm">-- Index selectivity check</span>
+<span class="kw">SELECT</span> index_name,
+       ROUND(distinct_keys * <span class="num">100</span> / NULLIF(num_rows,<span class="num">0</span>),<span class="num">2</span>) selectivity_pct
+<span class="kw">FROM</span>   dba_indexes di
+<span class="kw">JOIN</span>   dba_tables  dt ON di.owner=dt.owner AND di.table_name=dt.table_name
+<span class="kw">WHERE</span>  di.owner = <span class="str">'SCOTT'</span>
+<span class="kw">ORDER BY</span> selectivity_pct;
+<span class="cm">-- < 1% selectivity on OLTP → probably useless</span>
+</code></pre>
+        </div>
+      </div>
+
+      <!-- Advanced Indexes -->
+      <div class="tab-content" id="idx-advanced">
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Bitmap, function-based, composite, and reverse key indexes</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Function-based index (index on expression)</span>
+<span class="kw">CREATE INDEX</span> emp_upper_name_idx ON emp (<span class="fn">UPPER</span>(ename));
+<span class="cm">-- Now this uses the index (case-insensitive search):</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> emp <span class="kw">WHERE</span> <span class="fn">UPPER</span>(ename) = <span class="str">'SCOTT'</span>;
+
+<span class="cm">-- Bitmap index (low cardinality, DSS workloads only)</span>
+<span class="kw">CREATE BITMAP INDEX</span> orders_status_bidx ON orders(status);
+<span class="cm">-- Warning: catastrophic for OLTP (row-level bitmap locking)</span>
+<span class="cm">-- Use ONLY on read-mostly DSS tables with < 100 distinct values</span>
+
+<span class="cm">-- Composite index — column order matters!</span>
+<span class="kw">CREATE INDEX</span> emp_dept_sal_idx ON emp(deptno, sal);
+<span class="cm">-- Can drive: WHERE deptno=10               → range scan ✓</span>
+<span class="cm">-- Can drive: WHERE deptno=10 AND sal>2000  → range scan ✓</span>
+<span class="cm">-- Cannot:   WHERE sal>2000 (only)          → skip scan or FTS</span>
+
+<span class="cm">-- Reverse key index (eliminate hot index root block)</span>
+<span class="kw">CREATE INDEX</span> orders_id_rev_idx ON orders(order_id) REVERSE;
+<span class="cm">-- Spreads monotonically increasing inserts across leaf blocks</span>
+<span class="cm">-- Trade-off: cannot do range scans on the indexed column</span>
+
+<span class="cm">-- Partial index (11g+ invisible + 12c+ partial)</span>
+<span class="kw">CREATE INDEX</span> orders_active_idx ON orders(order_date)
+  INDEXING PARTIAL;   <span class="cm">-- only on INDEXING ON partitions</span>
+
+<span class="cm">-- Index on partitioned table</span>
+<span class="kw">CREATE INDEX</span> orders_date_loc_idx ON orders(order_date) LOCAL;
+<span class="cm">-- LOCAL = one index segment per partition (partition-pruning aware)</span>
+<span class="cm">-- GLOBAL = single index across all partitions (harder to maintain)</span>
+</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== LOCKING & BLOCKING ==================== -->
+<section class="py-20 px-6 bg-white/[0.01]">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <span class="badge badge-red mb-3">Concurrency Control</span>
+      <h2 class="text-3xl md:text-4xl font-display font-bold gradient-text-w mb-4">Locking &amp; Blocking</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto text-sm">Blocking is one of the most common production emergencies. Know how to identify the chain, confirm the blocker, and resolve it — in under 2 minutes.</p>
+    </div>
+    <div class="glass rounded-2xl p-6 reveal">
+      <div class="terminal mb-4">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Complete blocking resolution workflow</span></div>
+        <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Step 1: Quick check — any blocking right now?</span>
+<span class="kw">SELECT</span> COUNT(*) blocking_pairs
+<span class="kw">FROM</span>   v$session
+<span class="kw">WHERE</span>  blocking_session IS NOT NULL;
+
+<span class="cm">-- Step 2: Full blocking chain with wait time</span>
+<span class="kw">SELECT</span>
+  s.sid, s.serial#,
+  s.username,
+  s.blocking_session                        blocker_sid,
+  s.event,
+  s.wait_class,
+  <span class="fn">FLOOR</span>(s.seconds_in_wait/<span class="num">60</span>)             wait_min,
+  s.sql_id,
+  s.module,
+  s.machine,
+  s.status
+<span class="kw">FROM</span>   v$session s
+<span class="kw">WHERE</span>  s.blocking_session IS NOT NULL
+<span class="kw">ORDER BY</span> s.blocking_session, s.seconds_in_wait DESC;
+
+<span class="cm">-- Step 3: What is the blocker doing?</span>
+<span class="kw">SELECT</span> s.sid, s.username, s.sql_id,
+       <span class="fn">SUBSTR</span>(sq.sql_text,<span class="num">1</span>,<span class="num">120</span>) sql_text,
+       s.status, s.last_call_et secs_idle,
+       s.module, s.machine, s.osuser
+<span class="kw">FROM</span>   v$session s
+<span class="kw">LEFT JOIN</span> v$sql sq ON s.sql_id = sq.sql_id
+<span class="kw">WHERE</span>  s.sid = <span class="str">&blocker_sid</span>;
+
+<span class="cm">-- Step 4: What object is locked?</span>
+<span class="kw">SELECT</span> l.sid, l.type, l.lmode, l.request,
+       o.object_name, o.object_type,
+       l.block
+<span class="kw">FROM</span>   v$lock l
+<span class="kw">LEFT JOIN</span> dba_objects o ON l.id1 = o.object_id
+<span class="kw">WHERE</span>  l.block = <span class="num">1</span>           <span class="cm">-- 1 = this session IS blocking others</span>
+   OR  l.request > <span class="num">0</span>;       <span class="cm">-- > 0 = this session IS being blocked</span>
+
+<span class="cm">-- Step 5: Get the actual locked rows (DBA_DML_LOCKS)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> dba_dml_locks
+<span class="kw">WHERE</span>  mode_held != <span class="str">'None'</span>
+<span class="kw">ORDER BY</span> name;
+
+<span class="cm">-- Step 6: Kill the blocker (confirm with app team first!)</span>
+<span class="kw">ALTER SYSTEM KILL SESSION</span> <span class="str">'&sid,&serial#'</span> IMMEDIATE;
+<span class="cm">-- If it doesn't die (background process, DDL):</span>
+<span class="kw">ALTER SYSTEM DISCONNECT SESSION</span> <span class="str">'&sid,&serial#'</span> IMMEDIATE;
+
+<span class="cm">-- Step 7: OS-level kill if Oracle kill fails</span>
+<span class="kw">SELECT</span> p.spid os_pid, s.sid, s.serial#, s.username
+<span class="kw">FROM</span>   v$session s
+<span class="kw">JOIN</span>   v$process p ON s.paddr = p.addr
+<span class="kw">WHERE</span>  s.sid = <span class="str">&blocker_sid</span>;
+<span class="cm">-- Then on OS: kill -9 &lt;spid&gt;</span>
+</code></pre>
+      </div>
+      <!-- Deadlock section -->
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="glass rounded-xl p-4 border border-red-500/20">
+          <p class="text-red-400 text-xs font-bold mb-2"><i class="fas fa-skull-crossbones mr-1"></i> Deadlock Detection</p>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+            <pre class="p-3 text-xs"><code><span class="cm">-- Recent deadlocks in alert log</span>
+grep -i <span class="str">"ORA-00060"</span> $ORACLE_BASE/diag/rdbms/*/*/trace/alert_*.log
+
+<span class="cm">-- Deadlock trace file created automatically</span>
+<span class="cm">-- at $ORACLE_BASE/diag/rdbms/&lt;db&gt;/&lt;inst&gt;/trace/</span>
+<span class="cm">-- Look for: "DEADLOCK DETECTED" then the graph</span>
+
+<span class="cm">-- Query deadlock history</span>
+<span class="kw">SELECT</span> problem_key, impact, impact_type,
+       first_incident_time, last_incident_time,
+       incident_count
+<span class="kw">FROM</span>   v$diag_problem
+<span class="kw">WHERE</span>  problem_key LIKE <span class="str">'%ORA 60%'</span>;</code></pre>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 border border-cyan-500/20">
+          <p class="text-cyan-400 text-xs font-bold mb-2"><i class="fas fa-shield mr-1"></i> Prevention Best Practices</p>
+          <ul class="text-neutral-400 text-xs space-y-2">
+            <li><i class="fas fa-check text-green-500 mr-2"></i>Always access tables in the same order across all transactions</li>
+            <li><i class="fas fa-check text-green-500 mr-2"></i>Keep transactions short — commit/rollback quickly</li>
+            <li><i class="fas fa-check text-green-500 mr-2"></i>Use <code class="text-cyan-400">SELECT FOR UPDATE NOWAIT</code> or <code class="text-cyan-400">SKIP LOCKED</code></li>
+            <li><i class="fas fa-check text-green-500 mr-2"></i>Move batch jobs to off-peak hours</li>
+            <li><i class="fas fa-check text-green-500 mr-2"></i>Set <code class="text-cyan-400">DDL_LOCK_TIMEOUT</code> for schema changes</li>
+            <li><i class="fas fa-check text-green-500 mr-2"></i>Monitor blocking via EM Cloud Control alerts or custom script</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== REAL-LIFE SCENARIOS ==================== -->
+<section id="scenarios" class="py-20 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <span class="badge badge-orange mb-3">War Stories</span>
+      <h2 class="text-3xl md:text-4xl font-display font-bold gradient-text-w mb-4">Real-Life Tuning Scenarios</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto text-sm">Seven production scenarios every DBA will face. Step-by-step diagnosis and resolution — built from real incidents.</p>
+    </div>
+
+    <div class="space-y-4 reveal">
+
+      <!-- Scenario 1 -->
+      <div class="glass rounded-2xl overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors" onclick="toggleAcc(this)">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center text-red-400 font-display font-bold">01</div>
+            <div>
+              <p class="text-white font-bold">Database Suddenly Slow — "It was fine yesterday"</p>
+              <p class="text-neutral-500 text-xs mt-0.5">The most common 3 AM call. Methodical 5-step triage.</p>
+            </div>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <div class="grid md:grid-cols-3 gap-4 mb-4">
+              <div class="glass rounded-xl p-3 border border-red-500/20">
+                <p class="text-red-400 text-xs font-bold mb-1">Symptom</p>
+                <p class="text-neutral-400 text-xs">Users complain "everything is slow." No code change. No apparent reason.</p>
+              </div>
+              <div class="glass rounded-xl p-3 border border-cyan-500/20">
+                <p class="text-cyan-400 text-xs font-bold mb-1">First Check</p>
+                <p class="text-neutral-400 text-xs">Check CPU, ASH top events, blocking sessions, redo log switches.</p>
+              </div>
+              <div class="glass rounded-xl p-3 border border-green-500/20">
+                <p class="text-green-400 text-xs font-bold mb-1">Root Causes</p>
+                <p class="text-neutral-400 text-xs">Runaway SQL, blocking chain, auto-stats changed a plan, disk degradation, log file sync spike.</p>
+              </div>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">5-step triage script</span></div>
+              <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- STEP 1: Check top wait events right now</span>
+<span class="kw">SELECT</span> event, COUNT(*) cnt
+<span class="kw">FROM</span>   v$active_session_history
+<span class="kw">WHERE</span>  sample_time >= SYSDATE - INTERVAL <span class="str">'5'</span> MINUTE
+<span class="kw">GROUP BY</span> event ORDER BY <span class="num">2</span> DESC FETCH FIRST <span class="num">5</span> ROWS ONLY;
+
+<span class="cm">-- STEP 2: Blocking sessions?</span>
+<span class="kw">SELECT</span> blocking_session, COUNT(*) waiters, MIN(seconds_in_wait) wait_s
+<span class="kw">FROM</span>   v$session WHERE blocking_session IS NOT NULL
+<span class="kw">GROUP BY</span> blocking_session ORDER BY <span class="num">2</span> DESC;
+
+<span class="cm">-- STEP 3: Runaway SQL (consuming all resources)?</span>
+<span class="kw">SELECT</span> sql_id, COUNT(*) samples, event
+<span class="kw">FROM</span>   v$active_session_history
+<span class="kw">WHERE</span>  sample_time >= SYSDATE - INTERVAL <span class="str">'10'</span> MINUTE
+  <span class="kw">AND</span>  sql_id IS NOT NULL
+<span class="kw">GROUP BY</span> sql_id, event ORDER BY <span class="num">2</span> DESC FETCH FIRST <span class="num">5</span> ROWS ONLY;
+
+<span class="cm">-- STEP 4: Did a plan change? (compare with yesterday)</span>
+<span class="kw">SELECT</span> sql_id, plan_hash_value,
+       MAX(snap_id) last_snap,
+       ROUND(AVG(elapsed_time_total/1e6/NULLIF(executions_total,0)),2) avg_s
+<span class="kw">FROM</span>   dba_hist_sqlstat
+<span class="kw">WHERE</span>  snap_id > (SELECT MAX(snap_id)-24 FROM dba_hist_snapshot)
+  <span class="kw">AND</span>  executions_total > 0
+<span class="kw">GROUP BY</span> sql_id, plan_hash_value
+<span class="kw">ORDER BY</span> avg_s DESC FETCH FIRST <span class="num">10</span> ROWS ONLY;
+
+<span class="cm">-- STEP 5: Log file sync spike? (check redo log size)</span>
+<span class="kw">SELECT</span> <span class="fn">TO_CHAR</span>(first_time,'HH24:MI') t, COUNT(*) switches
+<span class="kw">FROM</span>   v$log_history WHERE first_time >= SYSDATE - <span class="num">2</span>/<span class="num">24</span>
+<span class="kw">GROUP BY</span> <span class="fn">TO_CHAR</span>(first_time,'HH24:MI') ORDER BY <span class="num">1</span>;
+</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scenario 2 -->
+      <div class="glass rounded-2xl overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors" onclick="toggleAcc(this)">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400 font-display font-bold">02</div>
+            <div>
+              <p class="text-white font-bold">SQL Regression After Database Upgrade</p>
+              <p class="text-neutral-500 text-xs mt-0.5">Query ran in 2s on 12c, now takes 45s on 19c. Same data, same code.</p>
+            </div>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">SQL regression diagnosis &amp; fix</span></div>
+              <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Check if plan changed after upgrade</span>
+<span class="kw">SELECT</span> plan_hash_value, snap_id,
+       ROUND(elapsed_time_total/1e6/NULLIF(executions_total,0),2) avg_s
+<span class="kw">FROM</span>   dba_hist_sqlstat
+<span class="kw">WHERE</span>  sql_id = <span class="str">'&sql_id'</span>
+  <span class="kw">AND</span>  executions_total > 0
+<span class="kw">ORDER BY</span> snap_id;
+<span class="cm">-- You'll see plan_hash_value change at the upgrade snap_id</span>
+
+<span class="cm">-- Get both plans for comparison</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">TABLE</span>(DBMS_XPLAN.DISPLAY_AWR(
+  sql_id=>'&sql_id', plan_hash_value=><span class="num">&old_plan</span>, format=>'ALL'));
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">TABLE</span>(DBMS_XPLAN.DISPLAY_AWR(
+  sql_id=>'&sql_id', plan_hash_value=><span class="num">&new_plan</span>, format=>'ALL'));
+
+<span class="cm">-- Option A: Load old (good) plan as SPM baseline</span>
+DECLARE n PLS_INTEGER; BEGIN
+  n := DBMS_SPM.LOAD_PLANS_FROM_AWR(
+    begin_snap => <span class="num">&pre_upgrade_snap</span>, end_snap => <span class="num">&pre_upgrade_snap</span>,
+    sql_id     => <span class="str">'&sql_id'</span>,
+    plan_hash_value => <span class="num">&old_plan</span>
+  );
+END;/
+
+<span class="cm">-- Option B: SQL Profile via SQL Tuning Advisor</span>
+DECLARE t VARCHAR2(30); BEGIN
+  t := DBMS_SQLTUNE.CREATE_TUNING_TASK(
+    sql_id=>'&sql_id', scope=>DBMS_SQLTUNE.SCOPE_COMPREHENSIVE, time_limit=>300);
+  DBMS_SQLTUNE.EXECUTE_TUNING_TASK(t);
+END;/
+
+<span class="cm">-- Option C: Optimizer fix controls (targeted, no side effects)</span>
+<span class="kw">ALTER SESSION SET</span> "_optimizer_adaptive_plans" = FALSE;
+<span class="kw">ALTER SYSTEM SET</span> optimizer_features_enable = <span class="str">'12.2.0.1'</span>;  <span class="cm">-- not recommended for all</span>
+</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scenario 3 -->
+      <div class="glass rounded-2xl overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors" onclick="toggleAcc(this)">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center text-yellow-400 font-display font-bold">03</div>
+            <div>
+              <p class="text-white font-bold">ORA-04031: Out of Shared Pool Memory</p>
+              <p class="text-neutral-500 text-xs mt-0.5">Shared pool fragmentation — the classic 3 AM ORA-04031 storm.</p>
+            </div>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">ORA-04031 diagnosis &amp; resolution</span></div>
+              <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Confirm shared pool pressure</span>
+<span class="kw">SELECT</span> pool, name, ROUND(bytes/1024/1024,1) MB
+<span class="kw">FROM</span>   v$sgastat
+<span class="kw">WHERE</span>  name IN ('free memory','library cache')
+<span class="kw">ORDER BY</span> pool, name;
+<span class="cm">-- Free memory < 5% of SHARED_POOL_SIZE = fragmented</span>
+
+<span class="cm">-- Hard parse rate (the root cause)</span>
+<span class="kw">SELECT</span> name, value
+<span class="kw">FROM</span>   v$sysstat
+<span class="kw">WHERE</span>  name IN ('parse count (hard)','parse count (total)',
+                'parse count (failures)');
+
+<span class="cm">-- Find non-shared cursors (literal SQL = hard parses)</span>
+<span class="kw">SELECT</span> <span class="fn">SUBSTR</span>(sql_text,1,50) sql_prefix,
+       COUNT(*) versions
+<span class="kw">FROM</span>   v$sql
+<span class="kw">GROUP BY</span> <span class="fn">SUBSTR</span>(sql_text,1,50)
+<span class="kw">HAVING</span> COUNT(*) > 20
+<span class="kw">ORDER BY</span> <span class="num">2</span> DESC FETCH FIRST <span class="num">10</span> ROWS ONLY;
+<span class="cm">-- Many versions of same prefix = literal values instead of binds</span>
+
+<span class="cm">-- Immediate fix: flush shared pool (use in emergency only)</span>
+<span class="kw">ALTER SYSTEM FLUSH SHARED_POOL</span>;
+<span class="cm">-- Warning: causes brief spike of hard parses, use off-peak</span>
+
+<span class="cm">-- Permanent fix: enable cursor sharing (last resort)</span>
+<span class="kw">ALTER SYSTEM SET</span> cursor_sharing = FORCE;
+<span class="cm">-- Better: rewrite app to use bind variables</span>
+<span class="cm">-- Also: increase SHARED_POOL_SIZE or SHARED_POOL_RESERVED_SIZE</span>
+<span class="kw">ALTER SYSTEM SET</span> shared_pool_size        = <span class="num">2G</span>;
+<span class="kw">ALTER SYSTEM SET</span> shared_pool_reserved_size = <span class="num">200M</span>; <span class="cm">-- 10% of shared_pool</span>
+</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scenario 4 -->
+      <div class="glass rounded-2xl overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors" onclick="toggleAcc(this)">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center text-green-400 font-display font-bold">04</div>
+            <div>
+              <p class="text-white font-bold">High "log file sync" Wait — Commit Bottleneck</p>
+              <p class="text-neutral-500 text-xs mt-0.5">Every COMMIT is waiting 50ms+ for LGWR. Throughput is tanking.</p>
+            </div>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">log file sync investigation</span></div>
+              <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Measure commit rate and wait time</span>
+<span class="kw">SELECT</span> event,
+       total_waits,
+       ROUND(time_waited_micro/1000000,1)        total_secs,
+       ROUND(time_waited_micro/total_waits/1000,2) avg_ms
+<span class="kw">FROM</span>   v$system_event
+<span class="kw">WHERE</span>  event IN ('log file sync','log file parallel write');
+<span class="cm">-- avg_ms > 10 → storage is the bottleneck</span>
+<span class="cm">-- log file sync >> log file parallel write → commit rate too high</span>
+
+<span class="cm">-- Identify commit-happy sessions (commit per row)</span>
+<span class="kw">SELECT</span> s.sid, s.username, s.module,
+       st.value commits, s.sql_id
+<span class="kw">FROM</span>   v$sesstat st
+<span class="kw">JOIN</span>   v$statname sn ON st.statistic# = sn.statistic#
+<span class="kw">JOIN</span>   v$session  s  ON st.sid = s.sid
+<span class="kw">WHERE</span>  sn.name = 'user commits'
+  <span class="kw">AND</span>  st.value > 1000
+  <span class="kw">AND</span>  s.status = 'ACTIVE'
+<span class="kw">ORDER BY</span> st.value DESC;
+
+<span class="cm">-- Check log switch frequency (should be 1 per 15-30 min)</span>
+<span class="kw">SELECT</span> <span class="fn">TO_CHAR</span>(first_time,'YYYY-MM-DD HH24') hr,
+       COUNT(*) switches
+<span class="kw">FROM</span>   v$log_history
+<span class="kw">WHERE</span>  first_time >= SYSDATE - 1
+<span class="kw">GROUP BY</span> <span class="fn">TO_CHAR</span>(first_time,'YYYY-MM-DD HH24') ORDER BY 1;
+
+<span class="cm">-- Increase redo log size (requires adding new group)</span>
+<span class="kw">ALTER DATABASE ADD LOGFILE GROUP</span> <span class="num">4</span>
+  '<span class="str">/oradata/redo04a.log</span>' SIZE <span class="num">1G</span>;
+<span class="cm">-- Target: 1 switch per 20-30 minutes at peak load</span>
+
+<span class="cm">-- Move redo logs to faster storage (SSD/NVMe)</span>
+<span class="kw">ALTER DATABASE RENAME FILE</span>
+  '<span class="str">/slow_disk/redo01.log</span>' TO '<span class="str">/nvme/redo01.log</span>';
+</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scenario 5 -->
+      <div class="glass rounded-2xl overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors" onclick="toggleAcc(this)">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-display font-bold">05</div>
+            <div>
+              <p class="text-white font-bold">Table Full Scan on a 500M Row Table</p>
+              <p class="text-neutral-500 text-xs mt-0.5">A critical report does a FTS every run. How to eliminate it.</p>
+            </div>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">FTS elimination workflow</span></div>
+              <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Verify it IS doing a FTS</span>
+<span class="kw">SELECT</span> operation, options, object_name, object_type,
+       cardinality, cost, bytes
+<span class="kw">FROM</span>   v$sql_plan
+<span class="kw">WHERE</span>  sql_id = <span class="str">'&sql_id'</span>
+  <span class="kw">AND</span>  operation = <span class="str">'TABLE ACCESS'</span>
+  <span class="kw">AND</span>  options   = <span class="str">'FULL'</span>;
+
+<span class="cm">-- Check what columns are in the WHERE clause</span>
+<span class="kw">SELECT</span> column_name, num_distinct, num_nulls,
+       last_analyzed, histogram
+<span class="kw">FROM</span>   dba_col_statistics
+<span class="kw">WHERE</span>  owner = <span class="str">'SCOTT'</span> AND table_name = <span class="str">'ORDERS'</span>
+  <span class="kw">AND</span>  column_name IN (<span class="str">'ORDER_DATE'</span>,<span class="str">'STATUS'</span>,<span class="str">'CUSTOMER_ID'</span>);
+
+<span class="cm">-- Why isn't an existing index being used?</span>
+<span class="cm">-- Common reasons:</span>
+<span class="cm">-- 1. Function on indexed column: WHERE TRUNC(order_date)=... </span>
+<span class="cm">--    Fix: function-based index or rewrite predicate</span>
+<span class="cm">-- 2. Implicit type conversion: WHERE customer_id='12345' (char vs number)</span>
+<span class="cm">-- 3. Stale stats → optimizer thinks FTS is cheaper</span>
+<span class="cm">-- 4. Low selectivity (status in 3 values on 500M rows)</span>
+
+<span class="cm">-- Gather fresh stats with histogram</span>
+EXEC DBMS_STATS.GATHER_TABLE_STATS('SCOTT','ORDERS',
+  method_opt=>'FOR COLUMNS ORDER_DATE SIZE 254, STATUS SIZE 3');
+
+<span class="cm">-- Test with index hint (don't ship hints to prod!)</span>
+<span class="kw">SELECT</span> <span class="cm">/*+ INDEX(o orders_date_idx) */</span>
+       * <span class="kw">FROM</span> orders o
+<span class="kw">WHERE</span>  order_date >= TRUNC(SYSDATE) - <span class="num">30</span>;
+
+<span class="cm">-- If table is truly access-by-range: consider partitioning</span>
+<span class="cm">-- PARTITION BY RANGE (order_date) → query prunes to 1 partition</span>
+<span class="cm">-- instead of FTS on 500M rows → partition scan on 2M rows</span>
+</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scenario 6 -->
+      <div class="glass rounded-2xl overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors" onclick="toggleAcc(this)">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 font-display font-bold">06</div>
+            <div>
+              <p class="text-white font-bold">Production Blocking Storm — 50 Sessions Queued</p>
+              <p class="text-neutral-500 text-xs mt-0.5">Monitoring shows 50+ sessions blocked behind one session that's been idle for 8 minutes.</p>
+            </div>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">Emergency blocking resolution</span></div>
+              <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Find the root blocker (session blocking the most sessions)</span>
+<span class="kw">SELECT</span> blocking_session root_blocker,
+       COUNT(*)          sessions_blocked,
+       MIN(seconds_in_wait) secs
+<span class="kw">FROM</span>   v$session
+<span class="kw">WHERE</span>  blocking_session IS NOT NULL
+<span class="kw">GROUP BY</span> blocking_session
+<span class="kw">ORDER BY</span> sessions_blocked DESC;
+
+<span class="cm">-- Who is this blocker? What were they doing?</span>
+<span class="kw">SELECT</span> sid, serial#, username, status, last_call_et idle_secs,
+       sql_id, prev_sql_id, module, machine, osuser
+<span class="kw">FROM</span>   v$session
+<span class="kw">WHERE</span>  sid = <span class="str">&root_blocker</span>;
+<span class="cm">-- last_call_et = seconds since last Oracle call</span>
+<span class="cm">-- status=INACTIVE + sql_id=NULL = idle, holding a lock</span>
+
+<span class="cm">-- What did they last run? (prev_sql_id)</span>
+<span class="kw">SELECT</span> sql_fulltext <span class="kw">FROM</span> v$sql
+<span class="kw">WHERE</span>  sql_id = <span class="str">'&prev_sql_id'</span> FETCH FIRST 1 ROW ONLY;
+<span class="cm">-- Tells you what transaction started the lock</span>
+
+<span class="cm">-- Escalation decision matrix:</span>
+<span class="cm">-- idle_secs < 60   → contact app team, may still be active</span>
+<span class="cm">-- idle_secs 60-300 → kill with app team approval</span>
+<span class="cm">-- idle_secs > 300  → kill immediately (session abandoned)</span>
+
+<span class="cm">-- Kill the root blocker</span>
+<span class="kw">ALTER SYSTEM KILL SESSION</span> '<span class="str">&sid,&serial#</span>' IMMEDIATE;
+<span class="cm">-- Verify all waiters are now unblocked</span>
+<span class="kw">SELECT</span> COUNT(*) FROM v$session WHERE blocking_session IS NOT NULL;
+</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scenario 7 -->
+      <div class="glass rounded-2xl overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors" onclick="toggleAcc(this)">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 font-display font-bold">07</div>
+            <div>
+              <p class="text-white font-bold">High Parse Rates Killing OLTP Performance</p>
+              <p class="text-neutral-500 text-xs mt-0.5">1000+ hard parses/sec. Shared pool thrashing. Response times climbing.</p>
+            </div>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">Parse rate optimization</span></div>
+              <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Measure hard parse rate right now</span>
+<span class="kw">SELECT</span> name, value
+<span class="kw">FROM</span>   v$sysstat
+<span class="kw">WHERE</span>  name IN ('parse count (hard)','parse count (total)',
+                'execute count','parse count (failures)');
+
+<span class="cm">-- Identify the worst literal SQL patterns</span>
+<span class="kw">SELECT</span> <span class="fn">REGEXP_REPLACE</span>(<span class="fn">UPPER</span>(<span class="fn">SUBSTR</span>(sql_text,1,60)),
+         '[0-9]+','N') sql_pattern,
+       COUNT(*)         child_cursors,
+       SUM(parse_calls) total_parses
+<span class="kw">FROM</span>   v$sql
+<span class="kw">WHERE</span>  parse_calls > 50
+<span class="kw">GROUP BY</span> <span class="fn">REGEXP_REPLACE</span>(<span class="fn">UPPER</span>(<span class="fn">SUBSTR</span>(sql_text,1,60)),'[0-9]+','N')
+<span class="kw">HAVING</span> COUNT(*) > 10
+<span class="kw">ORDER BY</span> child_cursors DESC FETCH FIRST 10 ROWS ONLY;
+
+<span class="cm">-- Check SESSION_CACHED_CURSORS (should be >= 50)</span>
+<span class="kw">SELECT</span> name, value FROM v$parameter
+<span class="kw">WHERE</span>  name IN ('session_cached_cursors','open_cursors',
+                'cursor_sharing','cursor_space_for_time');
+
+<span class="cm">-- Quick fix: increase session_cached_cursors</span>
+<span class="kw">ALTER SYSTEM SET</span> session_cached_cursors = <span class="num">100</span>;
+
+<span class="cm">-- Emergency: enable CURSOR_SHARING (masks root cause)</span>
+<span class="kw">ALTER SYSTEM SET</span> cursor_sharing = FORCE;
+<span class="cm">-- Drawback: forces all SQL to SIMILAR parse mode,</span>
+<span class="cm">-- may prevent optimal histogram-driven plans</span>
+
+<span class="cm">-- Root fix: require app developers to use bind variables</span>
+<span class="cm">-- Before: SELECT * FROM orders WHERE order_id = 12345</span>
+<span class="cm">-- After:  SELECT * FROM orders WHERE order_id = :b1</span>
+<span class="cm">-- This alone reduces hard parses by 90%+ in typical OLTP</span>
+</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CHEATSHEET ==================== -->
+<section class="py-20 px-6 bg-white/[0.01]">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <span class="badge badge-amber mb-3">Quick Reference</span>
+      <h2 class="text-3xl md:text-4xl font-display font-bold gradient-text-w mb-4">DBA Performance Cheatsheet</h2>
+      <p class="text-neutral-400 max-w-xl mx-auto text-sm">The most critical queries and targets — bookmark this section.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6 reveal">
+      <!-- Diagnostics -->
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center"><i class="fas fa-stethoscope text-cyan-400 text-sm"></i></div>
+          <span class="text-cyan-400 font-bold text-sm">Instant Diagnostics</span>
+        </div>
+        <div class="space-y-2">
+          <div class="glass rounded-lg p-2.5"><code class="text-cyan-400 text-xs font-mono">v$active_session_history</code><p class="text-neutral-500 text-xs mt-0.5">Real-time wait analysis</p></div>
+          <div class="glass rounded-lg p-2.5"><code class="text-cyan-400 text-xs font-mono">v$session_wait</code><p class="text-neutral-500 text-xs mt-0.5">Current session waits</p></div>
+          <div class="glass rounded-lg p-2.5"><code class="text-cyan-400 text-xs font-mono">v$system_event</code><p class="text-neutral-500 text-xs mt-0.5">Cumulative event totals</p></div>
+          <div class="glass rounded-lg p-2.5"><code class="text-cyan-400 text-xs font-mono">v$sqlarea</code><p class="text-neutral-500 text-xs mt-0.5">SQL in shared pool</p></div>
+          <div class="glass rounded-lg p-2.5"><code class="text-cyan-400 text-xs font-mono">v$session BLOCKING_SESSION</code><p class="text-neutral-500 text-xs mt-0.5">Lock chain finder</p></div>
+          <div class="glass rounded-lg p-2.5"><code class="text-cyan-400 text-xs font-mono">dba_hist_active_sess_history</code><p class="text-neutral-500 text-xs mt-0.5">Historical ASH</p></div>
+        </div>
+      </div>
+
+      <!-- Targets -->
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center"><i class="fas fa-bullseye text-green-400 text-sm"></i></div>
+          <span class="text-green-400 font-bold text-sm">Performance Targets</span>
+        </div>
+        <div class="space-y-2">
+          <div class="flex justify-between items-center glass rounded-lg p-2.5">
+            <span class="text-neutral-400 text-xs">Buffer Cache Hit %</span>
+            <span class="badge badge-green text-xs">&gt; 95%</span>
+          </div>
+          <div class="flex justify-between items-center glass rounded-lg p-2.5">
+            <span class="text-neutral-400 text-xs">Library Cache Hit %</span>
+            <span class="badge badge-green text-xs">&gt; 99%</span>
+          </div>
+          <div class="flex justify-between items-center glass rounded-lg p-2.5">
+            <span class="text-neutral-400 text-xs">Hard Parse Ratio</span>
+            <span class="badge badge-green text-xs">&lt; 1%</span>
+          </div>
+          <div class="flex justify-between items-center glass rounded-lg p-2.5">
+            <span class="text-neutral-400 text-xs">Log File Sync avg</span>
+            <span class="badge badge-green text-xs">&lt; 2ms</span>
+          </div>
+          <div class="flex justify-between items-center glass rounded-lg p-2.5">
+            <span class="text-neutral-400 text-xs">Log Switches/hr</span>
+            <span class="badge badge-green text-xs">2–4</span>
+          </div>
+          <div class="flex justify-between items-center glass rounded-lg p-2.5">
+            <span class="text-neutral-400 text-xs">Storage I/O Latency</span>
+            <span class="badge badge-green text-xs">&lt; 5ms</span>
+          </div>
+          <div class="flex justify-between items-center glass rounded-lg p-2.5">
+            <span class="text-neutral-400 text-xs">PGA Cache Hit %</span>
+            <span class="badge badge-green text-xs">&gt; 90%</span>
+          </div>
+          <div class="flex justify-between items-center glass rounded-lg p-2.5">
+            <span class="text-neutral-400 text-xs">Index blevel</span>
+            <span class="badge badge-green text-xs">≤ 3</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Plan -->
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center"><i class="fas fa-list-check text-cyan-400 text-sm"></i></div>
+          <span class="text-cyan-400 font-bold text-sm">Tuning Toolkit</span>
+        </div>
+        <div class="space-y-2">
+          <div class="glass rounded-lg p-2.5"><code class="text-cyan-400 text-xs font-mono">DBMS_WORKLOAD_REPOSITORY</code><p class="text-neutral-500 text-xs mt-0.5">AWR reports &amp; snapshots</p></div>
+          <div class="glass rounded-lg p-2.5"><code class="text-cyan-400 text-xs font-mono">DBMS_XPLAN.DISPLAY_CURSOR</code><p class="text-neutral-500 text-xs mt-0.5">Real execution plan</p></div>
+          <div class="glass rounded-lg p-2.5"><code class="text-cyan-400 text-xs font-mono">DBMS_SQLTUNE</code><p class="text-neutral-500 text-xs mt-0.5">SQL Tuning Advisor</p></div>
+          <div class="glass rounded-lg p-2.5"><code class="text-cyan-400 text-xs font-mono">DBMS_SPM</code><p class="text-neutral-500 text-xs mt-0.5">SQL Plan Management</p></div>
+          <div class="glass rounded-lg p-2.5"><code class="text-cyan-400 text-xs font-mono">DBMS_STATS</code><p class="text-neutral-500 text-xs mt-0.5">Statistics management</p></div>
+          <div class="glass rounded-lg p-2.5"><code class="text-cyan-400 text-xs font-mono">v$db_cache_advice</code><p class="text-neutral-500 text-xs mt-0.5">Buffer cache sizing advisor</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="border-t border-white/5 py-12 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid md:grid-cols-4 gap-8 mb-10">
+      <div>
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-8 h-8 rounded-md bg-gradient-to-br from-cyan-500 to-sky-600 flex items-center justify-center">
+            <i class="fas fa-gauge-high text-white text-xs"></i>
+          </div>
+          <span class="font-display font-bold text-white text-sm">Oracle DBA Simplified</span>
+        </div>
+        <p class="text-neutral-500 text-xs leading-relaxed">Production-grade Oracle DBA knowledge — AWR, ASH, wait events, SQL tuning, and memory management explained without the fluff.</p>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold text-xs mb-4 uppercase tracking-wider">This Page</h4>
+        <ul class="space-y-2">
+          <li><a href="#methodology" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">Methodology</a></li>
+          <li><a href="#awr" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">AWR &amp; ADDM</a></li>
+          <li><a href="#ash" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">Active Session History</a></li>
+          <li><a href="#wait-events" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">Wait Events</a></li>
+          <li><a href="#sql-tuning" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">SQL Tuning</a></li>
+          <li><a href="#memory" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">Memory Tuning</a></li>
+          <li><a href="#scenarios" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">Real-Life Scenarios</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold text-xs mb-4 uppercase tracking-wider">Other Topics</h4>
+        <ul class="space-y-2">
+          <li><a href="index.html" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">Home</a></li>
+          <li><a href="data-guard.html" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">Data Guard</a></li>
+          <li><a href="linux-for-dbas.html" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">Linux for DBAs</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold text-xs mb-4 uppercase tracking-wider">Official Docs</h4>
+        <ul class="space-y-2">
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgdba/index.html" target="_blank" rel="noopener" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">Oracle 19c Tuning Guide <i class="fas fa-external-link-alt text-xs ml-1"></i></a></li>
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/index.html" target="_blank" rel="noopener" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">Reference (V$ Views) <i class="fas fa-external-link-alt text-xs ml-1"></i></a></li>
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/arpls/DBMS_SQLTUNE.html" target="_blank" rel="noopener" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">DBMS_SQLTUNE Docs <i class="fas fa-external-link-alt text-xs ml-1"></i></a></li>
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/arpls/DBMS_SPM.html" target="_blank" rel="noopener" class="text-neutral-500 hover:text-cyan-400 text-xs transition-colors">DBMS_SPM Docs <i class="fas fa-external-link-alt text-xs ml-1"></i></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/5 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <p class="text-neutral-600 text-xs">&copy; 2025 Oracle DBA Simplified · vsaipavan6@gmail.com</p>
+      <p class="text-neutral-700 text-xs">Built for DBAs, by a DBA · Oracle 19c</p>
+    </div>
+  </div>
+</footer>
+
+<!-- Back to top -->
+<button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})"
+  class="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-cyan-500 text-black flex items-center justify-center shadow-lg opacity-0 transition-opacity z-40 hover:bg-cyan-400">
+  <i class="fas fa-arrow-up text-xs"></i>
+</button>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+// Tab system
+function initTabs(group) {
+  const btns = document.querySelectorAll(`[data-group="${group}"]`);
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tabId = btn.dataset.tab;
+      document.querySelectorAll(`#${tabId}`).forEach(el => {
+        // Hide siblings in same parent
+        el.parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+      });
+    });
+  });
+}
+initTabs('awr');
+initTabs('ash');
+initTabs('sqlt');
+initTabs('mem');
+initTabs('stat');
+
+// Accordion
+function toggleAcc(btn) {
+  const content = btn.nextElementSibling;
+  const isOpen = content.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.acc-content.open').forEach(c => c.classList.remove('open'));
+  document.querySelectorAll('.acc-btn.open').forEach(b => b.classList.remove('open'));
+  if (!isOpen) {
+    content.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+
+// Wait event card selector
+function showWait(id) {
+  document.querySelectorAll('.wait-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.wait-detail-pane').forEach(p => p.style.display = 'none');
+  // Find the card that triggered and select it
+  event.currentTarget.classList.add('selected');
+  const pane = document.getElementById(id);
+  if (pane) pane.style.display = 'block';
+}
+
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Back to top
+const btt = document.getElementById('btt');
+window.addEventListener('scroll', () => { btt.style.opacity = window.scrollY > 500 ? '1' : '0'; });
+
+// Mobile menu
+document.getElementById('mob-btn').addEventListener('click', () => {
+  document.getElementById('mob-menu').classList.toggle('open');
+});
+
+// Nav active on scroll
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  navLinks.forEach(l => {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+  });
+}, { passive: true });
+
+// Metric bar animation on scroll
+document.querySelectorAll('.metric-fill').forEach(bar => {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { bar.style.width = bar.dataset.width || bar.style.width; obs.unobserve(bar); } });
+  }, { threshold: 0.3 });
+  obs.observe(bar);
+});
+</script>
+</body>
+</html>

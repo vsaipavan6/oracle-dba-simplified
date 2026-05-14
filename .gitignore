@@ -1,0 +1,11 @@
+# Private session/memory data — not part of the website
+.claude/
+
+# Source documents (not website assets)
+*.docx
+*.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,2325 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Amazon RDS for Oracle | Oracle DBA Simplified</title>
+  <meta name="description" content="Complete guide to Amazon RDS for Oracle — licensing, Multi-AZ, backups, option groups, migration, monitoring, RDS Custom, and everything a DBA needs to know."/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config={darkMode:'class',theme:{extend:{colors:{oracle:{red:'#C74634',dark:'#8B2E22',light:'#E8604A'}},fontFamily:{display:['Sora','sans-serif'],body:['DM Sans','sans-serif'],mono:['JetBrains Mono','monospace']}}}}
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{--color-primary:#38bdf8;--color-surface:#111118;--color-border:#1e1e2e;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#0a0a0f;color:#e2e8f0;overflow-x:hidden;}
+    ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:#0a0a0f;}::-webkit-scrollbar-thumb{background:#38bdf8;border-radius:3px;}
+    .glass{background:rgba(255,255,255,0.04);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);}
+    .glass-strong{background:rgba(255,255,255,0.07);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);}
+    .gradient-text{background:linear-gradient(135deg,#38bdf8,#818cf8,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .gradient-text-w{background:linear-gradient(135deg,#fff,#cbd5e1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12;pointer-events:none;}
+    .grid-bg{background-image:linear-gradient(rgba(56,189,248,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.03) 1px,transparent 1px);background-size:64px 64px;}
+    .nav-link{font-size:.875rem;color:#94a3b8;transition:color .2s;}
+    .nav-link:hover,.nav-link.active{color:#38bdf8;}
+    .btn-primary{background:linear-gradient(135deg,#38bdf8,#0284c7);color:#0a0a0f;border-radius:6px;padding:10px 24px;font-weight:700;font-size:.875rem;transition:all .2s;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(56,189,248,.4);}
+    .btn-ghost{background:transparent;color:#e2e8f0;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:10px 24px;font-weight:500;font-size:.875rem;transition:all .2s;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-ghost:hover{border-color:rgba(56,189,248,.5);color:#38bdf8;}
+    .badge{font-size:.75rem;padding:3px 10px;border-radius:100px;font-weight:600;display:inline-block;}
+    .badge-sky{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.25);}
+    .badge-red{background:rgba(199,70,52,.15);color:#E8604A;border:1px solid rgba(199,70,52,.25);}
+    .badge-green{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);}
+    .badge-orange{background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.25);}
+    .badge-purple{background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.25);}
+    .badge-blue{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.25);}
+    .badge-yellow{background:rgba(234,179,8,.15);color:#facc15;border:1px solid rgba(234,179,8,.25);}
+    .badge-cyan{background:rgba(6,182,212,.15);color:#22d3ee;border:1px solid rgba(6,182,212,.25);}
+    .badge-amber{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25);}
+    .reveal{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease;}
+    .reveal.visible{opacity:1;transform:none;}
+    .terminal{background:#0d0d14;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden;}
+    .terminal-bar{background:#1a1a25;padding:10px 16px;display:flex;align-items:center;gap:8px;}
+    .t-dot{width:11px;height:11px;border-radius:50%;}
+    code .kw{color:#38bdf8;} code .fn{color:#78d4f4;} code .str{color:#a8ff78;} code .cm{color:#6b7280;font-style:italic;} code .num{color:#fb923c;} code .var{color:#c084fc;} code .flag{color:#22d3ee;} code .err{color:#f87171;} code .key{color:#f59e0b;}
+    .tab-btn{padding:8px 18px;border-radius:8px;font-size:.8rem;font-weight:600;transition:all .2s;cursor:pointer;border:1px solid transparent;color:#64748b;white-space:nowrap;}
+    .tab-btn.active,.tab-btn:hover{background:rgba(56,189,248,.12);color:#38bdf8;border-color:rgba(56,189,248,.3);}
+    .tab-content{display:none;}.tab-content.active{display:block;}
+    .acc-content{max-height:0;overflow:hidden;transition:max-height .5s ease;}
+    .acc-content.open{max-height:5000px;}
+    .acc-icon{transition:transform .3s;}
+    .acc-btn.open .acc-icon{transform:rotate(180deg);}
+    #mob-menu{max-height:0;overflow:hidden;transition:max-height .4s;}
+    #mob-menu.open{max-height:600px;}
+    .limit-card{border:1px solid rgba(255,255,255,.06);transition:all .25s;}
+    .limit-card.can{border-color:rgba(34,197,94,.2);}
+    .limit-card.cannot{border-color:rgba(239,68,68,.2);}
+    .vs-row:nth-child(odd){background:rgba(255,255,255,.02);}
+    @keyframes aws-pulse{0%,100%{box-shadow:0 0 15px rgba(56,189,248,.2)}50%{box-shadow:0 0 40px rgba(56,189,248,.5)}}
+    .aws-glow{animation:aws-pulse 3s ease-in-out infinite;}
+  </style>
+</head>
+<body class="dark grid-bg">
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/5">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="flex items-center gap-2 text-neutral-400 hover:text-sky-400 transition-colors text-sm font-medium">
+        <i class="fas fa-arrow-left text-xs"></i> Back to Home
+      </a>
+      <span class="text-neutral-700">|</span>
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-md bg-gradient-to-br from-sky-500 to-blue-700 flex items-center justify-center">
+          <i class="fab fa-aws text-white text-xs"></i>
+        </div>
+        <span class="font-display font-bold text-white text-sm">Oracle DBA Simplified</span>
+      </div>
+    </div>
+    <div class="hidden md:flex items-center gap-5">
+      <a href="#overview" class="nav-link">Overview</a>
+      <a href="#rds-vs-onprem" class="nav-link">RDS vs On-Prem</a>
+      <a href="#setup" class="nav-link">Setup</a>
+      <a href="#ha-backup" class="nav-link">HA &amp; Backup</a>
+      <a href="#security" class="nav-link">Security</a>
+      <a href="#migration" class="nav-link">Migration</a>
+      <a href="#monitoring" class="nav-link">Monitoring</a>
+      <a href="#rds-custom" class="nav-link">RDS Custom</a>
+    </div>
+    <button id="mob-btn" class="md:hidden text-neutral-400 hover:text-white"><i class="fas fa-bars"></i></button>
+  </div>
+  <div id="mob-menu" class="md:hidden px-6 pb-4">
+    <div class="flex flex-col gap-3 pt-2">
+      <a href="#overview" class="nav-link">Overview</a>
+      <a href="#rds-vs-onprem" class="nav-link">RDS vs On-Prem</a>
+      <a href="#setup" class="nav-link">Setup</a>
+      <a href="#ha-backup" class="nav-link">HA &amp; Backup</a>
+      <a href="#security" class="nav-link">Security</a>
+      <a href="#migration" class="nav-link">Migration</a>
+      <a href="#monitoring" class="nav-link">Monitoring</a>
+      <a href="#rds-custom" class="nav-link">RDS Custom</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden">
+  <div class="orb w-[500px] h-[500px] bg-sky-500 top-10 -right-40"></div>
+  <div class="orb w-80 h-80 bg-indigo-600 bottom-0 -left-20"></div>
+  <div class="max-w-7xl mx-auto px-6 w-full">
+    <div class="grid lg:grid-cols-2 gap-12 items-center">
+      <!-- Left -->
+      <div>
+        <div class="flex flex-wrap gap-2 mb-6">
+          <span class="badge badge-sky"><i class="fab fa-aws mr-1"></i> Amazon RDS</span>
+          <span class="badge badge-purple">Managed Oracle</span>
+          <span class="badge badge-green">19c · 21c</span>
+          <span class="badge badge-blue">Multi-AZ · HA</span>
+        </div>
+        <h1 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-6">
+          Amazon RDS<br/>for Oracle —<br/><span class="gradient-text">No More Babysitting</span>
+        </h1>
+        <p class="text-neutral-400 text-lg leading-relaxed mb-8 max-w-xl">
+          AWS handles the hardware, patching, backups, and failover. You focus on the database. Here's everything a DBA needs to know about running Oracle on RDS — from setup to migration to what you can't do anymore.
+        </p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          <div class="glass rounded-xl p-3 text-center">
+            <div class="text-xl font-display font-bold text-sky-400">35</div>
+            <div class="text-neutral-500 text-xs mt-1">Day Backup Retention</div>
+          </div>
+          <div class="glass rounded-xl p-3 text-center">
+            <div class="text-xl font-display font-bold text-green-400">99.95%</div>
+            <div class="text-neutral-500 text-xs mt-1">Multi-AZ SLA</div>
+          </div>
+          <div class="glass rounded-xl p-3 text-center">
+            <div class="text-xl font-display font-bold text-purple-400">60s</div>
+            <div class="text-neutral-500 text-xs mt-1">PITR Granularity</div>
+          </div>
+          <div class="glass rounded-xl p-3 text-center">
+            <div class="text-xl font-display font-bold text-amber-400">0</div>
+            <div class="text-neutral-500 text-xs mt-1">OS Access Needed</div>
+          </div>
+        </div>
+        <div class="flex gap-3 flex-wrap">
+          <a href="#overview" class="btn-primary"><i class="fab fa-aws"></i> Explore RDS Oracle</a>
+          <a href="#rds-vs-onprem" class="btn-ghost"><i class="fas fa-scale-balanced"></i> RDS vs On-Prem</a>
+        </div>
+      </div>
+
+      <!-- Right: Live terminal showing RDS-style output -->
+      <div class="hidden lg:block">
+        <div class="terminal aws-glow">
+          <div class="terminal-bar">
+            <div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div>
+            <span class="text-neutral-500 text-xs ml-2">AWS CLI + SQL*Plus — RDS Oracle Instance</span>
+          </div>
+          <pre class="p-5 text-xs leading-relaxed overflow-x-auto"><code><span class="cm"># Create RDS Oracle instance (CLI)</span>
+<span class="flag">aws rds create-db-instance</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--db-instance-class</span>      db.m6i.xlarge \
+  <span class="flag">--engine</span>                 oracle-ee \
+  <span class="flag">--engine-version</span>         19.0.0.0.ru-2024-01.rur-2024-01.r1 \
+  <span class="flag">--license-model</span>          bring-your-own-license \
+  <span class="flag">--allocated-storage</span>      500 \
+  <span class="flag">--storage-type</span>           gp3 \
+  <span class="flag">--master-username</span>        admin \
+  <span class="flag">--multi-az</span>               \
+  <span class="flag">--backup-retention-period</span> 7
+
+<span class="cm">-- Connect via SQL*Plus (endpoint from Console)</span>
+<span class="kw">sqlplus</span> admin/<span class="str">'Passw0rd!'</span>@<span class="str">'mydb.abc123.us-east-1.rds.amazonaws.com:1521/ORCL'</span>
+
+<span class="cm">-- Check instance info (RDS master user is a DBA)</span>
+<span class="kw">SELECT</span> name, db_unique_name, open_mode,
+       log_mode, platform_name
+<span class="kw">FROM</span>   v$database;
+<span class="cm">-- NAME   DB_UNIQUE_NAME  OPEN_MODE  LOG_MODE</span>
+<span class="cm">-- ORCL   ORCL            READ WRITE ARCHIVELOG</span>
+
+<span class="cm">-- Who are you on RDS?</span>
+<span class="kw">SELECT</span> username, account_status, profile
+<span class="kw">FROM</span>   dba_users
+<span class="kw">WHERE</span>  username = <span class="str">'ADMIN'</span>;
+<span class="cm">-- ADMIN  OPEN  DEFAULT  ← has DBA role, not SYSDBA</span>
+</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview" class="py-20 px-6 bg-white/[0.01]">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <span class="badge badge-sky mb-3">What Is It?</span>
+      <h2 class="text-3xl md:text-4xl font-display font-bold gradient-text-w mb-4">Amazon RDS for Oracle — The Big Picture</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto text-sm">RDS is AWS's managed relational database service. For Oracle, it means AWS provisions the server, installs Oracle, handles OS patching, automates backups, and monitors hardware — while you run your database workloads normally.</p>
+    </div>
+
+    <!-- What AWS manages vs you -->
+    <div class="grid md:grid-cols-2 gap-6 mb-12">
+      <div class="glass rounded-2xl p-6 border border-green-500/20 reveal">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center"><i class="fas fa-cloud text-green-400"></i></div>
+          <div><h3 class="font-bold text-white">AWS Manages</h3><p class="text-neutral-500 text-xs">You don't touch any of this</p></div>
+        </div>
+        <div class="space-y-2">
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-green-500/5"><i class="fas fa-check-circle text-green-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">Hardware provisioning and replacement</span></div>
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-green-500/5"><i class="fas fa-check-circle text-green-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">OS installation, patching, and maintenance</span></div>
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-green-500/5"><i class="fas fa-check-circle text-green-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">Oracle software installation and upgrades</span></div>
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-green-500/5"><i class="fas fa-check-circle text-green-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">Automated backups and point-in-time restore</span></div>
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-green-500/5"><i class="fas fa-check-circle text-green-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">Multi-AZ failover (automatic, under 120s)</span></div>
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-green-500/5"><i class="fas fa-check-circle text-green-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">Storage scaling and IOPS management</span></div>
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-green-500/5"><i class="fas fa-check-circle text-green-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">Monitoring, metrics, and alerting via CloudWatch</span></div>
+        </div>
+      </div>
+      <div class="glass rounded-2xl p-6 border border-sky-500/20 reveal">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-xl bg-sky-500/15 flex items-center justify-center"><i class="fas fa-user-gear text-sky-400"></i></div>
+          <div><h3 class="font-bold text-white">You Manage</h3><p class="text-neutral-500 text-xs">Your responsibilities on RDS</p></div>
+        </div>
+        <div class="space-y-2">
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-sky-500/5"><i class="fas fa-arrow-right text-sky-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">Database schema, users, and grants</span></div>
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-sky-500/5"><i class="fas fa-arrow-right text-sky-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">Oracle parameters (via parameter groups)</span></div>
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-sky-500/5"><i class="fas fa-arrow-right text-sky-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">Option groups (features: TDE, SSL, OEM, etc.)</span></div>
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-sky-500/5"><i class="fas fa-arrow-right text-sky-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">VPC, subnets, and security groups</span></div>
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-sky-500/5"><i class="fas fa-arrow-right text-sky-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">Application-level queries, indexes, and tuning</span></div>
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-sky-500/5"><i class="fas fa-arrow-right text-sky-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">Maintenance window scheduling</span></div>
+          <div class="flex items-center gap-3 p-2 rounded-lg bg-sky-500/5"><i class="fas fa-arrow-right text-sky-400 text-sm w-5"></i><span class="text-neutral-300 text-sm">Snapshot lifecycle and retention policies</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="glass rounded-2xl p-6 mb-10 reveal" style="border:1px solid rgba(56,189,248,0.12)">
+      <h3 class="font-bold text-white mb-2 flex items-center gap-2">
+        <i class="fas fa-diagram-project" style="color:#38bdf8"></i>
+        How RDS Oracle Fits Inside AWS &mdash; Architecture Overview
+      </h3>
+      <p class="text-neutral-500 text-xs mb-5">Your app connects to a single DNS endpoint. AWS handles everything beneath it &mdash; replication, failover, backups, and monitoring.</p>
+      <div class="w-full overflow-x-auto">
+        <svg viewBox="0 0 780 390" xmlns="http://www.w3.org/2000/svg" class="w-full min-w-[560px]" style="max-height:420px">
+          <defs>
+            <marker id="ah-sky" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#38bdf8"/>
+            </marker>
+            <marker id="ah-purple" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#a78bfa"/>
+            </marker>
+            <marker id="ah-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#4ade80"/>
+            </marker>
+            <marker id="ah-orange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#fb923c"/>
+            </marker>
+          </defs>
+
+          <!-- VPC outer box -->
+          <rect x="8" y="8" width="764" height="262" rx="12" fill="none" stroke="#1e2940" stroke-width="1.5" stroke-dasharray="7,4"/>
+          <text x="26" y="28" fill="#475569" font-size="11" font-family="DM Sans,sans-serif" font-weight="600" letter-spacing="1">YOUR VPC (Virtual Private Cloud)</text>
+
+          <!-- AZ-1 box -->
+          <rect x="24" y="42" width="340" height="215" rx="8" fill="rgba(56,189,248,0.03)" stroke="rgba(56,189,248,0.18)" stroke-width="1"/>
+          <text x="40" y="60" fill="#38bdf8" font-size="10" font-family="DM Sans,sans-serif" font-weight="600">Availability Zone A (e.g. us-east-1a)</text>
+
+          <!-- App server box -->
+          <rect x="38" y="74" width="118" height="72" rx="7" fill="rgba(99,102,241,0.08)" stroke="rgba(99,102,241,0.28)" stroke-width="1"/>
+          <text x="63" y="101" fill="#818cf8" font-size="11" font-family="DM Sans,sans-serif" font-weight="700">App Server</text>
+          <text x="48" y="117" fill="#64748b" font-size="9" font-family="DM Sans,sans-serif">EC2 / EKS / Lambda</text>
+          <text x="52" y="132" fill="#64748b" font-size="9" font-family="DM Sans,sans-serif">Java / Python / Node</text>
+
+          <!-- Arrow: App to Primary (horizontal) -->
+          <line x1="157" y1="110" x2="208" y2="110" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#ah-sky)"/>
+          <text x="162" y="105" fill="#38bdf8" font-size="8" font-family="DM Sans,sans-serif">port 1521</text>
+
+          <!-- RDS Primary box -->
+          <rect x="209" y="68" width="140" height="90" rx="7" fill="rgba(56,189,248,0.08)" stroke="rgba(56,189,248,0.4)" stroke-width="1.5"/>
+          <text x="225" y="93" fill="#7dd3fc" font-size="10" font-family="DM Sans,sans-serif" font-weight="700">RDS Oracle</text>
+          <text x="229" y="108" fill="#38bdf8" font-size="12" font-family="DM Sans,sans-serif" font-weight="800">PRIMARY</text>
+          <text x="222" y="122" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">19c EE &bull; db.r6i</text>
+          <text x="219" y="136" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">SGA &bull; PGA &bull; Redo logs</text>
+          <text x="222" y="149" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">gp3 / io2 storage</text>
+
+          <!-- Parameter + Option group boxes inside AZ1 -->
+          <rect x="38" y="164" width="140" height="36" rx="5" fill="rgba(251,146,60,0.07)" stroke="rgba(251,146,60,0.22)" stroke-width="1"/>
+          <text x="50" y="179" fill="#fb923c" font-size="9" font-family="DM Sans,sans-serif" font-weight="700">Parameter Group</text>
+          <text x="45" y="192" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">replaces init.ora / spfile</text>
+
+          <rect x="188" y="164" width="140" height="36" rx="5" fill="rgba(139,92,246,0.07)" stroke="rgba(139,92,246,0.22)" stroke-width="1"/>
+          <text x="204" y="179" fill="#a78bfa" font-size="9" font-family="DM Sans,sans-serif" font-weight="700">Option Group</text>
+          <text x="194" y="192" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">TDE / SSL / APEX / S3 / NNE</text>
+
+          <!-- Security group bar -->
+          <rect x="38" y="214" width="310" height="30" rx="5" fill="rgba(239,68,68,0.05)" stroke="rgba(239,68,68,0.18)" stroke-width="1"/>
+          <text x="65" y="227" fill="#f87171" font-size="9" font-family="DM Sans,sans-serif" font-weight="700">Security Group</text>
+          <text x="143" y="227" fill="#475569" font-size="8.5" font-family="DM Sans,sans-serif"> &mdash; allow TCP 1521 from App SG only &bull; no SSH</text>
+          <text x="92" y="239" fill="#374151" font-size="8" font-family="DM Sans,sans-serif">Private Subnet &bull; publicly-accessible = false</text>
+
+          <!-- AZ-2 box -->
+          <rect x="406" y="42" width="340" height="215" rx="8" fill="rgba(129,140,248,0.03)" stroke="rgba(129,140,248,0.18)" stroke-width="1"/>
+          <text x="422" y="60" fill="#818cf8" font-size="10" font-family="DM Sans,sans-serif" font-weight="600">Availability Zone B (e.g. us-east-1b)</text>
+
+          <!-- RDS Standby box -->
+          <rect x="432" y="68" width="140" height="90" rx="7" fill="rgba(129,140,248,0.07)" stroke="rgba(129,140,248,0.35)" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <text x="449" y="93" fill="#a5b4fc" font-size="10" font-family="DM Sans,sans-serif" font-weight="700">RDS Oracle</text>
+          <text x="449" y="108" fill="#818cf8" font-size="12" font-family="DM Sans,sans-serif" font-weight="800">STANDBY</text>
+          <text x="449" y="122" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">Sync replica</text>
+          <text x="446" y="136" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">Promoted on failover</text>
+          <text x="444" y="149" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">NOT readable (Multi-AZ instance)</text>
+
+          <!-- Sync replication arrow between AZs -->
+          <line x1="350" y1="113" x2="430" y2="113" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#ah-purple)"/>
+          <text x="355" y="106" fill="#a78bfa" font-size="8.5" font-family="DM Sans,sans-serif" font-weight="600">synchronous</text>
+          <text x="362" y="118" fill="#a78bfa" font-size="8" font-family="DM Sans,sans-serif">replication</text>
+
+          <!-- Failover note in AZ2 -->
+          <rect x="420" y="178" width="314" height="51" rx="5" fill="rgba(129,140,248,0.05)" stroke="rgba(129,140,248,0.15)" stroke-width="1"/>
+          <text x="435" y="196" fill="#a5b4fc" font-size="9" font-family="DM Sans,sans-serif" font-weight="700">Auto Failover (Multi-AZ DB Instance)</text>
+          <text x="428" y="211" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">1. AWS detects primary failure &bull; 2. Standby promoted</text>
+          <text x="428" y="224" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">3. CNAME DNS flips &bull; 4. App reconnects (same endpoint)</text>
+
+          <!-- DNS endpoint at top center -->
+          <rect x="260" y="8" width="260" height="30" rx="6" fill="rgba(34,197,94,0.08)" stroke="rgba(34,197,94,0.3)" stroke-width="1"/>
+          <text x="278" y="20" fill="#4ade80" font-size="9.5" font-family="DM Sans,sans-serif" font-weight="700">&#9670; RDS Endpoint (CNAME)</text>
+          <text x="262" y="33" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">mydb.abc123.us-east-1.rds.amazonaws.com:1521/ORCL</text>
+
+          <!-- Lines from DNS to AZ1 and AZ2 primary -->
+          <line x1="320" y1="38" x2="280" y2="68" stroke="rgba(34,197,94,0.3)" stroke-width="1" stroke-dasharray="3,2"/>
+          <line x1="420" y1="38" x2="500" y2="68" stroke="rgba(129,140,248,0.25)" stroke-width="1" stroke-dasharray="3,2"/>
+
+          <!-- Bottom: S3, CloudWatch, KMS -->
+          <rect x="30" y="295" width="210" height="72" rx="8" fill="rgba(34,197,94,0.07)" stroke="rgba(34,197,94,0.22)" stroke-width="1"/>
+          <text x="64" y="316" fill="#4ade80" font-size="11" font-family="DM Sans,sans-serif" font-weight="700">&#9730; Amazon S3</text>
+          <text x="38" y="332" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">Automated daily snapshots (1-35 days)</text>
+          <text x="38" y="345" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">Transaction logs every 5 min (PITR)</text>
+          <text x="38" y="358" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">Data Pump exports / imports</text>
+
+          <rect x="285" y="295" width="210" height="72" rx="8" fill="rgba(251,146,60,0.07)" stroke="rgba(251,146,60,0.22)" stroke-width="1"/>
+          <text x="298" y="316" fill="#fb923c" font-size="11" font-family="DM Sans,sans-serif" font-weight="700">&#9685; CloudWatch</text>
+          <text x="292" y="332" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">CPU, IOPS, Memory, Connections</text>
+          <text x="292" y="345" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">Enhanced Monitoring (60 OS metrics)</text>
+          <text x="292" y="358" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">CloudWatch DB Insights (replaces PI)</text>
+
+          <rect x="540" y="295" width="210" height="72" rx="8" fill="rgba(139,92,246,0.07)" stroke="rgba(139,92,246,0.22)" stroke-width="1"/>
+          <text x="575" y="316" fill="#a78bfa" font-size="11" font-family="DM Sans,sans-serif" font-weight="700">&#9632; Security</text>
+          <text x="548" y="332" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">KMS encryption at rest (EBS volume)</text>
+          <text x="548" y="345" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">IAM auth &bull; VPC SG &bull; SSL in transit</text>
+          <text x="548" y="358" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">TDE (Oracle-layer) &bull; Kerberos/AD</text>
+
+          <!-- Arrows from Primary down to S3, CloudWatch, KMS -->
+          <line x1="280" y1="158" x2="138" y2="295" stroke="rgba(34,197,94,0.35)" stroke-width="1.2" marker-end="url(#ah-green)"/>
+          <line x1="300" y1="158" x2="392" y2="295" stroke="rgba(251,146,60,0.35)" stroke-width="1.2" marker-end="url(#ah-orange)"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Supported editions & versions -->
+    <div class="glass rounded-2xl p-6 reveal mb-10">
+      <h3 class="font-bold text-white mb-5 flex items-center gap-2"><i class="fas fa-list-check text-sky-400"></i> Supported Oracle Versions &amp; Editions</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-white/10">
+              <th class="text-left py-2 pr-6 text-neutral-400 font-semibold text-xs">Oracle Version</th>
+              <th class="text-left py-2 pr-6 text-neutral-400 font-semibold text-xs">Editions Available</th>
+              <th class="text-left py-2 pr-6 text-neutral-400 font-semibold text-xs">Licensing</th>
+              <th class="text-left py-2 text-neutral-400 font-semibold text-xs">Status</th>
+            </tr>
+          </thead>
+          <tbody class="vs-row">
+            <tr class="border-b border-white/5 vs-row">
+              <td class="py-3 pr-6 text-white font-mono text-xs">Oracle 21c</td>
+              <td class="py-3 pr-6 text-neutral-300 text-xs">Enterprise Edition (EE)</td>
+              <td class="py-3 pr-6 text-neutral-300 text-xs">BYOL only</td>
+              <td class="py-3"><span class="badge badge-green text-xs">Available</span></td>
+            </tr>
+            <tr class="border-b border-white/5 vs-row">
+              <td class="py-3 pr-6 text-white font-mono text-xs">Oracle 19c</td>
+              <td class="py-3 pr-6 text-neutral-300 text-xs">EE, SE2</td>
+              <td class="py-3 pr-6 text-neutral-300 text-xs">BYOL · License Included</td>
+              <td class="py-3"><span class="badge badge-green text-xs">Recommended</span></td>
+            </tr>
+            <tr class="border-b border-white/5 vs-row">
+              <td class="py-3 pr-6 text-white font-mono text-xs">Oracle 12.2</td>
+              <td class="py-3 pr-6 text-neutral-300 text-xs">EE, SE2</td>
+              <td class="py-3 pr-6 text-neutral-300 text-xs">BYOL · License Included</td>
+              <td class="py-3"><span class="badge badge-amber text-xs">End of Life Soon</span></td>
+            </tr>
+            <tr class="vs-row">
+              <td class="py-3 pr-6 text-white font-mono text-xs">Oracle 12.1</td>
+              <td class="py-3 pr-6 text-neutral-300 text-xs">EE, SE, SE2</td>
+              <td class="py-3 pr-6 text-neutral-300 text-xs">BYOL · License Included</td>
+              <td class="py-3"><span class="badge badge-red text-xs">End of Life</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Licensing -->
+    <div id="licensing" class="grid md:grid-cols-2 gap-6 reveal">
+      <div class="glass rounded-2xl p-6 border border-sky-500/20">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-sky-500/15 flex items-center justify-center"><i class="fas fa-file-contract text-sky-400"></i></div>
+          <div><span class="text-white font-bold">License Included (LI)</span><span class="badge badge-green ml-2 text-xs">Easy Start</span></div>
+        </div>
+        <p class="text-neutral-400 text-sm mb-4">AWS bundles the Oracle license into the hourly RDS price. You don't need to own an Oracle license separately.</p>
+        <ul class="space-y-2 text-xs">
+          <li class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-0.5 w-4"></i><span class="text-neutral-400">No upfront Oracle license purchase required</span></li>
+          <li class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-0.5 w-4"></i><span class="text-neutral-400">Available for Oracle SE2 on db.t3 and db.m* instances</span></li>
+          <li class="flex items-start gap-2"><i class="fas fa-xmark text-red-400 mt-0.5 w-4"></i><span class="text-neutral-400">NOT available for Oracle Enterprise Edition</span></li>
+          <li class="flex items-start gap-2"><i class="fas fa-xmark text-red-400 mt-0.5 w-4"></i><span class="text-neutral-400">Higher hourly cost vs BYOL with existing license</span></li>
+          <li class="flex items-start gap-2"><i class="fas fa-info-circle text-sky-400 mt-0.5 w-4"></i><span class="text-neutral-400">Max 1 instance per LI license (SE2 restriction)</span></li>
+        </ul>
+      </div>
+      <div class="glass rounded-2xl p-6 border border-purple-500/20">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center"><i class="fas fa-key text-purple-400"></i></div>
+          <div><span class="text-white font-bold">Bring Your Own License (BYOL)</span><span class="badge badge-purple ml-2 text-xs">Cost Efficient</span></div>
+        </div>
+        <p class="text-neutral-400 text-sm mb-4">You provide your existing Oracle license. AWS provides the infrastructure. Cheaper if you have licenses already.</p>
+        <ul class="space-y-2 text-xs">
+          <li class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-0.5 w-4"></i><span class="text-neutral-400">Works with EE, SE, SE2 — your existing agreement</span></li>
+          <li class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-0.5 w-4"></i><span class="text-neutral-400">Lower hourly RDS cost (just infrastructure)</span></li>
+          <li class="flex items-start gap-2"><i class="fas fa-check text-green-400 mt-0.5 w-4"></i><span class="text-neutral-400">Required for Oracle EE and its enterprise options</span></li>
+          <li class="flex items-start gap-2"><i class="fas fa-xmark text-red-400 mt-0.5 w-4"></i><span class="text-neutral-400">You must manage Oracle license compliance yourself</span></li>
+          <li class="flex items-start gap-2"><i class="fas fa-info-circle text-sky-400 mt-0.5 w-4"></i><span class="text-neutral-400">AWS recommends License Mobility through SA program</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RDS vs ON-PREMISES -->
+<section id="rds-vs-onprem" class="py-20 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <span class="badge badge-orange mb-3">Comparison</span>
+      <h2 class="text-3xl md:text-4xl font-display font-bold gradient-text-w mb-4">RDS Oracle vs On-Premises Oracle</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto text-sm">Before moving to RDS, understand exactly what changes. Many DBA superpowers are removed — but AWS replaces them with managed alternatives.</p>
+    </div>
+
+    <!-- Can vs Cannot cards -->
+    <div class="grid md:grid-cols-2 gap-6 mb-10 reveal">
+      <div>
+        <h3 class="text-green-400 font-bold text-sm mb-3 flex items-center gap-2"><i class="fas fa-check-circle"></i> What You CAN Still Do</h3>
+        <div class="space-y-2">
+          <div class="limit-card can glass rounded-xl p-4 flex items-start gap-3">
+            <i class="fas fa-check-circle text-green-400 mt-0.5 text-sm w-5"></i>
+            <div><p class="text-white text-sm font-semibold">Connect via SQL*Plus, SQL Developer, JDBC</p><p class="text-neutral-500 text-xs mt-0.5">Standard Oracle client connections work exactly the same way.</p></div>
+          </div>
+          <div class="limit-card can glass rounded-xl p-4 flex items-start gap-3">
+            <i class="fas fa-check-circle text-green-400 mt-0.5 text-sm w-5"></i>
+            <div><p class="text-white text-sm font-semibold">Create users, roles, and grant privileges</p><p class="text-neutral-500 text-xs mt-0.5">Full DDL access as the master user (which has DBA role).</p></div>
+          </div>
+          <div class="limit-card can glass rounded-xl p-4 flex items-start gap-3">
+            <i class="fas fa-check-circle text-green-400 mt-0.5 text-sm w-5"></i>
+            <div><p class="text-white text-sm font-semibold">Run AWR, ASH, ADDM reports</p><p class="text-neutral-500 text-xs mt-0.5">Diagnostics Pack features available with EE + diagnostics license.</p></div>
+          </div>
+          <div class="limit-card can glass rounded-xl p-4 flex items-start gap-3">
+            <i class="fas fa-check-circle text-green-400 mt-0.5 text-sm w-5"></i>
+            <div><p class="text-white text-sm font-semibold">Use most Oracle database features</p><p class="text-neutral-500 text-xs mt-0.5">Partitioning, Advanced Compression, Spatial, Text, XML DB, etc.</p></div>
+          </div>
+          <div class="limit-card can glass rounded-xl p-4 flex items-start gap-3">
+            <i class="fas fa-check-circle text-green-400 mt-0.5 text-sm w-5"></i>
+            <div><p class="text-white text-sm font-semibold">Take manual snapshots anytime</p><p class="text-neutral-500 text-xs mt-0.5">Unlike automated backups, manual snapshots persist until you delete them.</p></div>
+          </div>
+          <div class="limit-card can glass rounded-xl p-4 flex items-start gap-3">
+            <i class="fas fa-check-circle text-green-400 mt-0.5 text-sm w-5"></i>
+            <div><p class="text-white text-sm font-semibold">Import data via Data Pump (expdp/impdp)</p><p class="text-neutral-500 text-xs mt-0.5">Using Amazon S3 integration or database links to transfer dump files.</p></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-red-400 font-bold text-sm mb-3 flex items-center gap-2"><i class="fas fa-xmark-circle"></i> What You CANNOT Do</h3>
+        <div class="space-y-2">
+          <div class="limit-card cannot glass rounded-xl p-4 flex items-start gap-3">
+            <i class="fas fa-xmark-circle text-red-400 mt-0.5 text-sm w-5"></i>
+            <div><p class="text-white text-sm font-semibold">Connect as SYSDBA or SYS</p><p class="text-neutral-500 text-xs mt-0.5">AWS locks the SYS/SYSTEM accounts. You use the master user (admin) which has DBA privileges but NOT SYSDBA.</p></div>
+          </div>
+          <div class="limit-card cannot glass rounded-xl p-4 flex items-start gap-3">
+            <i class="fas fa-xmark-circle text-red-400 mt-0.5 text-sm w-5"></i>
+            <div><p class="text-white text-sm font-semibold">OS-level access (no SSH to the server)</p><p class="text-neutral-500 text-xs mt-0.5">You never touch the underlying EC2 instance. No cron jobs, no alert log via OS, no OS files.</p></div>
+          </div>
+          <div class="limit-card cannot glass rounded-xl p-4 flex items-start gap-3">
+            <i class="fas fa-xmark-circle text-red-400 mt-0.5 text-sm w-5"></i>
+            <div><p class="text-white text-sm font-semibold">Run STARTUP / SHUTDOWN database commands</p><p class="text-neutral-500 text-xs mt-0.5">AWS manages instance lifecycle. Use the RDS Console/CLI to stop/start the DB instance.</p></div>
+          </div>
+          <div class="limit-card cannot glass rounded-xl p-4 flex items-start gap-3">
+            <i class="fas fa-xmark-circle text-red-400 mt-0.5 text-sm w-5"></i>
+            <div><p class="text-white text-sm font-semibold">Use RMAN directly (standard RDS)</p><p class="text-neutral-500 text-xs mt-0.5">AWS uses its own backup mechanism. RMAN is available in RDS Custom or for migration purposes via S3.</p></div>
+          </div>
+          <div class="limit-card cannot glass rounded-xl p-4 flex items-start gap-3">
+            <i class="fas fa-xmark-circle text-red-400 mt-0.5 text-sm w-5"></i>
+            <div><p class="text-white text-sm font-semibold">Create or manage listener / tnsnames.ora</p><p class="text-neutral-500 text-xs mt-0.5">AWS manages the listener. The endpoint is the connection string. No lsnrctl access.</p></div>
+          </div>
+          <div class="limit-card cannot glass rounded-xl p-4 flex items-start gap-3">
+            <i class="fas fa-xmark-circle text-red-400 mt-0.5 text-sm w-5"></i>
+            <div><p class="text-white text-sm font-semibold">Access certain V$ views (some blocked)</p><p class="text-neutral-500 text-xs mt-0.5">V$LOGFILE, V$CONTROLFILE, V$DATAFILE return AWS-managed paths. Some SYS-only views unavailable.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- rdsadmin package -->
+    <div class="glass rounded-2xl p-6 reveal border border-sky-500/20">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-sky-500/15 flex items-center justify-center"><i class="fas fa-toolbox text-sky-400"></i></div>
+        <div>
+          <h3 class="font-bold text-white">The rdsadmin Package — Your SYSDBA Replacement</h3>
+          <p class="text-neutral-500 text-xs">AWS provides stored procedures for DBA tasks you can't do directly</p>
+        </div>
+      </div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">rdsadmin — the RDS DBA toolkit</span></div>
+        <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- Switch database to ARCHIVELOG mode (replaces ALTER DATABASE ARCHIVELOG)</span>
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_util.alter_archivelog_mode(<span class="str">'true'</span>);
+
+<span class="cm">-- Switch to NOARCHIVELOG mode</span>
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_util.alter_archivelog_mode(<span class="str">'false'</span>);
+
+<span class="cm">-- Flush redo logs (replaces ALTER SYSTEM SWITCH LOGFILE)</span>
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_util.switch_logfile;
+
+<span class="cm">-- Set time zone for the DB instance</span>
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_util.alter_db_time_zone(p_new_tz => <span class="str">'US/Eastern'</span>);
+
+<span class="cm">-- Read the alert log (writes to RDS-managed directory)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span>
+  <span class="kw">TABLE</span>(rdsadmin.rds_file_util.read_text_file(
+    p_directory => <span class="str">'BDUMP'</span>,
+    p_filename  => <span class="str">'alert_ORCL.log'</span>))
+<span class="kw">WHERE</span> ROWNUM <= <span class="num">100</span>;
+
+<span class="cm">-- Bounce the listener (replaces lsnrctl stop/start)</span>
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_util.listener_stop;
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_util.listener_start;
+
+<span class="cm">-- Create directory object pointing to S3 (for Data Pump)</span>
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_s3_tasks.upload_to_s3(
+  p_bucket_name  => <span class="str">'my-backup-bucket'</span>,
+  p_directory_name => <span class="str">'DATA_PUMP_DIR'</span>,
+  p_s3_prefix    => <span class="str">'exports/'</span>);
+
+<span class="cm">-- Modify a hidden/advanced parameter (replaces ALTER SYSTEM)</span>
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_util.set_configuration(
+  name  => <span class="str">'archivelog retention hours'</span>,
+  value => <span class="str">'48'</span>);
+</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SETUP: INSTANCE, STORAGE, NETWORKING -->
+<section id="setup" class="py-20 px-6 bg-white/[0.01]">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <span class="badge badge-blue mb-3">Instance Configuration</span>
+      <h2 class="text-3xl md:text-4xl font-display font-bold gradient-text-w mb-4">Sizing, Storage &amp; Networking</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto text-sm">Choose your instance class, storage type, and network configuration. These decisions directly impact performance and cost.</p>
+    </div>
+
+    <div class="glass rounded-2xl p-6 reveal">
+      <div class="flex gap-2 flex-wrap mb-6">
+        <button class="tab-btn active" data-tab="setup-instances" data-group="setup">Instance Classes</button>
+        <button class="tab-btn" data-tab="setup-storage" data-group="setup">Storage Types</button>
+        <button class="tab-btn" data-tab="setup-network" data-group="setup">Networking & VPC</button>
+        <button class="tab-btn" data-tab="setup-params" data-group="setup">Parameter Groups</button>
+        <button class="tab-btn" data-tab="setup-options" data-group="setup">Option Groups</button>
+      </div>
+
+      <!-- Instance Classes -->
+      <div class="tab-content active" id="setup-instances">
+        <p class="text-neutral-500 text-xs mb-5">Pick the right family first &mdash; changing instance class causes a brief restart. Each family is optimized for a specific Oracle workload pattern.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 mb-6">
+
+          <div class="glass rounded-xl p-4 border border-white/10 hover:border-yellow-500/40 transition-all">
+            <div class="text-center mb-4">
+              <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-2" style="background:rgba(234,179,8,0.1)">
+                <i class="fas fa-flask text-yellow-400"></i>
+              </div>
+              <p class="font-mono font-bold text-yellow-400 text-sm">db.t3 / t4g</p>
+              <span class="inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-semibold" style="background:rgba(234,179,8,0.12);color:#facc15">Dev / Test</span>
+            </div>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between"><span class="text-neutral-500">RAM</span><span class="text-white font-medium">2 &ndash; 32 GB</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">vCPU</span><span class="text-white font-medium">2 &ndash; 8</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">CPU</span><span class="text-yellow-400 font-medium">Burstable</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">Example</span><span class="text-neutral-300 font-mono text-xs">t3.medium</span></div>
+            </div>
+            <div class="mt-3 p-2.5 rounded-lg text-xs" style="background:rgba(234,179,8,0.05);border:1px solid rgba(234,179,8,0.15)">
+              <p class="text-neutral-400">CPU credits exhaust under sustained load &mdash; <span class="text-yellow-400 font-medium">never use in production.</span></p>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-4 border border-white/10 hover:border-sky-500/40 transition-all">
+            <div class="text-center mb-4">
+              <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-2" style="background:rgba(56,189,248,0.1)">
+                <i class="fas fa-server text-sky-400"></i>
+              </div>
+              <p class="font-mono font-bold text-sky-400 text-sm">db.m6i / m7i</p>
+              <span class="inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-semibold" style="background:rgba(56,189,248,0.12);color:#38bdf8">General Purpose</span>
+            </div>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between"><span class="text-neutral-500">RAM</span><span class="text-white font-medium">16 &ndash; 384 GB</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">vCPU</span><span class="text-white font-medium">4 &ndash; 96</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">Network</span><span class="text-sky-400 font-medium">Up to 25 Gbps</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">Example</span><span class="text-neutral-300 font-mono text-xs">m6i.xlarge</span></div>
+            </div>
+            <div class="mt-3 p-2.5 rounded-lg text-xs" style="background:rgba(56,189,248,0.05);border:1px solid rgba(56,189,248,0.12)">
+              <p class="text-neutral-400">Balanced CPU/memory. Solid entry point for mid-size OLTP production workloads.</p>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-4 border border-green-500/40 hover:border-green-500/70 transition-all relative">
+            <div class="absolute -top-3 left-0 right-0 flex justify-center">
+              <span class="px-3 py-0.5 rounded-full text-xs font-bold text-white" style="background:#15803d">&#10003; Most Used for Oracle</span>
+            </div>
+            <div class="text-center mb-4 mt-2">
+              <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-2" style="background:rgba(34,197,94,0.12)">
+                <i class="fas fa-memory text-green-400"></i>
+              </div>
+              <p class="font-mono font-bold text-green-400 text-sm">db.r6i / r7i</p>
+              <span class="inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-semibold" style="background:rgba(34,197,94,0.12);color:#4ade80">Memory Optimized</span>
+            </div>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between"><span class="text-neutral-500">RAM</span><span class="text-white font-medium">32 GB &ndash; 1 TB</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">vCPU</span><span class="text-white font-medium">4 &ndash; 128</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">RAM/vCPU</span><span class="text-green-400 font-medium">8 GB each</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">Example</span><span class="text-neutral-300 font-mono text-xs">r6i.2xlarge</span></div>
+            </div>
+            <div class="mt-3 p-2.5 rounded-lg text-xs" style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.15)">
+              <p class="text-neutral-400">Best for large Oracle SGA and buffer cache. AWS&rsquo;s recommended family for Oracle workloads.</p>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-4 border border-white/10 hover:border-purple-500/40 transition-all">
+            <div class="text-center mb-4">
+              <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-2" style="background:rgba(168,85,247,0.1)">
+                <i class="fas fa-bolt text-purple-400"></i>
+              </div>
+              <p class="font-mono font-bold text-purple-400 text-sm">db.x2idn</p>
+              <span class="inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-semibold" style="background:rgba(168,85,247,0.12);color:#c084fc">Extreme Memory</span>
+            </div>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between"><span class="text-neutral-500">RAM</span><span class="text-white font-medium">512 GB &ndash; 3.8 TB</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">vCPU</span><span class="text-white font-medium">32 &ndash; 128</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">Disk</span><span class="text-purple-400 font-medium">NVMe local SSD</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">Example</span><span class="text-neutral-300 font-mono text-xs">x2idn.16xl</span></div>
+            </div>
+            <div class="mt-3 p-2.5 rounded-lg text-xs" style="background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.12)">
+              <p class="text-neutral-400">In-memory analytics, massive buffer caches, data warehouse. Rare &mdash; expensive.</p>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-4 border border-white/10 hover:border-amber-500/40 transition-all">
+            <div class="text-center mb-4">
+              <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-2" style="background:rgba(245,158,11,0.1)">
+                <i class="fas fa-gauge-high text-amber-400"></i>
+              </div>
+              <p class="font-mono font-bold text-amber-400 text-sm">db.z1d</p>
+              <span class="inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-semibold" style="background:rgba(245,158,11,0.12);color:#fbbf24">High Frequency</span>
+            </div>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between"><span class="text-neutral-500">RAM</span><span class="text-white font-medium">32 &ndash; 384 GB</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">vCPU</span><span class="text-white font-medium">2 &ndash; 48</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">Clock</span><span class="text-amber-400 font-medium">4.0 GHz sustained</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500">Example</span><span class="text-neutral-300 font-mono text-xs">z1d.xlarge</span></div>
+            </div>
+            <div class="mt-3 p-2.5 rounded-lg text-xs" style="background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.12)">
+              <p class="text-neutral-400">Highest per-core speed. Reduces Oracle license count while keeping single-thread performance high.</p>
+            </div>
+          </div>
+
+        </div>
+        <div class="grid md:grid-cols-3 gap-4">
+          <div class="glass rounded-xl p-4" style="border:1px solid rgba(56,189,248,0.2)">
+            <p class="text-sky-400 text-xs font-bold mb-2 flex items-center gap-1.5"><i class="fas fa-lightbulb"></i> Sizing Rule</p>
+            <p class="text-neutral-400 text-xs leading-relaxed">Start with <span class="text-white font-medium">db.r6i</span>. Oracle SGA must fit in RAM with room to spare. For a 50 GB SGA &rarr; pick <span class="text-white font-medium">r6i.2xlarge (64 GB)</span>. Leave 25% RAM beyond SGA_TARGET for OS overhead and PGA.</p>
+          </div>
+          <div class="glass rounded-xl p-4" style="border:1px solid rgba(234,179,8,0.2)">
+            <p class="text-amber-400 text-xs font-bold mb-2 flex items-center gap-1.5"><i class="fas fa-triangle-exclamation"></i> Oracle Licensing Math</p>
+            <p class="text-neutral-400 text-xs leading-relaxed">With BYOL, Oracle charges <span class="text-white font-medium">0.5 processor license per vCPU</span>. A <span class="text-white">r6i.4xlarge (16 vCPU)</span> needs <span class="text-white">8 Oracle processor licenses</span>. Use <span class="text-amber-400">db.z1d</span> to minimize vCPUs at highest clock speed.</p>
+          </div>
+          <div class="glass rounded-xl p-4" style="border:1px solid rgba(34,197,94,0.2)">
+            <p class="text-green-400 text-xs font-bold mb-2 flex items-center gap-1.5"><i class="fas fa-arrows-up-down"></i> Scaling</p>
+            <p class="text-neutral-400 text-xs leading-relaxed">Scale via Console or CLI (modify-db-instance). Applies at maintenance window or immediately with ~60s restart. <span class="text-white font-medium">Storage can only grow, never shrink</span> &mdash; enable autoscaling as a safety net.</p>
+          </div>
+        </div>
+      </div>
+            <!-- Storage Types -->
+      <div class="tab-content" id="setup-storage">
+        <div class="grid md:grid-cols-2 gap-6 mb-4">
+          <div class="glass rounded-xl p-5 border border-sky-500/20">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-white font-bold text-sm">General Purpose SSD (gp3)</span>
+              <span class="badge badge-green text-xs">Recommended</span>
+            </div>
+            <ul class="text-neutral-400 text-xs space-y-1.5">
+              <li><i class="fas fa-circle text-sky-400 text-xs mr-2"></i>Baseline 3,000 IOPS and 125 MB/s throughput — included</li>
+              <li><i class="fas fa-circle text-sky-400 text-xs mr-2"></i>Configurable up to 16,000 IOPS and 1,000 MB/s independently</li>
+              <li><i class="fas fa-circle text-sky-400 text-xs mr-2"></i>20 GB to 64 TB storage range</li>
+              <li><i class="fas fa-circle text-sky-400 text-xs mr-2"></i>20% cheaper than gp2 at same IOPS</li>
+              <li><i class="fas fa-circle text-sky-400 text-xs mr-2"></i>Use for most OLTP workloads</li>
+            </ul>
+          </div>
+          <div class="glass rounded-xl p-5 border border-purple-500/20">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-white font-bold text-sm">Provisioned IOPS SSD (io2 Block Express)</span>
+              <span class="badge badge-purple text-xs">High I/O</span>
+            </div>
+            <ul class="text-neutral-400 text-xs space-y-1.5">
+              <li><i class="fas fa-circle text-purple-400 text-xs mr-2"></i>Up to 256,000 IOPS per DB instance</li>
+              <li><i class="fas fa-circle text-purple-400 text-xs mr-2"></i>Up to 4,000 MB/s throughput</li>
+              <li><i class="fas fa-circle text-purple-400 text-xs mr-2"></i>Up to 64 TB storage</li>
+              <li><i class="fas fa-circle text-purple-400 text-xs mr-2"></i>Sub-millisecond latency</li>
+              <li><i class="fas fa-circle text-purple-400 text-xs mr-2"></i>Use for high-throughput OLTP, low-latency workloads</li>
+            </ul>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">Modify storage via CLI</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm"># Modify to gp3 with custom IOPS and throughput</span>
+<span class="flag">aws rds modify-db-instance</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--storage-type</span>           gp3 \
+  <span class="flag">--iops</span>                   6000 \
+  <span class="flag">--storage-throughput</span>     500 \
+  <span class="flag">--apply-immediately</span>
+
+<span class="cm"># Increase storage (cannot decrease)</span>
+<span class="flag">aws rds modify-db-instance</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--allocated-storage</span>      1000 \
+  <span class="flag">--apply-immediately</span>
+
+<span class="cm">-- Check storage usage from inside the DB</span>
+<span class="kw">SELECT</span> tablespace_name,
+       ROUND(SUM(bytes)/<span class="num">1024</span>/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">2</span>) used_gb
+<span class="kw">FROM</span>   dba_segments
+<span class="kw">GROUP BY</span> tablespace_name
+<span class="kw">ORDER BY</span> used_gb DESC;
+</code></pre>
+        </div>
+      </div>
+
+      <!-- Networking & VPC -->
+      <div class="tab-content" id="setup-network">
+        <div class="grid md:grid-cols-3 gap-4 mb-4">
+          <div class="glass rounded-xl p-4 border border-sky-500/20">
+            <p class="text-sky-400 text-xs font-bold mb-2"><i class="fas fa-network-wired mr-1"></i> VPC Placement</p>
+            <p class="text-neutral-400 text-xs">Always deploy in a <strong class="text-white">private subnet</strong>. Use a DB subnet group spanning at least 2 AZs. The RDS instance gets a private IP — never expose it publicly unless absolutely required (and even then, use security groups tightly).</p>
+          </div>
+          <div class="glass rounded-xl p-4 border border-amber-500/20">
+            <p class="text-amber-400 text-xs font-bold mb-2"><i class="fas fa-shield mr-1"></i> Security Groups</p>
+            <p class="text-neutral-400 text-xs">The RDS security group should only allow inbound TCP port 1521 from your application server's security group — not from 0.0.0.0/0. Treat the DB security group as a VPC-level firewall.</p>
+          </div>
+          <div class="glass rounded-xl p-4 border border-green-500/20">
+            <p class="text-green-400 text-xs font-bold mb-2"><i class="fas fa-globe mr-1"></i> Public Accessibility</p>
+            <p class="text-neutral-400 text-xs">Set <code class="text-green-400">publicly-accessible=false</code> for production. If you need external access for migration or tooling, use a bastion host or AWS Systems Manager Session Manager instead.</p>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><span class="text-neutral-500 text-xs ml-2">VPC and connectivity setup</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm"># Create a DB subnet group (required before creating RDS instance)</span>
+<span class="flag">aws rds create-db-subnet-group</span> \
+  <span class="flag">--db-subnet-group-name</span>        oracle-subnet-group \
+  <span class="flag">--db-subnet-group-description</span> "Oracle RDS subnet group" \
+  <span class="flag">--subnet-ids</span>                  subnet-abc123 subnet-def456
+
+<span class="cm"># Get the endpoint for your connections</span>
+<span class="flag">aws rds describe-db-instances</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--query</span> 'DBInstances[0].Endpoint'
+
+<span class="cm"># Test connectivity from an EC2 instance in same VPC</span>
+telnet prod-oracle.abc123.us-east-1.rds.amazonaws.com 1521
+
+<span class="cm">-- Use EasyConnect or full descriptor in SQL*Plus</span>
+<span class="cm">-- EasyConnect: user/pass@host:port/service_name</span>
+sqlplus admin/<span class="str">'pass'</span>@<span class="str">prod-oracle.abc123.us-east-1.rds.amazonaws.com:1521/ORCL</span>
+
+<span class="cm">-- Check connection from within the DB</span>
+<span class="kw">SELECT</span> sys_context(<span class="str">'USERENV'</span>,<span class="str">'IP_ADDRESS'</span>)   client_ip,
+       sys_context(<span class="str">'USERENV'</span>,<span class="str">'SERVER_HOST'</span>) server_host
+<span class="kw">FROM</span>   dual;
+</code></pre>
+        </div>
+      </div>
+
+      <!-- Parameter Groups -->
+      <div class="tab-content" id="setup-params">
+        <p class="text-neutral-400 text-xs mb-3">Parameter groups replace the traditional init.ora / spfile. They are applied to one or more DB instances. Changes to static parameters require a reboot.</p>
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">Parameter group management</span></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm"># Create a custom parameter group for Oracle 19c EE</span>
+<span class="flag">aws rds create-db-parameter-group</span> \
+  <span class="flag">--db-parameter-group-name</span>   oracle19c-prod-params \
+  <span class="flag">--db-parameter-group-family</span> oracle-ee-19 \
+  <span class="flag">--description</span>               "Oracle 19c EE production params"
+
+<span class="cm"># Modify a parameter (dynamic — no reboot needed)</span>
+<span class="flag">aws rds modify-db-parameter-group</span> \
+  <span class="flag">--db-parameter-group-name</span> oracle19c-prod-params \
+  <span class="flag">--parameters</span> "ParameterName=open_cursors,ParameterValue=1000,ApplyMethod=immediate" \
+               "ParameterName=sessions,ParameterValue=500,ApplyMethod=pending-reboot"
+
+<span class="cm"># View all modifiable parameters</span>
+<span class="flag">aws rds describe-db-parameters</span> \
+  <span class="flag">--db-parameter-group-name</span> oracle19c-prod-params \
+  <span class="flag">--query</span> "Parameters[?IsModifiable==\`true\`].[ParameterName,ParameterValue]" \
+  <span class="flag">--output</span> table
+
+<span class="cm">-- From within the DB: check current parameter values</span>
+<span class="kw">SELECT</span> name, value, description
+<span class="kw">FROM</span>   v$parameter
+<span class="kw">WHERE</span>  name IN (<span class="str">'sga_target'</span>,<span class="str">'pga_aggregate_target'</span>,
+                <span class="str">'open_cursors'</span>,<span class="str">'sessions'</span>,<span class="str">'processes'</span>);
+
+<span class="cm">-- Important: SGA_TARGET in RDS is set to ~75% of instance RAM</span>
+<span class="cm">-- db.r6i.2xlarge = 64GB RAM → SGA ~ 48GB</span>
+</code></pre>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="glass rounded-xl p-4 border border-green-500/20">
+            <p class="text-green-400 text-xs font-bold mb-2">Commonly Modified Parameters</p>
+            <ul class="text-neutral-400 text-xs space-y-1">
+              <li><code class="text-sky-400">open_cursors</code> — default 300, increase for busy OLTP</li>
+              <li><code class="text-sky-400">sessions</code> — max concurrent sessions</li>
+              <li><code class="text-sky-400">processes</code> — max OS processes (sessions * 1.1 + 5)</li>
+              <li><code class="text-sky-400">sga_target</code> — total SGA size</li>
+              <li><code class="text-sky-400">pga_aggregate_target</code> — total PGA budget</li>
+              <li><code class="text-sky-400">archive_lag_target</code> — force redo flush interval (seconds)</li>
+              <li><code class="text-sky-400">db_files</code> — max datafiles (default 200)</li>
+              <li><code class="text-sky-400">undo_retention</code> — undo retention in seconds</li>
+            </ul>
+          </div>
+          <div class="glass rounded-xl p-4 border border-red-500/20">
+            <p class="text-red-400 text-xs font-bold mb-2">Parameters You Cannot Change on RDS</p>
+            <ul class="text-neutral-400 text-xs space-y-1">
+              <li><code class="text-red-400">enable_pluggable_database</code> — no CDB/PDB on standard RDS</li>
+              <li><code class="text-red-400">db_recovery_file_dest</code> — AWS manages FRA location</li>
+              <li><code class="text-red-400">audit_trail</code> — some audit settings AWS-managed</li>
+              <li><code class="text-red-400">log_archive_dest_*</code> — archive destinations AWS-managed</li>
+              <li><code class="text-red-400">db_create_file_dest</code> — datafile locations AWS-managed</li>
+              <li><code class="text-red-400">cluster_database</code> — no RAC on standard RDS</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option Groups -->
+      <div class="tab-content" id="setup-options">
+        <p class="text-neutral-400 text-xs mb-3">Option groups are Oracle-specific — they enable additional Oracle features beyond the base database. Think of them as AWS's way of managing Oracle options/packs.</p>
+        <div class="grid md:grid-cols-2 gap-4 mb-4">
+          <div class="space-y-3">
+            <h4 class="text-white text-xs font-bold">Available Oracle Options</h4>
+            <div class="glass rounded-lg p-3 border border-sky-500/15">
+              <div class="flex items-center gap-2 mb-1"><span class="badge badge-sky text-xs">SSL</span><span class="text-white text-xs font-semibold">Oracle SSL/TLS</span></div>
+              <p class="text-neutral-500 text-xs">Encrypts data in transit. Requires configuring the client wallet and sqlnet.ora on the client side.</p>
+            </div>
+            <div class="glass rounded-lg p-3 border border-purple-500/15">
+              <div class="flex items-center gap-2 mb-1"><span class="badge badge-purple text-xs">TDE</span><span class="text-white text-xs font-semibold">Transparent Data Encryption</span></div>
+              <p class="text-neutral-500 text-xs">Encrypts tablespaces/columns at rest using Oracle Wallet. Alternative to AWS KMS encryption (they're different layers).</p>
+            </div>
+            <div class="glass rounded-lg p-3 border border-amber-500/15">
+              <div class="flex items-center gap-2 mb-1"><span class="badge badge-amber text-xs">OEM</span><span class="text-white text-xs font-semibold">Oracle Enterprise Manager</span></div>
+              <p class="text-neutral-500 text-xs">Enables EM Database Express (not full Cloud Control) for GUI-based monitoring on port 5500.</p>
+            </div>
+            <div class="glass rounded-lg p-3 border border-green-500/15">
+              <div class="flex items-center gap-2 mb-1"><span class="badge badge-green text-xs">S3</span><span class="text-white text-xs font-semibold">Amazon S3 Integration</span></div>
+              <p class="text-neutral-500 text-xs">Enables direct read/write of S3 objects from Oracle (UTL_FILE to/from S3). Critical for Data Pump imports/exports.</p>
+            </div>
+            <div class="glass rounded-lg p-3 border border-orange-500/15">
+              <div class="flex items-center gap-2 mb-1"><span class="badge badge-orange text-xs">NNE</span><span class="text-white text-xs font-semibold">Native Network Encryption</span></div>
+              <p class="text-neutral-500 text-xs">Oracle's proprietary network encryption (no PKI required). Simpler than SSL for in-VPC traffic encryption.</p>
+            </div>
+          </div>
+          <div>
+            <h4 class="text-white text-xs font-bold mb-3">Managing Option Groups</h4>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+              <pre class="p-3 text-xs overflow-x-auto"><code><span class="cm"># Create option group</span>
+<span class="flag">aws rds create-option-group</span> \
+  <span class="flag">--option-group-name</span>   oracle-options \
+  <span class="flag">--engine-name</span>         oracle-ee \
+  <span class="flag">--major-engine-version</span> 19 \
+  <span class="flag">--option-group-description</span> "EE options"
+
+<span class="cm"># Add S3 integration option</span>
+<span class="flag">aws rds add-option-to-option-group</span> \
+  <span class="flag">--option-group-name</span> oracle-options \
+  <span class="flag">--options</span> OptionName=S3_INTEGRATION,OptionVersion=1.0
+
+<span class="cm"># Apply option group to instance</span>
+<span class="flag">aws rds modify-db-instance</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--option-group-name</span>       oracle-options \
+  <span class="flag">--apply-immediately</span>
+
+<span class="cm">-- Verify option from SQL*Plus</span>
+<span class="kw">SELECT</span> value
+<span class="kw">FROM</span>   v$option
+<span class="kw">WHERE</span>  parameter = <span class="str">'Partitioning'</span>;
+</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+  <!-- HA & BACKUP -->
+  <section id="ha-backup" class="py-20 px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-14 reveal">
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style="background:rgba(56,189,248,0.12);color:#38bdf8;border:1px solid rgba(56,189,248,0.25)">High Availability &amp; Backups</span>
+        <h2 class="font-display font-bold text-3xl md:text-4xl text-white mb-4">Always On, Always Safe</h2>
+        <p class="text-neutral-400 max-w-2xl mx-auto">AWS replicates your data automatically. You define the rules — AWS does the heavy lifting when things go wrong.</p>
+      </div>
+
+      <!-- Multi-AZ comparison -->
+      <div class="grid md:grid-cols-2 gap-6 mb-10 reveal">
+        <div class="glass rounded-2xl p-6 border" style="border-color:rgba(56,189,248,0.15)">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(56,189,248,0.12)">
+              <i class="fas fa-server" style="color:#38bdf8"></i>
+            </div>
+            <div>
+              <h3 class="text-white font-bold">Multi-AZ DB Instance</h3>
+              <span class="text-xs text-neutral-500">Classic standby — the safe default</span>
+            </div>
+          </div>
+          <div class="space-y-3 text-sm">
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-sync-alt mt-0.5" style="color:#38bdf8"></i>
+              <div><span class="text-white font-medium">Synchronous replication</span><br><span class="text-neutral-500">Every write confirmed on both primary and standby before returning success</span></div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-bolt mt-0.5" style="color:#38bdf8"></i>
+              <div><span class="text-white font-medium">Automatic failover ~60–120 s</span><br><span class="text-neutral-500">CNAME DNS endpoint flips to standby. Your app reconnects to the same endpoint — no config change needed</span></div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-eye-slash mt-0.5" style="color:#38bdf8"></i>
+              <div><span class="text-white font-medium">Standby is NOT readable</span><br><span class="text-neutral-500">It exists only for failover. Add Read Replicas separately for read scaling</span></div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-chart-line mt-0.5" style="color:#38bdf8"></i>
+              <div><span class="text-white font-medium">99.95% availability SLA</span><br><span class="text-neutral-500">AWS guarantees &lt; 4.4 hours downtime per year with Multi-AZ enabled</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-6 border" style="border-color:rgba(129,140,248,0.2)">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(129,140,248,0.12)">
+              <i class="fas fa-project-diagram" style="color:#818cf8"></i>
+            </div>
+            <div>
+              <h3 class="text-white font-bold">Multi-AZ DB Cluster <span class="text-xs px-2 py-0.5 rounded-full ml-1" style="background:rgba(129,140,248,0.15);color:#818cf8">Newer</span></h3>
+              <span class="text-xs text-neutral-500">1 writer + 2 readable standbys across 3 AZs</span>
+            </div>
+          </div>
+          <div class="space-y-3 text-sm">
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-tachometer-alt mt-0.5" style="color:#818cf8"></i>
+              <div><span class="text-white font-medium">Faster failover ~35 s</span><br><span class="text-neutral-500">Semi-synchronous replication allows quicker promotion of a standby</span></div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-book-open mt-0.5" style="color:#818cf8"></i>
+              <div><span class="text-white font-medium">2 reader endpoints</span><br><span class="text-neutral-500">Offload reporting queries to the readable standbys via separate reader endpoints</span></div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-network-wired mt-0.5" style="color:#818cf8"></i>
+              <div><span class="text-white font-medium">3 separate AZs</span><br><span class="text-neutral-500">Each node in a different availability zone — survives an entire data center failure</span></div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-exclamation-triangle mt-0.5 text-yellow-400"></i>
+              <div><span class="text-white font-medium">Higher cost, fewer instance types</span><br><span class="text-neutral-500">Not all RDS Oracle instance classes support DB Cluster mode — check before adopting</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visual: Failover SVG diagram -->
+      <div class="glass rounded-2xl p-6 mb-10 reveal" style="border:1px solid rgba(56,189,248,0.12)">
+        <h3 class="text-white font-bold mb-2 text-center">Multi-AZ Failover &mdash; What Actually Happens</h3>
+        <p class="text-neutral-500 text-xs text-center mb-5">When the primary fails, AWS handles everything automatically. Your app reconnects to the same endpoint &mdash; no config changes needed.</p>
+        <div class="w-full overflow-x-auto">
+          <svg viewBox="0 0 780 210" xmlns="http://www.w3.org/2000/svg" class="w-full min-w-[560px]" style="max-height:240px">
+            <defs>
+              <marker id="fo-sky" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L0,5 L7,2.5 z" fill="#38bdf8"/></marker>
+              <marker id="fo-red" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L0,5 L7,2.5 z" fill="#f87171"/></marker>
+              <marker id="fo-green" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L0,5 L7,2.5 z" fill="#4ade80"/></marker>
+            </defs>
+
+            <!-- BEFORE: label -->
+            <text x="18" y="25" fill="#64748b" font-size="9" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing="1.5">NORMAL OPERATION</text>
+
+            <!-- App -->
+            <rect x="10" y="36" width="90" height="46" rx="6" fill="rgba(99,102,241,0.1)" stroke="rgba(99,102,241,0.3)" stroke-width="1"/>
+            <text x="28" y="56" fill="#818cf8" font-size="9" font-family="DM Sans,sans-serif" font-weight="700">App Server</text>
+            <text x="18" y="70" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">port 1521</text>
+
+            <!-- Arrow app to primary -->
+            <line x1="101" y1="59" x2="152" y2="59" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#fo-sky)"/>
+
+            <!-- Primary DB AZ-1 -->
+            <rect x="153" y="30" width="130" height="58" rx="6" fill="rgba(56,189,248,0.1)" stroke="rgba(56,189,248,0.45)" stroke-width="1.5"/>
+            <text x="163" y="50" fill="#38bdf8" font-size="9" font-family="DM Sans,sans-serif" font-weight="700">RDS Oracle PRIMARY</text>
+            <text x="163" y="63" fill="#94a3b8" font-size="8" font-family="DM Sans,sans-serif">AZ-1 &bull; Handling all writes</text>
+            <text x="163" y="76" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">Writes committed here first</text>
+
+            <!-- Sync arrow primary to standby -->
+            <line x1="284" y1="59" x2="338" y2="59" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#fo-sky)"/>
+            <text x="288" y="53" fill="#a78bfa" font-size="8" font-family="DM Sans,sans-serif">sync rep</text>
+
+            <!-- Standby AZ-2 -->
+            <rect x="340" y="30" width="130" height="58" rx="6" fill="rgba(100,116,139,0.07)" stroke="rgba(100,116,139,0.25)" stroke-width="1" stroke-dasharray="5,3"/>
+            <text x="352" y="50" fill="#94a3b8" font-size="9" font-family="DM Sans,sans-serif" font-weight="700">RDS Oracle STANDBY</text>
+            <text x="352" y="63" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">AZ-2 &bull; In sync, not readable</text>
+            <text x="352" y="76" fill="#475569" font-size="8" font-family="DM Sans,sans-serif">Ready to be promoted</text>
+
+            <!-- DNS endpoint -->
+            <rect x="153" y="98" width="317" height="24" rx="4" fill="rgba(34,197,94,0.07)" stroke="rgba(34,197,94,0.25)" stroke-width="1"/>
+            <text x="165" y="114" fill="#4ade80" font-size="8.5" font-family="DM Sans,sans-serif" font-weight="600">DNS CNAME endpoint &rarr; points to PRIMARY</text>
+
+            <!-- Separator line -->
+            <line x1="500" y1="10" x2="500" y2="130" stroke="#1e2940" stroke-width="1.5" stroke-dasharray="6,3"/>
+            <text x="510" y="25" fill="#64748b" font-size="9" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing="1.5">AFTER FAILURE</text>
+
+            <!-- Step 1: Primary fails -->
+            <rect x="510" y="32" width="108" height="52" rx="6" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.35)" stroke-width="1.5"/>
+            <text x="520" y="50" fill="#f87171" font-size="9" font-family="DM Sans,sans-serif" font-weight="700">&#9888; PRIMARY</text>
+            <text x="522" y="63" fill="#ef4444" font-size="9" font-family="DM Sans,sans-serif" font-weight="700">FAILED</text>
+            <text x="515" y="77" fill="#64748b" font-size="7.5" font-family="DM Sans,sans-serif">Health check fails ~30s</text>
+
+            <!-- Arrow step 1 to step 2 -->
+            <line x1="619" y1="58" x2="638" y2="58" stroke="#f87171" stroke-width="1.2" marker-end="url(#fo-red)"/>
+
+            <!-- Step 2: Standby promoted -->
+            <rect x="640" y="32" width="128" height="52" rx="6" fill="rgba(34,197,94,0.1)" stroke="rgba(34,197,94,0.45)" stroke-width="1.5"/>
+            <text x="652" y="50" fill="#4ade80" font-size="9" font-family="DM Sans,sans-serif" font-weight="700">&#9733; STANDBY</text>
+            <text x="650" y="63" fill="#4ade80" font-size="9" font-family="DM Sans,sans-serif" font-weight="700">PROMOTED</text>
+            <text x="646" y="77" fill="#64748b" font-size="7.5" font-family="DM Sans,sans-serif">New Primary in AZ-2</text>
+
+            <!-- DNS now pointing to new primary -->
+            <rect x="510" y="98" width="258" height="24" rx="4" fill="rgba(34,197,94,0.08)" stroke="rgba(34,197,94,0.3)" stroke-width="1"/>
+            <text x="518" y="114" fill="#4ade80" font-size="8.5" font-family="DM Sans,sans-serif" font-weight="600">DNS CNAME now &rarr; NEW PRIMARY (AZ-2)</text>
+
+            <!-- Timeline bar below -->
+            <text x="10" y="155" fill="#475569" font-size="9" font-family="DM Sans,sans-serif" font-weight="600">TIMELINE:</text>
+            <rect x="80" y="145" width="680" height="16" rx="3" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <rect x="80" y="145" width="70" height="16" rx="3" fill="rgba(239,68,68,0.15)"/>
+            <text x="85" y="157" fill="#f87171" font-size="7.5" font-family="DM Sans,sans-serif">0&ndash;30s detect</text>
+            <rect x="150" y="145" width="110" height="16" rx="0" fill="rgba(251,146,60,0.12)"/>
+            <text x="155" y="157" fill="#fb923c" font-size="7.5" font-family="DM Sans,sans-serif">30&ndash;90s promote standby</text>
+            <rect x="260" y="145" width="100" height="16" rx="0" fill="rgba(234,179,8,0.12)"/>
+            <text x="265" y="157" fill="#facc15" font-size="7.5" font-family="DM Sans,sans-serif">90&ndash;120s DNS flips</text>
+            <rect x="360" y="145" width="400" height="16" rx="3" rx="0" fill="rgba(34,197,94,0.10)"/>
+            <text x="365" y="157" fill="#4ade80" font-size="7.5" font-family="DM Sans,sans-serif">App reconnects to same endpoint &bull; Zero code/config changes &bull; 99.95% SLA</text>
+
+            <!-- Time labels -->
+            <text x="80" y="175" fill="#374151" font-size="8" font-family="DM Sans,sans-serif">0s</text>
+            <text x="146" y="175" fill="#374151" font-size="8" font-family="DM Sans,sans-serif">30s</text>
+            <text x="255" y="175" fill="#374151" font-size="8" font-family="DM Sans,sans-serif">90s</text>
+            <text x="354" y="175" fill="#374151" font-size="8" font-family="DM Sans,sans-serif">120s</text>
+            <text x="700" y="175" fill="#4ade80" font-size="8" font-family="DM Sans,sans-serif">Total typical RTO</text>
+
+            <!-- Tip note -->
+            <text x="10" y="200" fill="#475569" font-size="8.5" font-family="DM Sans,sans-serif">&#9888; Your app needs to implement connection retry logic to handle the ~60-120s reconnection window. Use JDBC retry params or a connection pool.</text>
+          </svg>
+        </div>
+      </div>
+            <!-- Backups -->
+      <div class="grid md:grid-cols-3 gap-6 mb-10 reveal">
+        <div class="glass rounded-2xl p-6">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:rgba(56,189,248,0.12)">
+            <i class="fas fa-calendar-check" style="color:#38bdf8"></i>
+          </div>
+          <h3 class="text-white font-bold mb-2">Automated Backups</h3>
+          <p class="text-neutral-400 text-sm mb-3">AWS takes a daily storage snapshot plus continuous transaction logs every 5 minutes.</p>
+          <ul class="space-y-1.5 text-sm text-neutral-400">
+            <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1" style="color:#38bdf8"></i>Retention: 1–35 days (default 7)</li>
+            <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1" style="color:#38bdf8"></i>Stored in S3 — you don't see or manage them</li>
+            <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1" style="color:#38bdf8"></i>Taken during backup window (set it during low traffic)</li>
+            <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1" style="color:#38bdf8"></i>Multi-AZ backups from standby (no I/O impact on primary)</li>
+          </ul>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:rgba(56,189,248,0.12)">
+            <i class="fas fa-history" style="color:#38bdf8"></i>
+          </div>
+          <h3 class="text-white font-bold mb-2">Point-in-Time Recovery (PITR)</h3>
+          <p class="text-neutral-400 text-sm mb-3">Restore to any second within your retention window. Drop a table at 2:47:33 PM? Restore to 2:47:32 PM.</p>
+          <ul class="space-y-1.5 text-sm text-neutral-400">
+            <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1" style="color:#38bdf8"></i>Creates a brand-new DB instance</li>
+            <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1" style="color:#38bdf8"></i>Original instance keeps running untouched</li>
+            <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1" style="color:#38bdf8"></i>Then copy data from restored instance to original</li>
+            <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1" style="color:#38bdf8"></i>Uses latest restorable time (near real-time)</li>
+          </ul>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:rgba(56,189,248,0.12)">
+            <i class="fas fa-camera" style="color:#38bdf8"></i>
+          </div>
+          <h3 class="text-white font-bold mb-2">Manual Snapshots</h3>
+          <p class="text-neutral-400 text-sm mb-3">You trigger these. They persist until YOU delete them — even after the instance is gone.</p>
+          <ul class="space-y-1.5 text-sm text-neutral-400">
+            <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1" style="color:#38bdf8"></i>Copy snapshots cross-region for DR</li>
+            <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1" style="color:#38bdf8"></i>Share snapshots with other AWS accounts</li>
+            <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1" style="color:#38bdf8"></i>Encrypt snapshots (can copy unencrypted → encrypted)</li>
+            <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1" style="color:#38bdf8"></i>Billed at S3 storage rate per GB</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Backup CLI -->
+      <div class="glass rounded-2xl p-6 reveal">
+        <h3 class="text-white font-bold mb-4">Backup &amp; Restore Commands</h3>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm"># Take a manual snapshot before a major change</span>
+<span class="flag">aws rds create-db-snapshot</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--db-snapshot-identifier</span> before-upgrade-2026-05-14
+
+<span class="cm"># Restore to a point in time (new instance)</span>
+<span class="flag">aws rds restore-db-instance-to-point-in-time</span> \
+  <span class="flag">--source-db-instance-identifier</span> prod-oracle \
+  <span class="flag">--target-db-instance-identifier</span> prod-oracle-restored \
+  <span class="flag">--restore-time</span>                   2026-05-14T14:47:32Z
+
+<span class="cm"># Restore from manual snapshot</span>
+<span class="flag">aws rds restore-db-instance-from-db-snapshot</span> \
+  <span class="flag">--db-instance-identifier</span>  prod-oracle-from-snap \
+  <span class="flag">--db-snapshot-identifier</span> before-upgrade-2026-05-14
+
+<span class="cm"># Copy snapshot to another region for DR</span>
+<span class="flag">aws rds copy-db-snapshot</span> \
+  <span class="flag">--source-db-snapshot-identifier</span> arn:aws:rds:us-east-1:123:snapshot:before-upgrade-2026-05-14 \
+  <span class="flag">--target-db-snapshot-identifier</span> before-upgrade-dr-copy \
+  <span class="flag">--kms-key-id</span>                    alias/rds-key \
+  <span class="flag">--region</span>                        us-west-2
+
+<span class="cm"># Modify backup retention (1-35 days)</span>
+<span class="flag">aws rds modify-db-instance</span> \
+  <span class="flag">--db-instance-identifier</span>  prod-oracle \
+  <span class="flag">--backup-retention-period</span> 14 \
+  <span class="flag">--preferred-backup-window</span> 02:00-03:00 \
+  <span class="flag">--apply-immediately</span>
+</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECURITY -->
+  <section id="security" class="py-20 px-6" style="background:rgba(0,0,0,0.15)">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-14 reveal">
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style="background:rgba(56,189,248,0.12);color:#38bdf8;border:1px solid rgba(56,189,248,0.25)">Security</span>
+        <h2 class="font-display font-bold text-3xl md:text-4xl text-white mb-4">Defense in Depth</h2>
+        <p class="text-neutral-400 max-w-2xl mx-auto">RDS Oracle has multiple independent security layers. Use all of them — they complement each other.</p>
+      </div>
+
+      <!-- Security layers grid -->
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10 reveal">
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(56,189,248,0.12)"><i class="fas fa-key" style="color:#38bdf8;font-size:0.875rem"></i></div>
+            <h3 class="text-white font-bold text-sm">Encryption at Rest (KMS)</h3>
+          </div>
+          <p class="text-neutral-400 text-xs leading-relaxed mb-3">Data on disk, automated backups, snapshots, and replicas are all encrypted using AWS KMS keys.</p>
+          <div class="p-2.5 rounded-lg text-xs" style="background:rgba(56,189,248,0.06)">
+            <p class="text-yellow-400 font-medium mb-1">Important:</p>
+            <p class="text-neutral-400">Must enable at creation time. Cannot enable on an existing unencrypted instance — you must snapshot, copy encrypted, restore.</p>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(56,189,248,0.12)"><i class="fas fa-lock" style="color:#38bdf8;font-size:0.875rem"></i></div>
+            <h3 class="text-white font-bold text-sm">TDE (Transparent Data Encryption)</h3>
+          </div>
+          <p class="text-neutral-400 text-xs leading-relaxed mb-3">Oracle's own TDE encrypts data files at the tablespace level. Enabled via Option Group (TDE option).</p>
+          <div class="p-2.5 rounded-lg text-xs" style="background:rgba(56,189,248,0.06)">
+            <p class="text-neutral-300 font-medium mb-1">TDE vs KMS encryption:</p>
+            <p class="text-neutral-400">They work at different layers. KMS encrypts the whole storage volume; TDE encrypts at Oracle data file level. Many compliance frameworks require TDE specifically.</p>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(56,189,248,0.12)"><i class="fas fa-shield-alt" style="color:#38bdf8;font-size:0.875rem"></i></div>
+            <h3 class="text-white font-bold text-sm">SSL/TLS in Transit</h3>
+          </div>
+          <p class="text-neutral-400 text-xs leading-relaxed mb-3">Encrypt the wire between your app and RDS Oracle. Use the RDS CA certificate bundle.</p>
+          <div class="terminal mt-2">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+            <pre class="p-2 text-xs overflow-x-auto"><code><span class="cm">-- Force SSL (SQL*Net parameter)</span>
+<span class="kw">SQLNET.SSL_VERSION</span> = 1.2
+<span class="cm"># Connect with wallet</span>
+<span class="flag">sqlplus</span> user/pass@<span class="str">(DESCRIPTION=
+  (ADDRESS=(PROTOCOL=tcps)...))</span></code></pre>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(56,189,248,0.12)"><i class="fab fa-aws" style="color:#38bdf8;font-size:0.875rem"></i></div>
+            <h3 class="text-white font-bold text-sm">IAM Database Authentication</h3>
+          </div>
+          <p class="text-neutral-400 text-xs leading-relaxed mb-3">Use AWS IAM credentials instead of Oracle passwords. Short-lived auth tokens (15-min expiry).</p>
+          <ul class="space-y-1 text-xs text-neutral-400">
+            <li class="flex items-start gap-1.5"><i class="fas fa-check text-xs mt-0.5" style="color:#38bdf8"></i>No password stored in DB</li>
+            <li class="flex items-start gap-1.5"><i class="fas fa-check text-xs mt-0.5" style="color:#38bdf8"></i>Centrally revoke via IAM policy</li>
+            <li class="flex items-start gap-1.5"><i class="fas fa-check text-xs mt-0.5" style="color:#38bdf8"></i>Max 200 concurrent IAM-auth connections</li>
+          </ul>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(56,189,248,0.12)"><i class="fas fa-network-wired" style="color:#38bdf8;font-size:0.875rem"></i></div>
+            <h3 class="text-white font-bold text-sm">VPC Network Isolation</h3>
+          </div>
+          <p class="text-neutral-400 text-xs leading-relaxed mb-3">RDS lives inside your VPC subnet group. Control access with Security Groups (port 1521).</p>
+          <ul class="space-y-1 text-xs text-neutral-400">
+            <li class="flex items-start gap-1.5"><i class="fas fa-check text-xs mt-0.5" style="color:#38bdf8"></i>Disable Public Accessibility in production</li>
+            <li class="flex items-start gap-1.5"><i class="fas fa-check text-xs mt-0.5" style="color:#38bdf8"></i>Use private subnets only</li>
+            <li class="flex items-start gap-1.5"><i class="fas fa-check text-xs mt-0.5" style="color:#38bdf8"></i>VPC peering or PrivateLink for cross-VPC</li>
+          </ul>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:rgba(56,189,248,0.12)"><i class="fas fa-id-badge" style="color:#38bdf8;font-size:0.875rem"></i></div>
+            <h3 class="text-white font-bold text-sm">Kerberos / Active Directory</h3>
+          </div>
+          <p class="text-neutral-400 text-xs leading-relaxed mb-3">Integrate RDS Oracle with AWS Managed Microsoft AD for Windows SSO and centralized user management.</p>
+          <ul class="space-y-1 text-xs text-neutral-400">
+            <li class="flex items-start gap-1.5"><i class="fas fa-check text-xs mt-0.5" style="color:#38bdf8"></i>Users log in with domain credentials</li>
+            <li class="flex items-start gap-1.5"><i class="fas fa-check text-xs mt-0.5" style="color:#38bdf8"></i>No Oracle passwords for AD users</li>
+            <li class="flex items-start gap-1.5"><i class="fas fa-check text-xs mt-0.5" style="color:#38bdf8"></i>Requires NNE option in option group</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- NNE Option CLI -->
+      <div class="glass rounded-2xl p-6 reveal">
+        <h3 class="text-white font-bold mb-4">Enable TDE + NNE via Option Group (SQL)</h3>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- After enabling TDE option in Option Group, create encrypted tablespace:</span>
+<span class="kw">CREATE TABLESPACE</span> sensitive_data
+  <span class="kw">DATAFILE</span> <span class="str">'/rdsdbdata/db/ORCL/datafile/sensitive_data01.dbf'</span>
+  <span class="kw">SIZE</span> 1G <span class="kw">AUTOEXTEND ON</span>
+  <span class="kw">ENCRYPTION USING</span> AES256
+  <span class="kw">DEFAULT STORAGE</span> (ENCRYPT);
+
+<span class="cm">-- Encrypt an existing tablespace online (Oracle 12.2+)</span>
+<span class="kw">ALTER TABLESPACE</span> users <span class="kw">ENCRYPTION ONLINE ENCRYPT</span>;
+
+<span class="cm">-- Verify encryption status</span>
+<span class="kw">SELECT</span> tablespace_name, encrypted
+<span class="kw">FROM</span>   dba_tablespaces
+<span class="kw">WHERE</span>  encrypted = <span class="str">'YES'</span>;
+
+<span class="cm">-- Force SSL connections for a specific user</span>
+<span class="kw">ALTER</span> PROFILE <span class="str">"DEFAULT"</span>
+  <span class="kw">LIMIT</span> SESSIONS_PER_USER 10;
+
+<span class="cm">-- Create IAM-authenticated user (requires IAM auth enabled)</span>
+<span class="kw">CREATE USER</span> app_iam_user <span class="kw">IDENTIFIED EXTERNALLY AS</span>
+  <span class="str">'IAM:arn:aws:iam::123456789:user/my-app-user'</span>;
+<span class="kw">GRANT</span> CREATE SESSION <span class="kw">TO</span> app_iam_user;
+
+<span class="cm">-- Check NNE (Network Native Encryption) is active</span>
+<span class="kw">SELECT</span> network_service_banner
+<span class="kw">FROM</span>   v$session_connect_info
+<span class="kw">WHERE</span>  sid = SYS_CONTEXT(<span class="str">'USERENV'</span>,<span class="str">'SID'</span>);
+</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MIGRATION -->
+  <section id="migration" class="py-20 px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-14 reveal">
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style="background:rgba(56,189,248,0.12);color:#38bdf8;border:1px solid rgba(56,189,248,0.25)">Migration</span>
+        <h2 class="font-display font-bold text-3xl md:text-4xl text-white mb-4">Moving Your Database to RDS</h2>
+        <p class="text-neutral-400 max-w-2xl mx-auto">Four supported paths — each with trade-offs. Data Pump via S3 is the recommended approach for most migrations.</p>
+      </div>
+
+      <!-- Migration options row -->
+      <div class="grid md:grid-cols-4 gap-4 mb-10 reveal">
+        <div class="glass rounded-2xl p-5 border-2" style="border-color:rgba(56,189,248,0.4)">
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style="background:rgba(56,189,248,0.15)"><i class="fas fa-star" style="color:#38bdf8;font-size:0.875rem"></i></div>
+          <h3 class="text-white font-bold text-sm mb-2">Data Pump via S3 <span class="text-xs px-1.5 py-0.5 rounded ml-1" style="background:rgba(56,189,248,0.15);color:#38bdf8">Recommended</span></h3>
+          <p class="text-neutral-400 text-xs">Export on-prem using expdp, upload to S3, import on RDS using rdsadmin_s3_tasks. Works for full DB, schema, or table level.</p>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style="background:rgba(56,189,248,0.08)"><i class="fas fa-link" style="color:#38bdf8;font-size:0.875rem"></i></div>
+          <h3 class="text-white font-bold text-sm mb-2">Database Link</h3>
+          <p class="text-neutral-400 text-xs">Create a DB link from RDS to on-prem and pull data directly. Good for smaller datasets or ongoing sync during cutover.</p>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style="background:rgba(56,189,248,0.08)"><i class="fab fa-aws" style="color:#38bdf8;font-size:0.875rem"></i></div>
+          <h3 class="text-white font-bold text-sm mb-2">AWS DMS</h3>
+          <p class="text-neutral-400 text-xs">AWS Database Migration Service for continuous replication. Supports homogeneous (Oracle→Oracle) and heterogeneous migrations.</p>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style="background:rgba(56,189,248,0.08)"><i class="fas fa-truck-loading" style="color:#38bdf8;font-size:0.875rem"></i></div>
+          <h3 class="text-white font-bold text-sm mb-2">SQL*Loader</h3>
+          <p class="text-neutral-400 text-xs">For flat-file bulk loads. Generate CSV from source, upload to S3, use rdsadmin to access S3, run sqlldr from app server.</p>
+        </div>
+      </div>
+
+      <!-- Data Pump deep-dive -->
+      <div class="glass rounded-2xl p-6 mb-6 reveal">
+        <h3 class="text-white font-bold mb-1">Data Pump via S3 — Complete Walkthrough</h3>
+        <p class="text-neutral-500 text-sm mb-4">This is the recommended path. It's fully managed, reliable, and works even across firewalls because it uses S3.</p>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <p class="text-xs font-bold mb-2" style="color:#38bdf8">STEP 1 — Export from On-Premises</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+              <pre class="p-3 text-xs overflow-x-auto"><code><span class="cm">-- On-prem: Create export directory</span>
+<span class="kw">CREATE</span> OR REPLACE DIRECTORY dp_dir
+  <span class="kw">AS</span> <span class="str">'/exports/oracle'</span>;
+
+<span class="cm">-- Full schema export (run as DBA)</span>
+expdp system/<span class="str">password</span>
+  DIRECTORY=dp_dir
+  DUMPFILE=myschema_%U.dmp
+  LOGFILE=expdp.log
+  SCHEMAS=HR,FINANCE
+  PARALLEL=4
+  COMPRESSION=ALL
+
+<span class="cm">-- Or full database export</span>
+expdp system/<span class="str">password</span>
+  FULL=Y
+  DIRECTORY=dp_dir
+  DUMPFILE=fulldb_%U.dmp
+  PARALLEL=8
+  EXCLUDE=STATISTICS
+</code></pre>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs font-bold mb-2" style="color:#38bdf8">STEP 2 — Upload to S3</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+              <pre class="p-3 text-xs overflow-x-auto"><code><span class="cm"># Upload dump files to S3</span>
+<span class="flag">aws s3 cp</span> /exports/oracle/ \
+  s3://my-migration-bucket/oracle-dumps/ \
+  <span class="flag">--recursive</span>
+
+<span class="cm"># Verify upload</span>
+<span class="flag">aws s3 ls</span> s3://my-migration-bucket/oracle-dumps/
+
+<span class="cm"># Ensure RDS instance IAM role</span>
+<span class="cm"># has s3:GetObject on the bucket</span>
+<span class="flag">aws rds add-role-to-db-instance</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--role-arn</span> arn:aws:iam::123:role/rds-s3-role \
+  <span class="flag">--feature-name</span> S3_INTEGRATION
+</code></pre>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs font-bold mb-2" style="color:#38bdf8">STEP 3 — Download from S3 to RDS</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+              <pre class="p-3 text-xs overflow-x-auto"><code><span class="cm">-- Download dump from S3 to RDS DATA_PUMP_DIR</span>
+<span class="kw">SELECT</span> rdsadmin.rdsadmin_s3_tasks.download_from_s3(
+  p_bucket_name  => <span class="str">'my-migration-bucket'</span>,
+  p_s3_prefix    => <span class="str">'oracle-dumps/'</span>,
+  p_directory_name => <span class="str">'DATA_PUMP_DIR'</span>
+) <span class="kw">AS</span> task_id
+<span class="kw">FROM</span> DUAL;
+
+<span class="cm">-- Check download task status</span>
+<span class="kw">SELECT</span> text
+<span class="kw">FROM</span>  TABLE(rdsadmin.rds_file_util.read_text_file(
+        <span class="str">'BDUMP'</span>,<span class="str">'dbtask-1234567890123-456.log'</span>));
+
+<span class="cm">-- List files in DATA_PUMP_DIR</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> TABLE(
+  rdsadmin.rds_file_util.listdir(<span class="str">'DATA_PUMP_DIR'</span>));
+</code></pre>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs font-bold mb-2" style="color:#38bdf8">STEP 4 — Import into RDS</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+              <pre class="p-3 text-xs overflow-x-auto"><code><span class="cm">-- Run impdp (from app server connecting to RDS)</span>
+impdp admin/<span class="str">password</span>@rds-endpoint:1521/ORCL
+  DIRECTORY=DATA_PUMP_DIR
+  DUMPFILE=myschema_%U.dmp
+  LOGFILE=impdp.log
+  SCHEMAS=HR,FINANCE
+  PARALLEL=4
+  TABLE_EXISTS_ACTION=REPLACE
+  TRANSFORM=SEGMENT_ATTRIBUTES:N
+
+<span class="cm">-- If remapping schemas or tablespaces:</span>
+impdp admin/<span class="str">password</span>@rds-endpoint:1521/ORCL
+  DIRECTORY=DATA_PUMP_DIR
+  DUMPFILE=myschema_%U.dmp
+  REMAP_SCHEMA=OLD_HR:HR
+  REMAP_TABLESPACE=OLD_TBS:USERS
+  EXCLUDE=STATISTICS
+</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DB Link migration -->
+      <div class="glass rounded-2xl p-6 reveal">
+        <h3 class="text-white font-bold mb-4">Database Link Migration (for smaller datasets)</h3>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div></div>
+          <pre class="p-4 text-xs overflow-x-auto"><code><span class="cm">-- On RDS: Create database link pointing to on-prem</span>
+<span class="kw">CREATE DATABASE LINK</span> onprem_link
+  <span class="kw">CONNECT TO</span> remote_user <span class="kw">IDENTIFIED BY</span> <span class="str">"password"</span>
+  <span class="kw">USING</span> <span class="str">'(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)
+    (HOST=10.0.1.50)(PORT=1521))
+    (CONNECT_DATA=(SERVICE_NAME=PROD)))'</span>;
+
+<span class="cm">-- Copy entire table from on-prem to RDS</span>
+<span class="kw">CREATE TABLE</span> hr.employees <span class="kw">AS</span>
+  <span class="kw">SELECT</span> * <span class="kw">FROM</span> hr.employees@onprem_link;
+
+<span class="cm">-- Copy data in batches to avoid undo issues on large tables</span>
+<span class="kw">BEGIN</span>
+  <span class="kw">FOR</span> i <span class="kw">IN</span> 1..10 <span class="kw">LOOP</span>
+    <span class="kw">INSERT</span> <span class="kw">INTO</span> hr.employees
+    <span class="kw">SELECT</span> * <span class="kw">FROM</span> hr.employees@onprem_link
+    <span class="kw">WHERE</span>  MOD(employee_id,10)+1 = i;
+    <span class="kw">COMMIT</span>;
+  <span class="kw">END LOOP</span>;
+<span class="kw">END</span>;
+/
+
+<span class="cm">-- Verify row counts match</span>
+<span class="kw">SELECT</span> <span class="str">'RDS'</span> src, <span class="kw">COUNT</span>(*) cnt <span class="kw">FROM</span> hr.employees
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span> <span class="str">'OnPrem'</span>, <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> hr.employees@onprem_link;
+</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MONITORING -->
+  <section id="monitoring" class="py-20 px-6" style="background:rgba(0,0,0,0.15)">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-14 reveal">
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style="background:rgba(56,189,248,0.12);color:#38bdf8;border:1px solid rgba(56,189,248,0.25)">Monitoring</span>
+        <h2 class="font-display font-bold text-3xl md:text-4xl text-white mb-4">Visibility Without SSH</h2>
+        <p class="text-neutral-400 max-w-2xl mx-auto">You can't tail logs or run top on RDS. But AWS gives you better tools — here's how to use each layer.</p>
+      </div>
+
+      <!-- Notice banner -->
+      <div class="glass rounded-2xl p-4 mb-8 reveal flex items-start gap-4 border" style="border-color:rgba(250,204,21,0.3)">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(250,204,21,0.15)"><i class="fas fa-exclamation-triangle text-yellow-400 text-sm"></i></div>
+        <div>
+          <p class="text-white font-bold text-sm mb-1">Performance Insights Retiring — June 30, 2026</p>
+          <p class="text-neutral-400 text-sm">AWS is retiring the old Performance Insights interface. All functionality moves to <strong class="text-white">CloudWatch Database Insights</strong>. If you are using Performance Insights today, your data migrates automatically. Update any automation, dashboards, or runbooks that reference the old Performance Insights API.</p>
+        </div>
+      </div>
+
+      <!-- Monitoring layers -->
+      <div class="grid md:grid-cols-3 gap-6 mb-10 reveal">
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(56,189,248,0.12)">
+              <i class="fas fa-chart-bar" style="color:#38bdf8"></i>
+            </div>
+            <div>
+              <h3 class="text-white font-bold text-sm">CloudWatch Metrics</h3>
+              <span class="text-neutral-500 text-xs">Instance-level, 1-min granularity</span>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-xs p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <span class="text-neutral-300 font-mono">CPUUtilization</span>
+              <span class="text-neutral-500">% CPU used</span>
+            </div>
+            <div class="flex justify-between items-center text-xs p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <span class="text-neutral-300 font-mono">FreeableMemory</span>
+              <span class="text-neutral-500">Bytes free RAM</span>
+            </div>
+            <div class="flex justify-between items-center text-xs p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <span class="text-neutral-300 font-mono">ReadIOPS / WriteIOPS</span>
+              <span class="text-neutral-500">Disk ops/sec</span>
+            </div>
+            <div class="flex justify-between items-center text-xs p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <span class="text-neutral-300 font-mono">DatabaseConnections</span>
+              <span class="text-neutral-500">Active sessions</span>
+            </div>
+            <div class="flex justify-between items-center text-xs p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <span class="text-neutral-300 font-mono">FreeStorageSpace</span>
+              <span class="text-neutral-500">Bytes free disk</span>
+            </div>
+            <div class="flex justify-between items-center text-xs p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <span class="text-neutral-300 font-mono">SwapUsage</span>
+              <span class="text-neutral-500">Memory pressure</span>
+            </div>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(56,189,248,0.12)">
+              <i class="fas fa-microchip" style="color:#38bdf8"></i>
+            </div>
+            <div>
+              <h3 class="text-white font-bold text-sm">Enhanced Monitoring</h3>
+              <span class="text-neutral-500 text-xs">OS-level, down to 1-second</span>
+            </div>
+          </div>
+          <p class="text-neutral-400 text-xs mb-3">60+ OS process-level metrics sent to CloudWatch Logs. Gives you visibility below the DB instance layer.</p>
+          <div class="space-y-2 text-xs">
+            <div class="flex items-start gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-cog text-xs mt-0.5" style="color:#38bdf8"></i>
+              <span class="text-neutral-300">Per-process CPU breakdown</span>
+            </div>
+            <div class="flex items-start gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-memory text-xs mt-0.5" style="color:#38bdf8"></i>
+              <span class="text-neutral-300">OS memory: cached, buffered, active</span>
+            </div>
+            <div class="flex items-start gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-hdd text-xs mt-0.5" style="color:#38bdf8"></i>
+              <span class="text-neutral-300">Disk I/O: await, %util per device</span>
+            </div>
+            <div class="flex items-start gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-network-wired text-xs mt-0.5" style="color:#38bdf8"></i>
+              <span class="text-neutral-300">Network tx/rx bytes</span>
+            </div>
+            <div class="p-2 rounded-lg" style="background:rgba(56,189,248,0.06)">
+              <p class="text-xs text-neutral-400">Enable when creating instance or via modify. Requires an IAM role for CloudWatch Logs.</p>
+            </div>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(56,189,248,0.12)">
+              <i class="fas fa-search-plus" style="color:#38bdf8"></i>
+            </div>
+            <div>
+              <h3 class="text-white font-bold text-sm">CloudWatch DB Insights</h3>
+              <span class="text-neutral-500 text-xs">Replaces Performance Insights Jun 2026</span>
+            </div>
+          </div>
+          <p class="text-neutral-400 text-xs mb-3">Shows DB load by wait event, SQL, user, host. Pinpoints what's causing slowness without reading alert logs.</p>
+          <div class="space-y-2 text-xs">
+            <div class="flex items-start gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-check text-xs mt-0.5 text-green-400"></i>
+              <span class="text-neutral-300">Top SQL by DB load (AAS)</span>
+            </div>
+            <div class="flex items-start gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-check text-xs mt-0.5 text-green-400"></i>
+              <span class="text-neutral-300">Wait event breakdown per query</span>
+            </div>
+            <div class="flex items-start gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-check text-xs mt-0.5 text-green-400"></i>
+              <span class="text-neutral-300">7-day retention (free tier)</span>
+            </div>
+            <div class="flex items-start gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-check text-xs mt-0.5 text-green-400"></i>
+              <span class="text-neutral-300">Correlate with CloudWatch metrics</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AWR on RDS + Log reading -->
+      <div class="grid md:grid-cols-2 gap-6 reveal">
+        <div class="glass rounded-2xl p-6">
+          <h3 class="text-white font-bold mb-4">AWR Reports on RDS (EE License Only)</h3>
+          <p class="text-neutral-400 text-sm mb-4">AWR works on RDS Oracle Enterprise Edition. Use rdsadmin to manage snapshot intervals.</p>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+            <pre class="p-3 text-xs overflow-x-auto"><code><span class="cm">-- Create AWR snapshot manually</span>
+<span class="kw">EXEC</span> dbms_workload_repository.create_snapshot;
+
+<span class="cm">-- Change snapshot interval (default 60 min)</span>
+<span class="kw">EXEC</span> dbms_workload_repository.modify_snapshot_settings(
+  retention => 10080, <span class="cm">-- 7 days in minutes</span>
+  interval  => 30     <span class="cm">-- every 30 minutes</span>
+);
+
+<span class="cm">-- Generate HTML AWR report between two snaps</span>
+<span class="kw">SELECT</span> output <span class="kw">FROM</span> TABLE(
+  dbms_workload_repository.awr_report_html(
+    l_dbid    => (SELECT dbid FROM v$database),
+    l_inst_num => 1,
+    l_bid     => 100,  <span class="cm">-- begin snap_id</span>
+    l_eid     => 120   <span class="cm">-- end snap_id</span>
+  ));
+
+<span class="cm">-- List available AWR snapshots</span>
+<span class="kw">SELECT</span> snap_id, begin_interval_time, end_interval_time
+<span class="kw">FROM</span>   dba_hist_snapshot
+<span class="kw">ORDER BY</span> snap_id <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> 10 <span class="kw">ROWS ONLY</span>;
+</code></pre>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h3 class="text-white font-bold mb-4">Reading RDS Log Files via SQL</h3>
+          <p class="text-neutral-400 text-sm mb-4">No SSH, but rdsadmin gives you file-level access to alert logs and trace files.</p>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+            <pre class="p-3 text-xs overflow-x-auto"><code><span class="cm">-- Read the alert log (last 100 lines)</span>
+<span class="kw">SELECT</span> text
+<span class="kw">FROM</span>  TABLE(rdsadmin.rds_file_util.read_text_file(
+        <span class="str">'BDUMP'</span>, <span class="str">'alert_ORCL.log'</span>))
+<span class="kw">WHERE</span> ROWNUM &lt;= 100;
+
+<span class="cm">-- List all trace files</span>
+<span class="kw">SELECT</span> filename, filesize, mtime
+<span class="kw">FROM</span>  TABLE(rdsadmin.rds_file_util.listdir(<span class="str">'BDUMP'</span>))
+<span class="kw">ORDER BY</span> mtime <span class="kw">DESC</span>;
+
+<span class="cm">-- Read a specific trace file</span>
+<span class="kw">SELECT</span> text
+<span class="kw">FROM</span>  TABLE(rdsadmin.rds_file_util.read_text_file(
+        <span class="str">'BDUMP'</span>, <span class="str">'orcl_ora_12345.trc'</span>));
+
+<span class="cm">-- AWS CLI: download log via API</span>
+<span class="flag">aws rds download-db-log-file-portion</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--log-file-name</span>           alert/log.xml \
+  <span class="flag">--starting-token</span>          0 \
+  <span class="flag">--output</span>                  text
+</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RDS CUSTOM -->
+  <section id="rds-custom" class="py-20 px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-14 reveal">
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style="background:rgba(56,189,248,0.12);color:#38bdf8;border:1px solid rgba(56,189,248,0.25)">RDS Custom</span>
+        <h2 class="font-display font-bold text-3xl md:text-4xl text-white mb-4">When You Need OS Access</h2>
+        <p class="text-neutral-400 max-w-2xl mx-auto">RDS Custom is the middle ground between full-managed RDS and running Oracle on EC2 yourself. Use it only when standard RDS cannot support your workload.</p>
+      </div>
+
+      <!-- Responsibility matrix -->
+      <div class="glass rounded-2xl overflow-hidden mb-10 reveal">
+        <div class="p-6 border-b" style="border-color:rgba(255,255,255,0.06)">
+          <h3 class="text-white font-bold">Shared Responsibility: EC2 vs RDS Custom vs Standard RDS</h3>
+          <p class="text-neutral-500 text-sm mt-1">Who manages what? Green = you, Blue = AWS, Yellow = shared</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b" style="border-color:rgba(255,255,255,0.06)">
+                <th class="text-left p-4 text-neutral-400 font-medium">Responsibility</th>
+                <th class="text-center p-4 text-neutral-400 font-medium">EC2 + Oracle</th>
+                <th class="text-center p-4 font-medium" style="color:#38bdf8">RDS Custom</th>
+                <th class="text-center p-4 text-neutral-400 font-medium">Standard RDS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b" style="border-color:rgba(255,255,255,0.04)">
+                <td class="p-4 text-neutral-300">Hardware / Virtualization</td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs" style="background:rgba(56,189,248,0.12);color:#38bdf8">AWS</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs" style="background:rgba(56,189,248,0.12);color:#38bdf8">AWS</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs" style="background:rgba(56,189,248,0.12);color:#38bdf8">AWS</span></td>
+              </tr>
+              <tr class="border-b" style="border-color:rgba(255,255,255,0.04)">
+                <td class="p-4 text-neutral-300">OS Installation &amp; Patching</td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs bg-green-500/15 text-green-400">You</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs bg-yellow-500/15 text-yellow-400">Shared</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs" style="background:rgba(56,189,248,0.12);color:#38bdf8">AWS</span></td>
+              </tr>
+              <tr class="border-b" style="border-color:rgba(255,255,255,0.04)">
+                <td class="p-4 text-neutral-300">Oracle Software Install</td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs bg-green-500/15 text-green-400">You</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs" style="background:rgba(56,189,248,0.12);color:#38bdf8">AWS</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs" style="background:rgba(56,189,248,0.12);color:#38bdf8">AWS</span></td>
+              </tr>
+              <tr class="border-b" style="border-color:rgba(255,255,255,0.04)">
+                <td class="p-4 text-neutral-300">Oracle DB Patching</td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs bg-green-500/15 text-green-400">You</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs bg-yellow-500/15 text-yellow-400">Shared</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs" style="background:rgba(56,189,248,0.12);color:#38bdf8">AWS</span></td>
+              </tr>
+              <tr class="border-b" style="border-color:rgba(255,255,255,0.04)">
+                <td class="p-4 text-neutral-300">Backups &amp; PITR</td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs bg-green-500/15 text-green-400">You</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs" style="background:rgba(56,189,248,0.12);color:#38bdf8">AWS</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs" style="background:rgba(56,189,248,0.12);color:#38bdf8">AWS</span></td>
+              </tr>
+              <tr class="border-b" style="border-color:rgba(255,255,255,0.04)">
+                <td class="p-4 text-neutral-300">HA / Failover</td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs bg-green-500/15 text-green-400">You</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs" style="background:rgba(56,189,248,0.12);color:#38bdf8">AWS</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs" style="background:rgba(56,189,248,0.12);color:#38bdf8">AWS</span></td>
+              </tr>
+              <tr class="border-b" style="border-color:rgba(255,255,255,0.04)">
+                <td class="p-4 text-neutral-300">SSH / OS Access</td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs bg-green-500/15 text-green-400">Full</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs bg-green-500/15 text-green-400">Full</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs bg-red-500/15 text-red-400">None</span></td>
+              </tr>
+              <tr>
+                <td class="p-4 text-neutral-300">Custom File System / 3rd-party Agents</td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs bg-green-500/15 text-green-400">Yes</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs bg-green-500/15 text-green-400">Yes</span></td>
+                <td class="p-4 text-center"><span class="px-2 py-0.5 rounded text-xs bg-red-500/15 text-red-400">No</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- When to use RDS Custom -->
+      <div class="grid md:grid-cols-2 gap-6 reveal">
+        <div class="glass rounded-2xl p-6">
+          <h3 class="text-white font-bold mb-4"><i class="fas fa-check-circle text-green-400 mr-2"></i>Use RDS Custom When...</h3>
+          <div class="space-y-3 text-sm">
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-puzzle-piece text-xs mt-1 text-green-400"></i>
+              <div><span class="text-white">Legacy app requires OS-level Oracle features</span><br><span class="text-neutral-500">Oracle Application Express, Oracle Fusion, apps that write directly to the OS filesystem</span></div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-plug text-xs mt-1 text-green-400"></i>
+              <div><span class="text-white">Custom monitoring or security agents</span><br><span class="text-neutral-500">Requirement to install Qualys, Rapid7, or custom APM agents on the DB host</span></div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-file-alt text-xs mt-1 text-green-400"></i>
+              <div><span class="text-white">Custom Oracle patches or one-off fixes</span><br><span class="text-neutral-500">Applying Oracle CPU patches or interim patches not yet available in standard RDS</span></div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-file-code text-xs mt-1 text-green-400"></i>
+              <div><span class="text-white">Custom init.ora parameters blocked by RDS</span><br><span class="text-neutral-500">Parameters that standard RDS locks and won't allow you to change</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h3 class="text-white font-bold mb-4"><i class="fas fa-times-circle text-red-400 mr-2"></i>Stick with Standard RDS When...</h3>
+          <div class="space-y-3 text-sm">
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-arrow-right text-xs mt-1" style="color:#38bdf8"></i>
+              <div><span class="text-white">Standard web/app workloads on Oracle</span><br><span class="text-neutral-500">No OS dependencies — standard RDS is simpler and cheaper</span></div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-arrow-right text-xs mt-1" style="color:#38bdf8"></i>
+              <div><span class="text-white">You want fully automated patching</span><br><span class="text-neutral-500">With RDS Custom, you take partial responsibility for patches</span></div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-arrow-right text-xs mt-1" style="color:#38bdf8"></i>
+              <div><span class="text-white">Cost is a primary constraint</span><br><span class="text-neutral-500">RDS Custom uses larger instance types and costs more than standard RDS</span></div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+              <i class="fas fa-arrow-right text-xs mt-1" style="color:#38bdf8"></i>
+              <div><span class="text-white">Team lacks OS-level DBA skills</span><br><span class="text-neutral-500">RDS Custom expects you to manage the OS — if you can't, use standard RDS</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REAL-LIFE SCENARIOS -->
+  <section id="scenarios" class="py-20 px-6" style="background:rgba(0,0,0,0.15)">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-14 reveal">
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style="background:rgba(56,189,248,0.12);color:#38bdf8;border:1px solid rgba(56,189,248,0.25)">Real-Life Scenarios</span>
+        <h2 class="font-display font-bold text-3xl md:text-4xl text-white mb-4">What Would You Actually Do?</h2>
+        <p class="text-neutral-400 max-w-xl mx-auto">Common RDS Oracle challenges with the exact steps you would take.</p>
+      </div>
+
+      <div class="space-y-3 reveal">
+
+        <!-- Scenario 1 -->
+        <div class="glass rounded-2xl overflow-hidden">
+          <button class="acc-btn w-full flex items-center justify-between p-5 text-left">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:rgba(56,189,248,0.15);color:#38bdf8">01</span>
+              <div>
+                <p class="text-white font-bold text-sm">"Storage is at 95% — alert is firing at 3 AM"</p>
+                <p class="text-neutral-500 text-xs">FreeStorageSpace CloudWatch alarm fires. You have 5 GB left on a 100 GB instance.</p>
+              </div>
+            </div>
+            <i class="acc-icon fas fa-chevron-down text-neutral-500 text-xs flex-shrink-0 ml-4"></i>
+          </button>
+          <div class="acc-content px-5 pb-5">
+            <div class="border-t pt-4 space-y-3" style="border-color:rgba(255,255,255,0.06)">
+              <p class="text-neutral-400 text-sm">RDS gp3 storage supports autoscaling — but you need to enable it. Here's the immediate response and long-term fix:</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+                <pre class="p-3 text-xs overflow-x-auto"><code><span class="cm"># IMMEDIATE: Enable storage auto-scaling (if not already)</span>
+<span class="flag">aws rds modify-db-instance</span> \
+  <span class="flag">--db-instance-identifier</span>   prod-oracle \
+  <span class="flag">--max-allocated-storage</span>    500 \
+  <span class="flag">--apply-immediately</span>
+
+<span class="cm">-- Find what's consuming space (from SQL*Plus)</span>
+<span class="kw">SELECT</span> owner, segment_type,
+       <span class="kw">ROUND</span>(SUM(bytes)/1073741824,2) gb
+<span class="kw">FROM</span>   dba_segments
+<span class="kw">GROUP BY</span> owner, segment_type
+<span class="kw">ORDER BY</span> gb <span class="kw">DESC FETCH FIRST</span> 15 <span class="kw">ROWS ONLY</span>;
+
+<span class="cm">-- Check TEMP tablespace usage (large sorts filling space)</span>
+<span class="kw">SELECT</span> tablespace_name, total_blocks*8192/1073741824 total_gb,
+       used_blocks*8192/1073741824 used_gb
+<span class="kw">FROM</span>   v$sort_segment;
+
+<span class="cm">-- Purge recyclebin to reclaim space instantly</span>
+<span class="kw">PURGE DBA_RECYCLEBIN</span>;
+
+<span class="cm">-- Check undo tablespace usage</span>
+<span class="kw">SELECT</span> tablespace_name, status, <span class="kw">SUM</span>(bytes)/1073741824 gb
+<span class="kw">FROM</span>   dba_undo_extents
+<span class="kw">GROUP BY</span> tablespace_name, status;
+</code></pre>
+              </div>
+              <p class="text-neutral-400 text-xs">After crisis: investigate whether TEMP or UNDO are oversized, review archivelog accumulation (check automated backups are deleting old logs), and consider adding a data file to the right tablespace.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scenario 2 -->
+        <div class="glass rounded-2xl overflow-hidden">
+          <button class="acc-btn w-full flex items-center justify-between p-5 text-left">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:rgba(56,189,248,0.15);color:#38bdf8">02</span>
+              <div>
+                <p class="text-white font-bold text-sm">"CPU is at 100% — queries are timing out"</p>
+                <p class="text-neutral-500 text-xs">CPUUtilization alarm fires. Application is slow. You need to find the culprit fast.</p>
+              </div>
+            </div>
+            <i class="acc-icon fas fa-chevron-down text-neutral-500 text-xs flex-shrink-0 ml-4"></i>
+          </button>
+          <div class="acc-content px-5 pb-5">
+            <div class="border-t pt-4 space-y-3" style="border-color:rgba(255,255,255,0.06)">
+              <p class="text-neutral-400 text-sm">Check CloudWatch DB Insights first (or Performance Insights if pre-June 2026). Then drill into V$ views:</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+                <pre class="p-3 text-xs overflow-x-auto"><code><span class="cm">-- Top SQL by CPU right now</span>
+<span class="kw">SELECT</span> sql_id, child_number, executions,
+       <span class="kw">ROUND</span>(cpu_time/1000000,2) cpu_secs,
+       <span class="kw">ROUND</span>(cpu_time/NULLIF(executions,0)/1000000,4) cpu_per_exec,
+       substr(sql_text,1,80) sql_text
+<span class="kw">FROM</span>   v$sql
+<span class="kw">ORDER BY</span> cpu_time <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> 10 <span class="kw">ROWS ONLY</span>;
+
+<span class="cm">-- Active sessions and what they're waiting on</span>
+<span class="kw">SELECT</span> sid, status, event, sql_id, seconds_in_wait
+<span class="kw">FROM</span>   v$session
+<span class="kw">WHERE</span>  status = <span class="str">'ACTIVE'</span>
+<span class="kw">ORDER BY</span> seconds_in_wait <span class="kw">DESC</span>;
+
+<span class="cm">-- Check for missing index (full table scans)</span>
+<span class="kw">SELECT</span> sql_id, <span class="kw">COUNT</span>(*) full_scans
+<span class="kw">FROM</span>   v$sql_plan
+<span class="kw">WHERE</span>  operation = <span class="str">'TABLE ACCESS'</span>
+<span class="kw">AND</span>    options   = <span class="str">'FULL'</span>
+<span class="kw">GROUP BY</span> sql_id
+<span class="kw">ORDER BY</span> full_scans <span class="kw">DESC</span>;
+
+<span class="cm">-- If one query is the culprit — kill it</span>
+<span class="kw">SELECT</span> sid, serial#, username, sql_id
+<span class="kw">FROM</span>   v$session <span class="kw">WHERE</span> sql_id = <span class="str">'&amp;problem_sql_id'</span>;
+<span class="kw">ALTER SYSTEM KILL SESSION</span> <span class="str">'SID,SERIAL#'</span> IMMEDIATE;
+</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scenario 3 -->
+        <div class="glass rounded-2xl overflow-hidden">
+          <button class="acc-btn w-full flex items-center justify-between p-5 text-left">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:rgba(56,189,248,0.15);color:#38bdf8">03</span>
+              <div>
+                <p class="text-white font-bold text-sm">"Someone dropped a table in production by accident"</p>
+                <p class="text-neutral-500 text-xs">Table HR.EMPLOYEES was dropped at 2:47 PM. Business wants it back ASAP.</p>
+              </div>
+            </div>
+            <i class="acc-icon fas fa-chevron-down text-neutral-500 text-xs flex-shrink-0 ml-4"></i>
+          </button>
+          <div class="acc-content px-5 pb-5">
+            <div class="border-t pt-4 space-y-3" style="border-color:rgba(255,255,255,0.06)">
+              <p class="text-neutral-400 text-sm">On RDS, Flashback Database is NOT available. But PITR creates a new instance from which you can extract the table using Data Pump.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+                <pre class="p-3 text-xs overflow-x-auto"><code><span class="cm"># Step 1: Create PITR instance — restore to 2:47 PM (before the drop)</span>
+<span class="flag">aws rds restore-db-instance-to-point-in-time</span> \
+  <span class="flag">--source-db-instance-identifier</span> prod-oracle \
+  <span class="flag">--target-db-instance-identifier</span> prod-oracle-recovery \
+  <span class="flag">--restore-time</span>                   2026-05-14T14:46:00Z
+
+<span class="cm"># Step 2: Wait for instance to become Available (~10-30 min)</span>
+<span class="flag">aws rds wait db-instance-available</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle-recovery
+
+<span class="cm"># Step 3: Export just the dropped table from recovery instance</span>
+expdp admin/password@recovery-endpoint:1521/ORCL
+  DIRECTORY=DATA_PUMP_DIR
+  TABLES=HR.EMPLOYEES
+  DUMPFILE=recovered_employees.dmp
+
+<span class="cm"># Step 4: Upload dump to S3</span>
+<span class="flag">aws s3 cp</span> recovered_employees.dmp s3://my-bucket/recovery/
+
+<span class="cm"># Step 5: Download to prod RDS DATA_PUMP_DIR and import</span>
+<span class="cm">-- (Run from SQL*Plus on prod-oracle)</span>
+<span class="kw">SELECT</span> rdsadmin.rdsadmin_s3_tasks.download_from_s3(
+  <span class="str">'my-bucket'</span>,<span class="str">'recovery/'</span>,<span class="str">'DATA_PUMP_DIR'</span>) <span class="kw">FROM</span> DUAL;
+
+impdp admin/password@prod-endpoint:1521/ORCL
+  DIRECTORY=DATA_PUMP_DIR
+  DUMPFILE=recovered_employees.dmp
+  TABLE_EXISTS_ACTION=REPLACE
+
+<span class="cm"># Step 6: Delete recovery instance</span>
+<span class="flag">aws rds delete-db-instance</span> \
+  <span class="flag">--db-instance-identifier</span>   prod-oracle-recovery \
+  <span class="flag">--skip-final-snapshot</span>
+</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scenario 4 -->
+        <div class="glass rounded-2xl overflow-hidden">
+          <button class="acc-btn w-full flex items-center justify-between p-5 text-left">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:rgba(56,189,248,0.15);color:#38bdf8">04</span>
+              <div>
+                <p class="text-white font-bold text-sm">"Migrating a 500 GB on-prem Oracle database to RDS"</p>
+                <p class="text-neutral-500 text-xs">You have a maintenance window of 6 hours. The database must stay online during migration prep.</p>
+              </div>
+            </div>
+            <i class="acc-icon fas fa-chevron-down text-neutral-500 text-xs flex-shrink-0 ml-4"></i>
+          </button>
+          <div class="acc-content px-5 pb-5">
+            <div class="border-t pt-4" style="border-color:rgba(255,255,255,0.06)">
+              <div class="space-y-2 mt-3">
+                <div class="flex items-start gap-3 p-3 rounded-xl text-sm" style="background:rgba(255,255,255,0.03)">
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:rgba(56,189,248,0.2);color:#38bdf8">1</span>
+                  <div><span class="text-white font-medium">Pre-migration check (weeks before)</span><br><span class="text-neutral-500">Identify unsupported features (RAC, ASM, Database Vault, Flashback DB). Check tablespace sizes. Identify incompatible init.ora params.</span></div>
+                </div>
+                <div class="flex items-start gap-3 p-3 rounded-xl text-sm" style="background:rgba(255,255,255,0.03)">
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:rgba(56,189,248,0.2);color:#38bdf8">2</span>
+                  <div><span class="text-white font-medium">Initial full export (during business hours)</span><br><span class="text-neutral-500">Run expdp FULL=Y with TRANSPORTABLE=ALWAYS. 500 GB takes ~2-3 hours. Upload to S3 in parallel.</span></div>
+                </div>
+                <div class="flex items-start gap-3 p-3 rounded-xl text-sm" style="background:rgba(255,255,255,0.03)">
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:rgba(56,189,248,0.2);color:#38bdf8">3</span>
+                  <div><span class="text-white font-medium">Import to RDS (full restore) before window</span><br><span class="text-neutral-500">Download from S3 to RDS DATA_PUMP_DIR. Run impdp. Fix any errors. Validate row counts.</span></div>
+                </div>
+                <div class="flex items-start gap-3 p-3 rounded-xl text-sm" style="background:rgba(255,255,255,0.03)">
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:rgba(56,189,248,0.2);color:#38bdf8">4</span>
+                  <div><span class="text-white font-medium">During maintenance window — delta export</span><br><span class="text-neutral-500">Export only rows changed since initial export (use QUERY or SCN-based filter). Import delta to RDS.</span></div>
+                </div>
+                <div class="flex items-start gap-3 p-3 rounded-xl text-sm" style="background:rgba(255,255,255,0.03)">
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:rgba(56,189,248,0.2);color:#38bdf8">5</span>
+                  <div><span class="text-white font-medium">Switch app connection string</span><br><span class="text-neutral-500">Update JDBC/TNSNAMES to point to RDS endpoint. Test. Enable Multi-AZ on RDS instance.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scenario 5 -->
+        <div class="glass rounded-2xl overflow-hidden">
+          <button class="acc-btn w-full flex items-center justify-between p-5 text-left">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:rgba(56,189,248,0.15);color:#38bdf8">05</span>
+              <div>
+                <p class="text-white font-bold text-sm">"Test Multi-AZ failover before go-live"</p>
+                <p class="text-neutral-500 text-xs">QA team wants to verify the app reconnects properly after an RDS failover event.</p>
+              </div>
+            </div>
+            <i class="acc-icon fas fa-chevron-down text-neutral-500 text-xs flex-shrink-0 ml-4"></i>
+          </button>
+          <div class="acc-content px-5 pb-5">
+            <div class="border-t pt-4 space-y-3" style="border-color:rgba(255,255,255,0.06)">
+              <p class="text-neutral-400 text-sm">AWS provides a reboot-with-failover option that promotes the standby as the new primary — safely triggers the full failover path.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+                <pre class="p-3 text-xs overflow-x-auto"><code><span class="cm"># Trigger failover (app keeps running — measure reconnect time)</span>
+<span class="flag">aws rds reboot-db-instance</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--force-failover</span>
+
+<span class="cm"># Watch the event log during failover</span>
+<span class="flag">aws rds describe-events</span> \
+  <span class="flag">--source-identifier</span> prod-oracle \
+  <span class="flag">--source-type</span>       db-instance \
+  <span class="flag">--duration</span>         60
+
+<span class="cm"># After failover — confirm new AZ</span>
+<span class="flag">aws rds describe-db-instances</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--query</span> "DBInstances[0].AvailabilityZone"
+
+<span class="cm">-- In your app: ensure JDBC has these properties</span>
+<span class="cm">-- connectTimeout=10</span>
+<span class="cm">-- socketTimeout=30</span>
+<span class="cm">-- oracle.net.CONNECT_TIMEOUT=10000</span>
+<span class="cm">-- And implement retry logic on SQLRecoverableException</span>
+</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scenario 6 -->
+        <div class="glass rounded-2xl overflow-hidden">
+          <button class="acc-btn w-full flex items-center justify-between p-5 text-left">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:rgba(56,189,248,0.15);color:#38bdf8">06</span>
+              <div>
+                <p class="text-white font-bold text-sm">"BYOL or License Included — which should we choose?"</p>
+                <p class="text-neutral-500 text-xs">Finance team wants a cost analysis before committing to RDS Oracle.</p>
+              </div>
+            </div>
+            <i class="acc-icon fas fa-chevron-down text-neutral-500 text-xs flex-shrink-0 ml-4"></i>
+          </button>
+          <div class="acc-content px-5 pb-5">
+            <div class="border-t pt-4" style="border-color:rgba(255,255,255,0.06)">
+              <div class="grid md:grid-cols-2 gap-4 mt-4 text-sm">
+                <div class="p-4 rounded-xl" style="background:rgba(56,189,248,0.05);border:1px solid rgba(56,189,248,0.15)">
+                  <p class="font-bold text-white mb-3">Choose BYOL if:</p>
+                  <ul class="space-y-2 text-neutral-400">
+                    <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1 text-green-400"></i>You already own active Oracle EE or SE2 licenses</li>
+                    <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1 text-green-400"></i>You need Oracle Enterprise Edition (EE) — License Included only offers SE2</li>
+                    <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1 text-green-400"></i>You have Software Support (annual maintenance) paid</li>
+                    <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1 text-green-400"></i>Long-term commitment (3+ years)</li>
+                  </ul>
+                </div>
+                <div class="p-4 rounded-xl" style="background:rgba(56,189,248,0.05);border:1px solid rgba(56,189,248,0.15)">
+                  <p class="font-bold text-white mb-3">Choose License Included (LI) if:</p>
+                  <ul class="space-y-2 text-neutral-400">
+                    <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1 text-green-400"></i>You don't own Oracle licenses (SE2 is sufficient)</li>
+                    <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1 text-green-400"></i>You want one AWS bill — no Oracle support contract</li>
+                    <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1 text-green-400"></i>Dev/test environments (even with EE licenses, LI may be simpler)</li>
+                    <li class="flex items-start gap-2"><i class="fas fa-check text-xs mt-1 text-green-400"></i>Short-term or uncertain commitment</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="p-3 rounded-xl mt-3 text-xs text-neutral-400" style="background:rgba(255,255,255,0.03)">
+                <strong class="text-white">Key rule:</strong> With BYOL you must have 1 Oracle license per 2 vCPUs (NUP licensing) or per processor. Always get this reviewed by your Oracle License Management rep before migrating — Oracle audits RDS usage too.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CHEATSHEET -->
+  <section id="cheatsheet" class="py-20 px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-14 reveal">
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style="background:rgba(56,189,248,0.12);color:#38bdf8;border:1px solid rgba(56,189,248,0.25)">Quick Reference</span>
+        <h2 class="font-display font-bold text-3xl md:text-4xl text-white mb-4">RDS Oracle Cheatsheet</h2>
+        <p class="text-neutral-400">Keep this handy. The commands and facts you'll actually reach for.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6 reveal">
+        <!-- rdsadmin procedures -->
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-terminal" style="color:#38bdf8"></i> Key rdsadmin Procedures</h3>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+            <pre class="p-3 text-xs overflow-x-auto"><code><span class="cm">-- Enable archivelog mode</span>
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_util.alter_archivelog_mode(<span class="str">'true'</span>);
+
+<span class="cm">-- Force a log switch</span>
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_util.switch_logfile;
+
+<span class="cm">-- Set database timezone</span>
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_util.alter_db_time_zone(
+  p_new_tz => <span class="str">'US/Eastern'</span>);
+
+<span class="cm">-- Read alert log</span>
+<span class="kw">SELECT</span> text <span class="kw">FROM</span> TABLE(
+  rdsadmin.rds_file_util.read_text_file(
+    <span class="str">'BDUMP'</span>,<span class="str">'alert_ORCL.log'</span>));
+
+<span class="cm">-- Upload file to S3</span>
+<span class="kw">SELECT</span> rdsadmin.rdsadmin_s3_tasks.upload_to_s3(
+  p_bucket_name    => <span class="str">'my-bucket'</span>,
+  p_prefix         => <span class="str">'oracle-exports/'</span>,
+  p_s3_region      => <span class="str">'us-east-1'</span>,
+  p_directory_name => <span class="str">'DATA_PUMP_DIR'</span>,
+  p_directory_filename => <span class="str">'export.dmp'</span>
+) <span class="kw">FROM</span> DUAL;
+
+<span class="cm">-- Download file from S3</span>
+<span class="kw">SELECT</span> rdsadmin.rdsadmin_s3_tasks.download_from_s3(
+  p_bucket_name    => <span class="str">'my-bucket'</span>,
+  p_s3_prefix      => <span class="str">'oracle-exports/'</span>,
+  p_directory_name => <span class="str">'DATA_PUMP_DIR'</span>
+) <span class="kw">FROM</span> DUAL;
+
+<span class="cm">-- Create restore point (RDS manual)</span>
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_util.create_restore_point(
+  p_restore_point_name => <span class="str">'pre-upgrade'</span>);
+
+<span class="cm">-- Stop/Start listener (if issues)</span>
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_util.listener_stop;
+<span class="kw">EXEC</span> rdsadmin.rdsadmin_util.listener_start;
+</code></pre>
+          </div>
+        </div>
+
+        <!-- AWS CLI commands -->
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fab fa-aws" style="color:#38bdf8"></i> Key AWS CLI Commands</h3>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+            <pre class="p-3 text-xs overflow-x-auto"><code><span class="cm"># Create instance</span>
+<span class="flag">aws rds create-db-instance</span> \
+  <span class="flag">--engine</span> oracle-ee \
+  <span class="flag">--engine-version</span> 19.0.0.0.ru-2024-01.rur-2024-01.r1 \
+  <span class="flag">--db-instance-class</span> db.r6i.xlarge \
+  <span class="flag">--allocated-storage</span> 500 \
+  <span class="flag">--storage-type</span> gp3 \
+  <span class="flag">--multi-az</span> \
+  <span class="flag">--license-model</span> bring-your-own-license
+
+<span class="cm"># Describe instance status</span>
+<span class="flag">aws rds describe-db-instances</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--query</span> "DBInstances[0].[DBInstanceStatus,AvailabilityZone]"
+
+<span class="cm"># Create snapshot</span>
+<span class="flag">aws rds create-db-snapshot</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--db-snapshot-identifier</span> manual-snap-$(date +%Y%m%d)
+
+<span class="cm"># Trigger failover</span>
+<span class="flag">aws rds reboot-db-instance</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--force-failover</span>
+
+<span class="cm"># Scale instance class (applied in maintenance window)</span>
+<span class="flag">aws rds modify-db-instance</span> \
+  <span class="flag">--db-instance-identifier</span> prod-oracle \
+  <span class="flag">--db-instance-class</span>        db.r6i.2xlarge
+
+<span class="cm"># List available engine versions</span>
+<span class="flag">aws rds describe-db-engine-versions</span> \
+  <span class="flag">--engine</span>      oracle-ee \
+  <span class="flag">--query</span>       "DBEngineVersions[].EngineVersion"
+</code></pre>
+          </div>
+        </div>
+
+        <!-- Limitations quick ref -->
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-ban text-red-400"></i> What RDS Oracle Cannot Do</h3>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-times text-red-400 text-xs"></i><span class="text-neutral-300">Real Application Clusters (RAC)</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-times text-red-400 text-xs"></i><span class="text-neutral-300">Automatic Storage Management (ASM)</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-times text-red-400 text-xs"></i><span class="text-neutral-300">Database Vault</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-times text-red-400 text-xs"></i><span class="text-neutral-300">Flashback Database</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-times text-red-400 text-xs"></i><span class="text-neutral-300">SSH / OS access</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-times text-red-400 text-xs"></i><span class="text-neutral-300">STARTUP / SHUTDOWN</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-times text-red-400 text-xs"></i><span class="text-neutral-300">SYSDBA / SYSOPER</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-times text-red-400 text-xs"></i><span class="text-neutral-300">Oracle Data Guard (built-in)</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-times text-red-400 text-xs"></i><span class="text-neutral-300">Custom OS parameters</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-times text-red-400 text-xs"></i><span class="text-neutral-300">Streams / XStream</span></div>
+          </div>
+        </div>
+
+        <!-- What RDS CAN do -->
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-check-circle text-green-400"></i> What RDS Oracle CAN Do</h3>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-check text-green-400 text-xs"></i><span class="text-neutral-300">AWR &amp; ASH (EE)</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-check text-green-400 text-xs"></i><span class="text-neutral-300">Partitioning</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-check text-green-400 text-xs"></i><span class="text-neutral-300">Oracle APEX</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-check text-green-400 text-xs"></i><span class="text-neutral-300">Java in DB (JVM)</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-check text-green-400 text-xs"></i><span class="text-neutral-300">Advanced Compression</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-check text-green-400 text-xs"></i><span class="text-neutral-300">TDE Encryption</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-check text-green-400 text-xs"></i><span class="text-neutral-300">Oracle Label Security</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-check text-green-400 text-xs"></i><span class="text-neutral-300">Spatial &amp; OLAP</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-check text-green-400 text-xs"></i><span class="text-neutral-300">Multi-AZ failover</span></div>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:rgba(255,255,255,0.03)"><i class="fas fa-check text-green-400 text-xs"></i><span class="text-neutral-300">S3 integration</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="py-16 px-6 border-t" style="border-color:rgba(255,255,255,0.06)">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid md:grid-cols-4 gap-8 mb-10">
+        <div>
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#38bdf8,#818cf8)">
+              <i class="fab fa-aws text-white text-xs"></i>
+            </div>
+            <span class="font-display font-bold text-white text-sm">Oracle DBA Simplified</span>
+          </div>
+          <p class="text-neutral-500 text-sm">RDS Oracle made simple — so you can focus on building, not babysitting.</p>
+        </div>
+        <div>
+          <h4 class="text-white font-bold text-sm mb-3">AWS Documentation</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Oracle.html" target="_blank" class="text-neutral-500 hover:text-sky-400 transition-colors">RDS for Oracle User Guide</a></li>
+            <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/oracle-options-group.html" target="_blank" class="text-neutral-500 hover:text-sky-400 transition-colors">Oracle Option Groups</a></li>
+            <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithParamGroups.html" target="_blank" class="text-neutral-500 hover:text-sky-400 transition-colors">Parameter Groups</a></li>
+            <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html" target="_blank" class="text-neutral-500 hover:text-sky-400 transition-colors">Multi-AZ Deployments</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-bold text-sm mb-3">Migration &amp; Backup</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/oracle-s3-integration.html" target="_blank" class="text-neutral-500 hover:text-sky-400 transition-colors">S3 Integration</a></li>
+            <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Oracle.Procedural.Importing.html" target="_blank" class="text-neutral-500 hover:text-sky-400 transition-colors">Importing Data Pump</a></li>
+            <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIT.html" target="_blank" class="text-neutral-500 hover:text-sky-400 transition-colors">Point-in-Time Recovery</a></li>
+            <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Oracle.html" target="_blank" class="text-neutral-500 hover:text-sky-400 transition-colors">Major Version Upgrades</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-bold text-sm mb-3">Other Topics</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-cev.html" target="_blank" class="text-neutral-500 hover:text-sky-400 transition-colors">RDS Custom for Oracle</a></li>
+            <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/oracle-kerberos.html" target="_blank" class="text-neutral-500 hover:text-sky-400 transition-colors">Kerberos Authentication</a></li>
+            <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-security-iam-auth.html" target="_blank" class="text-neutral-500 hover:text-sky-400 transition-colors">IAM DB Authentication</a></li>
+            <li><a href="https://aws.amazon.com/rds/oracle/pricing/" target="_blank" class="text-neutral-500 hover:text-sky-400 transition-colors">RDS Oracle Pricing</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t pt-8 flex flex-col md:flex-row justify-between items-center gap-4" style="border-color:rgba(255,255,255,0.06)">
+        <p class="text-neutral-600 text-xs">Built for DBAs who need clarity, not complexity. Content based on AWS documentation &copy; 2026.</p>
+        <a href="index.html" class="flex items-center gap-2 text-neutral-500 hover:text-sky-400 transition-colors text-sm">
+          <i class="fas fa-arrow-left text-xs"></i> Back to All Topics
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Back to top -->
+  <button id="back-top" class="fixed bottom-6 right-6 w-10 h-10 rounded-full opacity-0 transition-all duration-300 flex items-center justify-center z-40" style="background:linear-gradient(135deg,#38bdf8,#818cf8);pointer-events:none">
+    <i class="fas fa-arrow-up text-white text-xs"></i>
+  </button>
+
+  <script>
+    // ── Tabs ──────────────────────────────────────────────────────────────────
+    function initTabs(groupName) {
+      const btns = document.querySelectorAll(`[data-tab][data-group="${groupName}"]`);
+      function activate(val) {
+        btns.forEach(b => b.classList.toggle('active', b.dataset.tab === val));
+        btns.forEach(b => {
+          const pane = document.getElementById(b.dataset.tab);
+          if (pane) pane.classList.toggle('active', b.dataset.tab === val);
+        });
+      }
+      btns.forEach(b => b.addEventListener('click', () => activate(b.dataset.tab)));
+      if (btns.length) activate(btns[0].dataset.tab);
+    }
+    ['setup'].forEach(g => initTabs(g));
+
+    // ── Accordion ─────────────────────────────────────────────────────────────
+    document.querySelectorAll('.acc-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const content = btn.nextElementSibling;
+        btn.classList.toggle('open');
+        content.classList.toggle('open');
+      });
+    });
+
+    // ── Scroll reveal ─────────────────────────────────────────────────────────
+    const revealObs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+    // ── Nav active on scroll ──────────────────────────────────────────────────
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const navObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          navLinks.forEach(l => {
+            const active = l.getAttribute('href') === '#' + e.target.id;
+            l.style.color = active ? '#38bdf8' : '';
+          });
+        }
+      });
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    sections.forEach(s => navObs.observe(s));
+
+    // ── Back to top ───────────────────────────────────────────────────────────
+    const backTop = document.getElementById('back-top');
+    window.addEventListener('scroll', () => {
+      const show = window.scrollY > 400;
+      backTop.style.opacity = show ? '1' : '0';
+      backTop.style.pointerEvents = show ? 'auto' : 'none';
+    });
+    backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+    // ── Mobile menu ───────────────────────────────────────────────────────────
+    const mobBtn = document.getElementById('mob-btn');
+    const mobMenu = document.getElementById('mob-menu');
+    if (mobBtn && mobMenu) {
+      mobBtn.addEventListener('click', () => mobMenu.classList.toggle('hidden'));
+    }
+  </script>
+</body>
+</html>
