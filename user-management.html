@@ -1,0 +1,2394 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Oracle User Management | Oracle DBA Simplified</title>
+  <meta name="description" content="Complete guide to Oracle User Management — creating users, roles, privileges, profiles, and security best practices. Job-ready training for Oracle DBAs."/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config={darkMode:'class',theme:{extend:{colors:{oracle:{red:'#8b5cf6',dark:'#6d28d9',light:'#a78bfa'}},fontFamily:{display:['Sora','sans-serif'],body:['DM Sans','sans-serif'],mono:['JetBrains Mono','monospace']}}}}
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{--color-primary:#8b5cf6;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#0a0a0f;color:#e2e8f0;overflow-x:hidden;}
+    ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:#0a0a0f;}::-webkit-scrollbar-thumb{background:#8b5cf6;border-radius:3px;}
+    .glass{background:rgba(255,255,255,0.04);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);}
+    .glass-strong{background:rgba(255,255,255,0.07);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);}
+    .gradient-text{background:linear-gradient(135deg,#a78bfa,#c084fc,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .gradient-text-w{background:linear-gradient(135deg,#fff,#e2e8f0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12;pointer-events:none;}
+    .grid-bg{background-image:linear-gradient(rgba(139,92,246,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(139,92,246,.03) 1px,transparent 1px);background-size:64px 64px;}
+    .nav-link{font-size:.875rem;color:#94a3b8;transition:color .2s;}
+    .nav-link:hover,.nav-link.active{color:#a78bfa;}
+    .btn-primary{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;border-radius:6px;padding:10px 24px;font-weight:700;font-size:.875rem;transition:all .2s;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(139,92,246,.4);}
+    .btn-ghost{background:transparent;color:#e2e8f0;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:10px 24px;font-weight:500;font-size:.875rem;transition:all .2s;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-ghost:hover{border-color:rgba(139,92,246,.5);color:#a78bfa;}
+    .badge{font-size:.75rem;padding:3px 10px;border-radius:100px;font-weight:600;display:inline-block;}
+    .badge-violet{background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.25);}
+    .badge-green{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);}
+    .badge-red{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.25);}
+    .badge-amber{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.25);}
+    .badge-blue{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.25);}
+    .badge-sky{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.25);}
+    .badge-orange{background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.25);}
+    .badge-purple{background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.25);}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease;}
+    .reveal.visible{opacity:1;transform:none;}
+    .terminal{background:#0d0d14;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden;}
+    .terminal-bar{background:#1a1a25;padding:10px 16px;display:flex;align-items:center;gap:8px;}
+    .t-dot{width:11px;height:11px;border-radius:50%;}
+    code .kw{color:#a78bfa;} code .fn{color:#c084fc;} code .str{color:#a8ff78;} code .cm{color:#6b7280;font-style:italic;} code .num{color:#fb923c;} code .var{color:#38bdf8;} code .flag{color:#22d3ee;} code .err{color:#f87171;} code .key{color:#fbbf24;} code .opt{color:#e879f9;}
+    .tab-btn{padding:8px 18px;border-radius:8px;font-size:.8rem;font-weight:600;transition:all .2s;cursor:pointer;border:1px solid transparent;color:#64748b;white-space:nowrap;}
+    .tab-btn.active,.tab-btn:hover{background:rgba(139,92,246,.12);color:#a78bfa;border-color:rgba(139,92,246,.3);}
+    .tab-content{display:none;}.tab-content.active{display:block;}
+    .acc-content{max-height:0;overflow:hidden;transition:max-height .5s ease;}
+    .acc-content.open{max-height:6000px;}
+    .acc-icon{transition:transform .3s;}
+    .acc-btn.open .acc-icon{transform:rotate(180deg);}
+    #mob-menu{max-height:0;overflow:hidden;transition:max-height .4s;}
+    #mob-menu.open{max-height:600px;}
+    .priv-card{border:1px solid rgba(255,255,255,.06);transition:all .25s;cursor:default;}
+    .priv-card:hover{border-color:rgba(139,92,246,.3);background:rgba(139,92,246,.04);}
+    .danger-card{border-color:rgba(239,68,68,.2)!important;}
+    .danger-card:hover{border-color:rgba(239,68,68,.4)!important;background:rgba(239,68,68,.03)!important;}
+    .syntax-block{background:#0d0d14;border:1px solid #1e1e2e;border-radius:10px;padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:.75rem;line-height:1.8;overflow-x:auto;}
+    .syntax-req{color:#a78bfa;font-weight:600;}
+    .syntax-opt{color:#6b7280;}
+    .syntax-val{color:#a8ff78;}
+    .syntax-kw{color:#38bdf8;}
+    .vs-row:nth-child(odd){background:rgba(255,255,255,.015);}
+    @keyframes violet-pulse{0%,100%{box-shadow:0 0 15px rgba(139,92,246,.2)}50%{box-shadow:0 0 40px rgba(139,92,246,.5)}}
+    .v-glow{animation:violet-pulse 3s ease-in-out infinite;}
+  </style>
+</head>
+<body class="dark grid-bg">
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/5">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="flex items-center gap-2 text-neutral-400 hover:text-violet-400 transition-colors text-sm font-medium">
+        <i class="fas fa-arrow-left text-xs"></i> Back to Home
+      </a>
+      <span class="text-neutral-700">|</span>
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-md flex items-center justify-center" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">
+          <i class="fas fa-user-shield text-white text-xs"></i>
+        </div>
+        <span class="font-display font-bold text-white text-sm">Oracle DBA Simplified</span>
+      </div>
+    </div>
+    <div class="hidden md:flex items-center gap-5">
+      <a href="#overview" class="nav-link">Overview</a>
+      <a href="#create-user" class="nav-link">CREATE USER</a>
+      <a href="#privileges" class="nav-link">Privileges</a>
+      <a href="#roles" class="nav-link">Roles</a>
+      <a href="#profiles" class="nav-link">Profiles</a>
+      <a href="#cdb-pdb" class="nav-link">CDB/PDB</a>
+      <a href="#security" class="nav-link">Security</a>
+      <a href="#scenarios" class="nav-link">Scenarios</a>
+    </div>
+    <button id="mob-btn" class="md:hidden text-neutral-400 hover:text-white"><i class="fas fa-bars"></i></button>
+  </div>
+  <div id="mob-menu" class="md:hidden px-6 pb-4">
+    <div class="flex flex-col gap-3 pt-2">
+      <a href="#overview" class="nav-link">Overview</a>
+      <a href="#create-user" class="nav-link">CREATE USER</a>
+      <a href="#privileges" class="nav-link">Privileges</a>
+      <a href="#roles" class="nav-link">Roles</a>
+      <a href="#profiles" class="nav-link">Profiles</a>
+      <a href="#cdb-pdb" class="nav-link">CDB/PDB</a>
+      <a href="#security" class="nav-link">Security</a>
+      <a href="#scenarios" class="nav-link">Scenarios</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden">
+  <div class="orb w-[500px] h-[500px] bg-violet-600 top-10 -right-40"></div>
+  <div class="orb w-80 h-80 bg-purple-700 bottom-0 -left-20"></div>
+  <div class="max-w-7xl mx-auto px-6 w-full">
+    <div class="grid lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <div class="flex flex-wrap gap-2 mb-6">
+          <span class="badge badge-violet"><i class="fas fa-user-shield mr-1"></i> User Management</span>
+          <span class="badge badge-purple">Privileges &amp; Roles</span>
+          <span class="badge badge-green">Profiles &amp; Policies</span>
+          <span class="badge badge-blue">CDB / PDB</span>
+        </div>
+        <h1 class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-6">
+          Oracle User<br/>Management &mdash;<br/><span class="gradient-text">Who Gets What</span>
+        </h1>
+        <p class="text-neutral-400 text-lg leading-relaxed mb-8 max-w-xl">
+          Every Oracle database has users, every user has privileges, and every DBA needs to control exactly who can do what. This guide covers user creation, privilege assignment, role design, profile enforcement, and security hardening &mdash; all with the exact syntax Oracle uses.
+        </p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          <div class="glass rounded-xl p-3 text-center">
+            <div class="text-xl font-display font-bold text-violet-400">200+</div>
+            <div class="text-neutral-500 text-xs mt-1">System Privileges</div>
+          </div>
+          <div class="glass rounded-xl p-3 text-center">
+            <div class="text-xl font-display font-bold text-green-400">3</div>
+            <div class="text-neutral-500 text-xs mt-1">Auth Types</div>
+          </div>
+          <div class="glass rounded-xl p-3 text-center">
+            <div class="text-xl font-display font-bold text-purple-400">13</div>
+            <div class="text-neutral-500 text-xs mt-1">Profile Parameters</div>
+          </div>
+          <div class="glass rounded-xl p-3 text-center">
+            <div class="text-xl font-display font-bold text-amber-400">30+</div>
+            <div class="text-neutral-500 text-xs mt-1">Predefined Roles</div>
+          </div>
+        </div>
+        <div class="flex gap-3 flex-wrap">
+          <a href="#create-user" class="btn-primary"><i class="fas fa-user-plus"></i> Start with Users</a>
+          <a href="#security" class="btn-ghost"><i class="fas fa-shield-halved"></i> Security Guide</a>
+        </div>
+      </div>
+      <!-- Hero terminal -->
+      <div class="hidden lg:block">
+        <div class="terminal v-glow">
+          <div class="terminal-bar">
+            <div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div>
+            <span class="text-neutral-500 text-xs ml-2">SQL*Plus &mdash; User Management Quick Reference</span>
+          </div>
+          <pre class="p-5 text-xs leading-relaxed overflow-x-auto"><code><span class="cm">-- 1. Create a new application user</span>
+<span class="kw">CREATE USER</span> app_user
+  <span class="kw">IDENTIFIED BY</span> <span class="str">"Str0ng#Pass!"</span>
+  <span class="kw">DEFAULT TABLESPACE</span>  users
+  <span class="kw">TEMPORARY TABLESPACE</span> temp
+  <span class="kw">QUOTA</span> <span class="num">500M</span> <span class="kw">ON</span> users
+  <span class="kw">PROFILE</span> app_profile
+  <span class="kw">ACCOUNT UNLOCK</span>;
+
+<span class="cm">-- 2. Grant just enough to connect + work</span>
+<span class="kw">GRANT</span> CREATE SESSION <span class="kw">TO</span> app_user;
+<span class="kw">GRANT</span> app_read_role  <span class="kw">TO</span> app_user;
+
+<span class="cm">-- 3. Create a role — better than direct grants</span>
+<span class="kw">CREATE ROLE</span> app_read_role;
+<span class="kw">GRANT SELECT ON</span> hr.employees  <span class="kw">TO</span> app_read_role;
+<span class="kw">GRANT SELECT ON</span> hr.departments <span class="kw">TO</span> app_read_role;
+
+<span class="cm">-- 4. See what a user has</span>
+<span class="kw">SELECT</span> granted_role, admin_option, default_role
+<span class="kw">FROM</span>   dba_role_privs
+<span class="kw">WHERE</span>  grantee = <span class="str">'APP_USER'</span>;
+
+<span class="cm">-- 5. Lock a compromised account immediately</span>
+<span class="kw">ALTER USER</span> app_user <span class="kw">ACCOUNT LOCK</span>;
+</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW: THE 3-LAYER SECURITY MODEL -->
+<section id="overview" class="py-20 px-6 bg-white/[0.01]">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <span class="badge badge-violet mb-3">How It Works</span>
+      <h2 class="text-3xl md:text-4xl font-display font-bold gradient-text-w mb-4">Oracle&rsquo;s Three-Layer Security Model</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto text-sm">Oracle security is not just a CREATE USER command. It&rsquo;s a layered system: a <strong class="text-white">User</strong> gets <strong class="text-white">Privileges</strong> either directly or through <strong class="text-white">Roles</strong>, and a <strong class="text-white">Profile</strong> enforces password and resource policies.</p>
+    </div>
+
+    <!-- Architecture SVG -->
+    <div class="glass rounded-2xl p-6 mb-12 reveal" style="border:1px solid rgba(139,92,246,0.15)">
+      <h3 class="font-bold text-white mb-2 flex items-center gap-2"><i class="fas fa-diagram-project text-violet-400"></i> Oracle Security Architecture</h3>
+      <p class="text-neutral-500 text-xs mb-5">How users, roles, privileges, and profiles connect in Oracle Database 19c</p>
+      <div class="w-full overflow-x-auto">
+        <svg viewBox="0 0 800 320" xmlns="http://www.w3.org/2000/svg" class="w-full min-w-[560px]" style="max-height:360px">
+          <defs>
+            <marker id="um-v" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L0,5 L7,2.5 z" fill="#a78bfa"/></marker>
+            <marker id="um-g" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L0,5 L7,2.5 z" fill="#4ade80"/></marker>
+            <marker id="um-o" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L0,5 L7,2.5 z" fill="#fb923c"/></marker>
+            <marker id="um-b" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L0,5 L7,2.5 z" fill="#38bdf8"/></marker>
+          </defs>
+
+          <!-- USER box (center top) -->
+          <rect x="310" y="20" width="180" height="65" rx="10" fill="rgba(139,92,246,0.12)" stroke="rgba(139,92,246,0.5)" stroke-width="1.8"/>
+          <text x="345" y="48" fill="#a78bfa" font-size="13" font-family="DM Sans,sans-serif" font-weight="800">DATABASE USER</text>
+          <text x="328" y="65" fill="#94a3b8" font-size="9" font-family="DM Sans,sans-serif">IDENTIFIED BY / EXTERNALLY / GLOBALLY</text>
+          <text x="330" y="77" fill="#64748b" font-size="8.5" font-family="DM Sans,sans-serif">DEFAULT TBS &bull; TEMP TBS &bull; QUOTA</text>
+
+          <!-- PROFILE box (right) -->
+          <rect x="570" y="20" width="200" height="65" rx="10" fill="rgba(251,146,60,0.08)" stroke="rgba(251,146,60,0.3)" stroke-width="1.2"/>
+          <text x="600" y="45" fill="#fb923c" font-size="12" font-family="DM Sans,sans-serif" font-weight="700">PROFILE</text>
+          <text x="578" y="61" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">Password policy &bull; Login attempts</text>
+          <text x="578" y="74" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">Resource limits &bull; Session controls</text>
+
+          <!-- Arrow user → profile -->
+          <line x1="490" y1="52" x2="568" y2="52" stroke="rgba(251,146,60,0.5)" stroke-width="1.2" marker-end="url(#um-o)" stroke-dasharray="4,3"/>
+          <text x="498" y="46" fill="#fb923c" font-size="8" font-family="DM Sans,sans-serif">PROFILE =</text>
+
+          <!-- SYSTEM PRIVILEGES box (left) -->
+          <rect x="30" y="150" width="220" height="80" rx="10" fill="rgba(56,189,248,0.07)" stroke="rgba(56,189,248,0.25)" stroke-width="1.2"/>
+          <text x="50" y="174" fill="#38bdf8" font-size="12" font-family="DM Sans,sans-serif" font-weight="700">SYSTEM PRIVILEGES</text>
+          <text x="38" y="191" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">CREATE SESSION &bull; CREATE TABLE</text>
+          <text x="38" y="204" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">CREATE PROCEDURE &bull; ALTER USER</text>
+          <text x="38" y="217" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">Database-level actions &bull; 200+ available</text>
+
+          <!-- ROLES box (center) -->
+          <rect x="305" y="150" width="190" height="80" rx="10" fill="rgba(139,92,246,0.07)" stroke="rgba(139,92,246,0.3)" stroke-width="1.2"/>
+          <text x="350" y="174" fill="#c084fc" font-size="12" font-family="DM Sans,sans-serif" font-weight="700">ROLES</text>
+          <text x="313" y="191" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">Named collection of privileges</text>
+          <text x="313" y="204" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">CONNECT &bull; DBA &bull; RESOURCE</text>
+          <text x="313" y="217" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">Custom: app_read_role &bull; hr_admin_role</text>
+
+          <!-- OBJECT PRIVILEGES box (right) -->
+          <rect x="560" y="150" width="210" height="80" rx="10" fill="rgba(34,197,94,0.07)" stroke="rgba(34,197,94,0.25)" stroke-width="1.2"/>
+          <text x="570" y="174" fill="#4ade80" font-size="12" font-family="DM Sans,sans-serif" font-weight="700">OBJECT PRIVILEGES</text>
+          <text x="568" y="191" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">SELECT &bull; INSERT &bull; UPDATE &bull; DELETE</text>
+          <text x="568" y="204" fill="#94a3b8" font-size="8.5" font-family="DM Sans,sans-serif">EXECUTE &bull; REFERENCES &bull; INDEX</text>
+          <text x="568" y="217" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">On specific tables, views, procedures</text>
+
+          <!-- Arrow user → system privs -->
+          <line x1="360" y1="85" x2="180" y2="150" stroke="rgba(56,189,248,0.5)" stroke-width="1.3" marker-end="url(#um-b)"/>
+          <text x="220" y="120" fill="#38bdf8" font-size="8" font-family="DM Sans,sans-serif">GRANT direct</text>
+
+          <!-- Arrow user → roles -->
+          <line x1="400" y1="85" x2="400" y2="149" stroke="rgba(139,92,246,0.5)" stroke-width="1.3" marker-end="url(#um-v)"/>
+          <text x="404" y="125" fill="#a78bfa" font-size="8" font-family="DM Sans,sans-serif">GRANT role</text>
+
+          <!-- Arrow user → object privs -->
+          <line x1="440" y1="85" x2="620" y2="149" stroke="rgba(34,197,94,0.5)" stroke-width="1.3" marker-end="url(#um-g)"/>
+          <text x="525" y="118" fill="#4ade80" font-size="8" font-family="DM Sans,sans-serif">GRANT ON object</text>
+
+          <!-- Roles → contain system+object privs -->
+          <line x1="305" y1="200" x2="253" y2="200" stroke="rgba(139,92,246,0.35)" stroke-width="1" marker-end="url(#um-v)" stroke-dasharray="3,2"/>
+          <line x1="495" y1="200" x2="558" y2="200" stroke="rgba(139,92,246,0.35)" stroke-width="1" marker-end="url(#um-v)" stroke-dasharray="3,2"/>
+          <text x="258" y="195" fill="#6b7280" font-size="7.5" font-family="DM Sans,sans-serif">contains</text>
+          <text x="500" y="195" fill="#6b7280" font-size="7.5" font-family="DM Sans,sans-serif">contains</text>
+
+          <!-- DBA_USERS / DBA_SYS_PRIVS labels -->
+          <text x="310" y="255" fill="#374151" font-size="8.5" font-family="DM Sans,sans-serif" font-weight="600">Key Views:</text>
+          <text x="310" y="270" fill="#4b5563" font-size="8" font-family="DM Sans,sans-serif">DBA_USERS &bull; DBA_SYS_PRIVS &bull; DBA_ROLE_PRIVS &bull; DBA_TAB_PRIVS &bull; DBA_PROFILES</text>
+          <text x="310" y="285" fill="#374151" font-size="8" font-family="DM Sans,sans-serif">SESSION_PRIVS (current user) &bull; SESSION_ROLES &bull; ROLE_SYS_PRIVS &bull; ROLE_TAB_PRIVS</text>
+
+          <!-- Legend -->
+          <rect x="30" y="255" width="260" height="55" rx="6" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <text x="42" y="272" fill="#64748b" font-size="8.5" font-family="DM Sans,sans-serif" font-weight="600">GRANT path:</text>
+          <text x="42" y="286" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">&#9679; Direct privilege grant: user gets it always</text>
+          <text x="42" y="299" fill="#64748b" font-size="8" font-family="DM Sans,sans-serif">&#9675; Role grant: user gets privs when role is active</text>
+          <text x="42" y="312" fill="#f87171" font-size="8" font-family="DM Sans,sans-serif">&#9888; Stored procedures use direct privs, not role privs</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- 3 auth types -->
+    <div class="grid md:grid-cols-3 gap-6 reveal">
+      <div class="glass rounded-2xl p-5" style="border:1px solid rgba(139,92,246,0.2)">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(139,92,246,0.12)"><i class="fas fa-key text-violet-400"></i></div>
+          <div><h3 class="text-white font-bold text-sm">Password Authentication</h3><span class="text-neutral-500 text-xs">IDENTIFIED BY</span></div>
+        </div>
+        <p class="text-neutral-400 text-xs leading-relaxed mb-3">The default. Oracle stores a hashed version of the password. The user provides the password when connecting. Use this for most application and DBA accounts.</p>
+        <div class="syntax-block text-xs">
+          <span class="syntax-kw">CREATE USER</span> scott<br/>
+          &nbsp;&nbsp;<span class="syntax-kw">IDENTIFIED BY</span> <span class="syntax-val">"Tiger#2024"</span>;
+        </div>
+      </div>
+      <div class="glass rounded-2xl p-5" style="border:1px solid rgba(56,189,248,0.2)">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(56,189,248,0.12)"><i class="fas fa-terminal text-sky-400"></i></div>
+          <div><h3 class="text-white font-bold text-sm">External Authentication</h3><span class="text-neutral-500 text-xs">IDENTIFIED EXTERNALLY</span></div>
+        </div>
+        <p class="text-neutral-400 text-xs leading-relaxed mb-3">Oracle delegates authentication to the OS. The OS username must match the Oracle username (or use OPS$ prefix). Used with Kerberos or OS-based auth in trusted environments.</p>
+        <div class="syntax-block text-xs">
+          <span class="syntax-kw">CREATE USER</span> ops$oracle<br/>
+          &nbsp;&nbsp;<span class="syntax-kw">IDENTIFIED EXTERNALLY</span>;
+        </div>
+      </div>
+      <div class="glass rounded-2xl p-5" style="border:1px solid rgba(34,197,94,0.2)">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(34,197,94,0.12)"><i class="fas fa-cloud text-green-400"></i></div>
+          <div><h3 class="text-white font-bold text-sm">Global Authentication</h3><span class="text-neutral-500 text-xs">IDENTIFIED GLOBALLY</span></div>
+        </div>
+        <p class="text-neutral-400 text-xs leading-relaxed mb-3">Oracle delegates authentication to a centralized directory service (Oracle Internet Directory / LDAP / Active Directory). Used in enterprise SSO setups with Oracle Advanced Security.</p>
+        <div class="syntax-block text-xs">
+          <span class="syntax-kw">CREATE USER</span> ldap_user<br/>
+          &nbsp;&nbsp;<span class="syntax-kw">IDENTIFIED GLOBALLY AS</span><br/>
+          &nbsp;&nbsp;<span class="syntax-val">'CN=scott,OU=users,DC=corp'</span>;
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CREATE USER -->
+<section id="create-user" class="py-20 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <span class="badge badge-violet mb-3">Step 1</span>
+      <h2 class="text-3xl md:text-4xl font-display font-bold gradient-text-w mb-4">CREATE USER &mdash; Full Syntax</h2>
+      <p class="text-neutral-400 max-w-2xl mx-auto text-sm">A user account is the entry point into the database. Every connection comes through a user. Getting the user definition right from the start saves a lot of rework.</p>
+    </div>
+
+    <!-- Full syntax block -->
+    <div class="glass rounded-2xl p-6 mb-8 reveal" style="border:1px solid rgba(139,92,246,0.2)">
+      <h3 class="text-white font-bold mb-1 flex items-center gap-2"><i class="fas fa-code text-violet-400"></i> Complete CREATE USER Syntax (Oracle 19c)</h3>
+      <p class="text-neutral-500 text-xs mb-4">Purple = required keyword &nbsp;|&nbsp; Gray = optional clause &nbsp;|&nbsp; Green = your value &nbsp;|&nbsp; Blue = keyword option</p>
+      <div class="syntax-block">
+<span class="syntax-kw">CREATE USER</span> <span class="syntax-val">username</span>
+  <span class="syntax-kw">IDENTIFIED BY</span> <span class="syntax-val">password</span>
+  | <span class="syntax-kw">IDENTIFIED EXTERNALLY</span> [<span class="syntax-kw">AS</span> <span class="syntax-val">'certificate_distinguished_name'</span>]
+  | <span class="syntax-kw">IDENTIFIED GLOBALLY</span>    [<span class="syntax-kw">AS</span> <span class="syntax-val">'directory_distinguished_name'</span>]
+
+  [<span class="syntax-kw">DEFAULT TABLESPACE</span>   <span class="syntax-val">tablespace_name</span>]          <span class="syntax-opt">-- where user's objects are stored</span>
+  [<span class="syntax-kw">TEMPORARY TABLESPACE</span> <span class="syntax-val">temp_tablespace_name</span>]      <span class="syntax-opt">-- for sort operations</span>
+  [<span class="syntax-kw">LOCAL TEMPORARY TABLESPACE</span> <span class="syntax-val">local_temp_name</span>]    <span class="syntax-opt">-- RAC-specific (19c)</span>
+  [<span class="syntax-kw">QUOTA</span> { <span class="syntax-val">size_clause</span> | <span class="syntax-kw">UNLIMITED</span> } <span class="syntax-kw">ON</span> <span class="syntax-val">tablespace_name</span>]   <span class="syntax-opt">-- repeatable for multiple tablespaces</span>
+  [<span class="syntax-kw">PROFILE</span> <span class="syntax-val">profile_name</span>]                           <span class="syntax-opt">-- assign a password/resource profile</span>
+  [<span class="syntax-kw">PASSWORD EXPIRE</span>]                                  <span class="syntax-opt">-- force password change on first login</span>
+  [<span class="syntax-kw">ACCOUNT</span> { <span class="syntax-kw">LOCK</span> | <span class="syntax-kw">UNLOCK</span> }]                     <span class="syntax-opt">-- default is UNLOCK</span>
+  [<span class="syntax-kw">ENABLE EDITIONS</span>]                                  <span class="syntax-opt">-- for Edition-Based Redefinition</span>
+  [<span class="syntax-kw">CONTAINER</span> = { <span class="syntax-kw">CURRENT</span> | <span class="syntax-kw">ALL</span> }];               <span class="syntax-opt">-- CDB only: ALL = common user (C## required)</span>
+      </div>
+    </div>
+
+    <!-- Key clauses explained -->
+    <div class="grid md:grid-cols-2 gap-6 mb-8 reveal">
+      <div class="space-y-3">
+        <h3 class="text-white font-bold text-sm mb-2">Clause-by-Clause Explained</h3>
+        <div class="glass rounded-xl p-4 priv-card">
+          <div class="flex items-start gap-3">
+            <code class="text-violet-400 text-xs font-bold whitespace-nowrap mt-0.5">DEFAULT TABLESPACE</code>
+            <p class="text-neutral-400 text-xs leading-relaxed">Where the user&rsquo;s objects (tables, indexes) are created if no tablespace is specified in CREATE TABLE. If omitted, Oracle uses the database default (usually USERS or SYSTEM &mdash; always set this explicitly).</p>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 priv-card">
+          <div class="flex items-start gap-3">
+            <code class="text-violet-400 text-xs font-bold whitespace-nowrap mt-0.5">TEMPORARY TABLESPACE</code>
+            <p class="text-neutral-400 text-xs leading-relaxed">Used for sort operations, hash joins, and temporary segments. Always set to TEMP (or a named temp tablespace). If omitted, uses the database-wide default temporary tablespace.</p>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 priv-card">
+          <div class="flex items-start gap-3">
+            <code class="text-violet-400 text-xs font-bold whitespace-nowrap mt-0.5">QUOTA size ON tbs</code>
+            <p class="text-neutral-400 text-xs leading-relaxed">Limits how much space the user can use in a tablespace. Use <code class="text-green-400">UNLIMITED</code> for schema-owning users. Application users that don&rsquo;t create objects need no quota. Specify multiple QUOTA clauses for multiple tablespaces.</p>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 priv-card">
+          <div class="flex items-start gap-3">
+            <code class="text-violet-400 text-xs font-bold whitespace-nowrap mt-0.5">PROFILE</code>
+            <p class="text-neutral-400 text-xs leading-relaxed">Assigns a profile that governs password policy (max failed logins, expiry, reuse) and resource limits (max sessions, CPU time, idle time). If omitted, the DEFAULT profile is used.</p>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 priv-card">
+          <div class="flex items-start gap-3">
+            <code class="text-violet-400 text-xs font-bold whitespace-nowrap mt-0.5">PASSWORD EXPIRE</code>
+            <p class="text-neutral-400 text-xs leading-relaxed">Forces the user to change their password on the very first connection. Use this for new accounts so the DBA-set initial password is changed immediately by the user. The user cannot do anything until they set a new password.</p>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 priv-card">
+          <div class="flex items-start gap-3">
+            <code class="text-violet-400 text-xs font-bold whitespace-nowrap mt-0.5">ACCOUNT LOCK</code>
+            <p class="text-neutral-400 text-xs leading-relaxed">Prevents all logins immediately. Use this to create an account that will be set up later, or to immediately block a compromised or terminated-employee account. <code class="text-green-400">ALTER USER name ACCOUNT LOCK</code> also works on existing users.</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-white font-bold text-sm mb-2">Real-World Examples</h3>
+        <div class="terminal mb-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">CREATE USER scenarios</span></div>
+          <pre class="p-4 text-xs overflow-x-auto leading-relaxed"><code><span class="cm">-- Schema-owning application account</span>
+<span class="cm">-- (holds the actual tables/objects)</span>
+<span class="kw">CREATE USER</span> hr_schema
+  <span class="kw">IDENTIFIED BY</span> <span class="str">"HrSchema#2024"</span>
+  <span class="kw">DEFAULT TABLESPACE</span>   hr_data
+  <span class="kw">TEMPORARY TABLESPACE</span> temp
+  <span class="kw">QUOTA UNLIMITED ON</span>   hr_data
+  <span class="kw">QUOTA</span> <span class="num">200M</span> <span class="kw">ON</span>         temp
+  <span class="kw">PROFILE</span>              app_schema_profile
+  <span class="kw">ACCOUNT UNLOCK</span>;
+
+<span class="cm">-- Read-only analyst (no object creation)</span>
+<span class="kw">CREATE USER</span> analyst_john
+  <span class="kw">IDENTIFIED BY</span> <span class="str">"Analyst#Pwd1"</span>
+  <span class="kw">DEFAULT TABLESPACE</span>   users
+  <span class="kw">TEMPORARY TABLESPACE</span> temp
+  <span class="cm">-- No QUOTA needed: john won't create objects</span>
+  <span class="kw">PROFILE</span>  standard_profile
+  <span class="kw">PASSWORD EXPIRE</span>
+  <span class="kw">ACCOUNT UNLOCK</span>;
+
+<span class="cm">-- Service account (app connects with this)</span>
+<span class="kw">CREATE USER</span> app_svc
+  <span class="kw">IDENTIFIED BY</span> <span class="str">"SvcAcc#2024Sec"</span>
+  <span class="kw">DEFAULT TABLESPACE</span>   users
+  <span class="kw">TEMPORARY TABLESPACE</span> temp
+  <span class="kw">PROFILE</span>              svc_profile
+  <span class="kw">ACCOUNT UNLOCK</span>;
+
+<span class="cm">-- Admin account to be activated later</span>
+<span class="kw">CREATE USER</span> backup_admin
+  <span class="kw">IDENTIFIED BY</span> <span class="str">"Tmp#Pass2024"</span>
+  <span class="kw">DEFAULT TABLESPACE</span>   users
+  <span class="kw">TEMPORARY TABLESPACE</span> temp
+  <span class="kw">PROFILE</span>  dba_profile
+  <span class="kw">PASSWORD EXPIRE</span>
+  <span class="kw">ACCOUNT LOCK</span>;  <span class="cm">-- Locked until needed</span>
+</code></pre>
+        </div>
+
+        <!-- ALTER USER quick ref -->
+        <div class="glass rounded-xl p-4" style="border:1px solid rgba(139,92,246,0.15)">
+          <p class="text-violet-400 text-xs font-bold mb-3">ALTER USER &mdash; Common Operations</p>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div></div>
+            <pre class="p-3 text-xs overflow-x-auto leading-relaxed"><code><span class="cm">-- Change password</span>
+<span class="kw">ALTER USER</span> scott <span class="kw">IDENTIFIED BY</span> <span class="str">"NewPass#1"</span>;
+
+<span class="cm">-- Force password change at next login</span>
+<span class="kw">ALTER USER</span> scott <span class="kw">PASSWORD EXPIRE</span>;
+
+<span class="cm">-- Lock / unlock account</span>
+<span class="kw">ALTER USER</span> scott <span class="kw">ACCOUNT LOCK</span>;
+<span class="kw">ALTER USER</span> scott <span class="kw">ACCOUNT UNLOCK</span>;
+
+<span class="cm">-- Change default tablespace</span>
+<span class="kw">ALTER USER</span> scott <span class="kw">DEFAULT TABLESPACE</span> users;
+
+<span class="cm">-- Add/change quota</span>
+<span class="kw">ALTER USER</span> scott <span class="kw">QUOTA</span> <span class="num">1G</span> <span class="kw">ON</span> users;
+<span class="kw">ALTER USER</span> scott <span class="kw">QUOTA</span> <span class="num">0</span> <span class="kw">ON</span> users; <span class="cm">-- remove quota</span>
+
+<span class="cm">-- Change profile</span>
+<span class="kw">ALTER USER</span> scott <span class="kw">PROFILE</span> prod_profile;
+
+<span class="cm">-- Drop a user (CASCADE removes all objects)</span>
+<span class="kw">DROP USER</span> scott <span class="kw">CASCADE</span>;
+</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DBA_USERS query -->
+    <div class="glass rounded-2xl p-6 reveal" style="border:1px solid rgba(139,92,246,0.12)">
+      <h3 class="text-white font-bold mb-4 flex items-center gap-2"><i class="fas fa-table text-violet-400"></i> Querying DBA_USERS &mdash; The Master User Registry</h3>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <p class="text-neutral-500 text-xs mb-3">Key columns in DBA_USERS and what they tell you:</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead><tr class="border-b border-white/10"><th class="text-left py-2 pr-3 text-neutral-400">Column</th><th class="text-left py-2 text-neutral-400">Meaning</th></tr></thead>
+              <tbody>
+                <tr class="border-b border-white/5 vs-row"><td class="py-2 pr-3 font-mono text-violet-400">USERNAME</td><td class="py-2 text-neutral-300">Uppercase user name</td></tr>
+                <tr class="border-b border-white/5 vs-row"><td class="py-2 pr-3 font-mono text-violet-400">ACCOUNT_STATUS</td><td class="py-2 text-neutral-300">OPEN, LOCKED, EXPIRED, EXPIRED &amp; LOCKED, EXPIRED(GRACE)</td></tr>
+                <tr class="border-b border-white/5 vs-row"><td class="py-2 pr-3 font-mono text-violet-400">DEFAULT_TABLESPACE</td><td class="py-2 text-neutral-300">Default tablespace for objects</td></tr>
+                <tr class="border-b border-white/5 vs-row"><td class="py-2 pr-3 font-mono text-violet-400">TEMPORARY_TABLESPACE</td><td class="py-2 text-neutral-300">Temporary tablespace for sorts</td></tr>
+                <tr class="border-b border-white/5 vs-row"><td class="py-2 pr-3 font-mono text-violet-400">PROFILE</td><td class="py-2 text-neutral-300">Assigned profile name</td></tr>
+                <tr class="border-b border-white/5 vs-row"><td class="py-2 pr-3 font-mono text-violet-400">CREATED</td><td class="py-2 text-neutral-300">Date user was created</td></tr>
+                <tr class="border-b border-white/5 vs-row"><td class="py-2 pr-3 font-mono text-violet-400">LOCK_DATE</td><td class="py-2 text-neutral-300">When account was locked (if applicable)</td></tr>
+                <tr class="border-b border-white/5 vs-row"><td class="py-2 pr-3 font-mono text-violet-400">EXPIRY_DATE</td><td class="py-2 text-neutral-300">When password expires</td></tr>
+                <tr class="border-b border-white/5 vs-row"><td class="py-2 pr-3 font-mono text-violet-400">AUTHENTICATION_TYPE</td><td class="py-2 text-neutral-300">PASSWORD, EXTERNAL, GLOBAL, NONE</td></tr>
+                <tr class="vs-row"><td class="py-2 pr-3 font-mono text-violet-400">COMMON</td><td class="py-2 text-neutral-300">YES=common CDB user, NO=local user</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-500"></div><div class="t-dot bg-yellow-500"></div><div class="t-dot bg-green-500"></div><span class="text-neutral-500 text-xs ml-2">DBA_USERS queries</span></div>
+            <pre class="p-3 text-xs overflow-x-auto leading-relaxed"><code><span class="cm">-- All open (active) users</span>
+<span class="kw">SELECT</span> username, profile,
+       created, expiry_date
+<span class="kw">FROM</span>   dba_users
+<span class="kw">WHERE</span>  account_status = <span class="str">'OPEN'</span>
+<span class="kw">ORDER BY</span> created <span class="kw">DESC</span>;
+
+<span class="cm">-- Locked accounts</span>
+<span class="kw">SELECT</span> username, account_status,
+       lock_date, profile
+<span class="kw">FROM</span>   dba_users
+<span class="kw">WHERE</span>  account_status <span class="kw">LIKE</span> <span class="str">'%LOCKED%'</span>;
+
+<span class="cm">-- Expired passwords (users can't login)</span>
+<span class="kw">SELECT</span> username, account_status,
+       expiry_date
+<span class="kw">FROM</span>   dba_users
+<span class="kw">WHERE</span>  account_status <span class="kw">LIKE</span> <span class="str">'%EXPIRED%'</span>;
+
+<span class="cm">-- Users NOT using DEFAULT profile</span>
+<span class="kw">SELECT</span> username, profile
+<span class="kw">FROM</span>   dba_users
+<span class="kw">WHERE</span>  profile != <span class="str">'DEFAULT'</span>
+<span class="kw">AND</span>    account_status = <span class="str">'OPEN'</span>;
+
+<span class="cm">-- Users with SYSTEM as default tablespace</span>
+<span class="cm">-- (bad practice - find them)</span>
+<span class="kw">SELECT</span> username, default_tablespace
+<span class="kw">FROM</span>   dba_users
+<span class="kw">WHERE</span>  default_tablespace = <span class="str">'SYSTEM'</span>
+<span class="kw">AND</span>    username <span class="kw">NOT IN</span>
+       (<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>,<span class="str">'DBSNMP'</span>,<span class="str">'SYSMAN'</span>);
+</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 3 — SYSTEM PRIVILEGES
+     ═════════════════════════════════════════════════════ -->
+<section id="system-privs" class="py-24 px-6 max-w-7xl mx-auto">
+  <div class="reveal">
+    <span class="badge badge-violet mb-4"><i class="fas fa-shield-halved mr-1"></i> Section 3</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">System Privileges</h2>
+    <p class="text-slate-400 max-w-3xl mb-10">System privileges grant the right to perform a particular action <em>anywhere</em> in the database — not tied to a specific object. Oracle 19c has over 200 system privileges. Understanding which ones are safe to grant and which are dangerous is a critical DBA skill.</p>
+  </div>
+
+  <!-- Concept callout -->
+  <div class="reveal glass rounded-2xl p-6 mb-10 flex gap-4 border border-violet-500/15">
+    <i class="fas fa-lightbulb text-violet-400 text-xl mt-1 shrink-0"></i>
+    <div>
+      <p class="font-semibold text-white mb-1">System Privilege vs Object Privilege</p>
+      <p class="text-slate-400 text-sm">A <strong class="text-violet-300">system privilege</strong> says "you can create tables anywhere". An <strong class="text-violet-300">object privilege</strong> says "you can SELECT from <em>this specific table</em>". Always grant object privileges when possible — system privileges are much broader and riskier.</p>
+    </div>
+  </div>
+
+  <!-- GRANT syntax -->
+  <div class="reveal mb-10">
+    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-terminal text-violet-400"></i> GRANT / REVOKE Syntax</h3>
+    <div class="syntax-block">
+<span class="syntax-req">GRANT</span> privilege_name [, privilege_name ...]
+  <span class="syntax-req">TO</span> { user | role | PUBLIC } [, ...]
+  [<span class="syntax-opt">WITH ADMIN OPTION</span>]<span class="syntax-opt">  -- grantee can re-grant to others</span>
+;
+
+<span class="syntax-req">REVOKE</span> privilege_name [, privilege_name ...]
+  <span class="syntax-req">FROM</span> { user | role | PUBLIC } [, ...]
+;
+    </div>
+    <div class="glass rounded-xl p-4 mt-4 border border-amber-500/20">
+      <p class="text-amber-300 text-sm font-semibold mb-1"><i class="fas fa-triangle-exclamation mr-1"></i> ADMIN OPTION revoke does NOT cascade</p>
+      <p class="text-slate-400 text-sm">If Alice was granted CREATE TABLE WITH ADMIN OPTION and re-granted it to Bob, revoking from Alice does <strong class="text-white">not</strong> revoke from Bob. This is different from GRANT OPTION on object privileges (which does cascade). — <em>Oracle Concepts Guide, Security chapter</em></p>
+    </div>
+  </div>
+
+  <!-- Tabbed privilege categories -->
+  <div class="reveal">
+    <div class="flex flex-wrap gap-2 mb-6" id="spriv-tabs">
+      <button class="tab-btn active" data-tab="sp-session" data-group="spriv">Session &amp; Connection</button>
+      <button class="tab-btn" data-tab="sp-ddl" data-group="spriv">Schema &amp; DDL</button>
+      <button class="tab-btn" data-tab="sp-data" data-group="spriv">Data Privileges</button>
+      <button class="tab-btn" data-tab="sp-admin" data-group="spriv">Administrative</button>
+      <button class="tab-btn" data-tab="sp-danger" data-group="spriv">Dangerous <span class="badge badge-red ml-1">⚠</span></button>
+    </div>
+
+    <!-- Tab: Session -->
+    <div id="sp-session" class="tab-content active">
+      <p class="text-slate-400 text-sm mb-4">These privileges control the ability to connect to and manage sessions in the database.</p>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="priv-card glass rounded-xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-violet-500/15 flex items-center justify-center"><i class="fas fa-plug-circle-check text-violet-400 text-sm"></i></div>
+            <span class="font-bold text-white font-mono text-sm">CREATE SESSION</span>
+            <span class="badge badge-violet ml-auto">Required</span>
+          </div>
+          <p class="text-slate-400 text-sm">The minimum privilege to connect to the database. Without this, a user account exists but login is impossible. <strong class="text-white">Always the first privilege granted.</strong></p>
+        </div>
+        <div class="priv-card glass rounded-xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-sky-500/15 flex items-center justify-center"><i class="fas fa-users-gear text-sky-400 text-sm"></i></div>
+            <span class="font-bold text-white font-mono text-sm">ALTER SESSION</span>
+            <span class="badge badge-sky ml-auto">Session</span>
+          </div>
+          <p class="text-slate-400 text-sm">Allows the user to change their own session parameters using <code class="text-violet-300 text-xs">ALTER SESSION SET parameter=value</code>. Common for NLS settings, optimizer hints.</p>
+        </div>
+        <div class="priv-card glass rounded-xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-green-500/15 flex items-center justify-center"><i class="fas fa-right-from-bracket text-green-400 text-sm"></i></div>
+            <span class="font-bold text-white font-mono text-sm">ALTER USER</span>
+            <span class="badge badge-green ml-auto">Admin</span>
+          </div>
+          <p class="text-slate-400 text-sm">Allows modifying another user's account — password, profile, tablespace quota. Users can always alter their <em>own</em> password without this privilege.</p>
+        </div>
+        <div class="priv-card glass rounded-xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center"><i class="fas fa-ban text-amber-400 text-sm"></i></div>
+            <span class="font-bold text-white font-mono text-sm">RESTRICTED SESSION</span>
+            <span class="badge badge-amber ml-auto">Admin</span>
+          </div>
+          <p class="text-slate-400 text-sm">Allows connecting when the database is started in restricted mode (<code class="text-violet-300 text-xs">STARTUP RESTRICT</code>). Used for maintenance windows where only DBAs should connect.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: DDL -->
+    <div id="sp-ddl" class="tab-content">
+      <p class="text-slate-400 text-sm mb-4">DDL privileges control schema object creation. Privileges prefixed with <strong class="text-violet-300">ANY</strong> operate across all schemas — use sparingly.</p>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="priv-card glass rounded-xl p-5">
+          <code class="text-violet-300 text-xs font-bold">CREATE TABLE</code>
+          <p class="text-slate-400 text-xs mt-2">Create tables in the user's own schema. Requires sufficient tablespace quota. Does NOT allow creating tables in other schemas.</p>
+        </div>
+        <div class="priv-card glass rounded-xl p-5">
+          <code class="text-violet-300 text-xs font-bold">CREATE ANY TABLE</code>
+          <div class="badge badge-amber text-xs mt-1">ANY = any schema</div>
+          <p class="text-slate-400 text-xs mt-2">Create a table in <em>any</em> schema. Dangerous — can be used to overwrite important objects in SYS or other privileged schemas.</p>
+        </div>
+        <div class="priv-card glass rounded-xl p-5">
+          <code class="text-violet-300 text-xs font-bold">CREATE VIEW / CREATE SEQUENCE</code>
+          <p class="text-slate-400 text-xs mt-2">Create views and sequences in own schema. Views are commonly granted to application developers who need to encapsulate business logic.</p>
+        </div>
+        <div class="priv-card glass rounded-xl p-5">
+          <code class="text-violet-300 text-xs font-bold">CREATE PROCEDURE</code>
+          <p class="text-slate-400 text-xs mt-2">Create stored procedures, functions, packages. Combined with EXECUTE ANY PROCEDURE this is extremely powerful — review carefully before granting.</p>
+        </div>
+        <div class="priv-card glass rounded-xl p-5">
+          <code class="text-violet-300 text-xs font-bold">CREATE INDEX / CREATE TRIGGER</code>
+          <p class="text-slate-400 text-xs mt-2">Create indexes (affects query performance) and triggers (auto-executed PL/SQL). Triggers that call external procedures need additional network privileges.</p>
+        </div>
+        <div class="priv-card glass rounded-xl p-5">
+          <code class="text-violet-300 text-xs font-bold">CREATE SYNONYM / CREATE PUBLIC SYNONYM</code>
+          <p class="text-slate-400 text-xs mt-2">Private synonyms alias objects in own schema. PUBLIC synonyms are visible to all users — granting CREATE PUBLIC SYNONYM should be tightly controlled.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Data -->
+    <div id="sp-data" class="tab-content">
+      <p class="text-slate-400 text-sm mb-4">Data privileges allow DML operations. The ANY variants cross schema boundaries — only grant to trusted application accounts or DBAs.</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead>
+            <tr class="border-b border-white/10 text-slate-400 text-xs">
+              <th class="py-3 pr-6 font-semibold">Privilege</th>
+              <th class="py-3 pr-6 font-semibold">Scope</th>
+              <th class="py-3 font-semibold">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="vs-row border-b border-white/5">
+              <td class="py-3 pr-6 font-mono text-violet-300 text-xs">SELECT ANY TABLE</td>
+              <td class="py-3 pr-6"><span class="badge badge-red">Very Broad</span></td>
+              <td class="py-3 text-slate-400 text-xs">Read any table in any schema including sensitive data. Commonly abused for data exfiltration. Avoid granting.</td>
+            </tr>
+            <tr class="vs-row border-b border-white/5">
+              <td class="py-3 pr-6 font-mono text-violet-300 text-xs">INSERT ANY TABLE</td>
+              <td class="py-3 pr-6"><span class="badge badge-red">Dangerous</span></td>
+              <td class="py-3 text-slate-400 text-xs">Insert into any table. Combined with SELECT ANY TABLE, allows full read-write access to all data.</td>
+            </tr>
+            <tr class="vs-row border-b border-white/5">
+              <td class="py-3 pr-6 font-mono text-violet-300 text-xs">UPDATE ANY TABLE</td>
+              <td class="py-3 pr-6"><span class="badge badge-red">Dangerous</span></td>
+              <td class="py-3 text-slate-400 text-xs">Modify any row in any table. Can alter audit logs, financial records, user accounts.</td>
+            </tr>
+            <tr class="vs-row border-b border-white/5">
+              <td class="py-3 pr-6 font-mono text-violet-300 text-xs">DELETE ANY TABLE</td>
+              <td class="py-3 pr-6"><span class="badge badge-red">Dangerous</span></td>
+              <td class="py-3 text-slate-400 text-xs">Delete rows from any table — destructive. TRUNCATE requires DROP ANY TABLE privilege.</td>
+            </tr>
+            <tr class="vs-row border-b border-white/5">
+              <td class="py-3 pr-6 font-mono text-violet-300 text-xs">EXECUTE ANY PROCEDURE</td>
+              <td class="py-3 pr-6"><span class="badge badge-amber">Broad</span></td>
+              <td class="py-3 text-slate-400 text-xs">Run any stored procedure in any schema. Can invoke privileged SYS packages.</td>
+            </tr>
+            <tr class="vs-row border-b border-white/5">
+              <td class="py-3 pr-6 font-mono text-violet-300 text-xs">SELECT ANY DICTIONARY</td>
+              <td class="py-3 pr-6"><span class="badge badge-amber">Sensitive</span></td>
+              <td class="py-3 text-slate-400 text-xs">Read data dictionary views (DBA_*). Exposes schema structures, passwords (hashed), audit config. Even excluded from GRANT ALL PRIVILEGES.</td>
+            </tr>
+            <tr class="vs-row">
+              <td class="py-3 pr-6 font-mono text-violet-300 text-xs">SELECT ANY SEQUENCE</td>
+              <td class="py-3 pr-6"><span class="badge badge-sky">Low Risk</span></td>
+              <td class="py-3 text-slate-400 text-xs">Read sequence values from any schema. Generally low risk — sequence numbers are not secret.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: Administrative -->
+    <div id="sp-admin" class="tab-content">
+      <p class="text-slate-400 text-sm mb-4">Administrative privileges control the database itself. These are reserved for the DBA team only — never granted to application accounts.</p>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="priv-card glass rounded-xl p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <code class="text-violet-300 text-xs font-bold">ALTER DATABASE</code>
+            <span class="badge badge-red">DBA only</span>
+          </div>
+          <p class="text-slate-400 text-xs">Modify database configuration — add/rename datafiles, enable/disable archivelog, change character set. Extremely powerful.</p>
+        </div>
+        <div class="priv-card glass rounded-xl p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <code class="text-violet-300 text-xs font-bold">ALTER SYSTEM</code>
+            <span class="badge badge-red">DBA only</span>
+          </div>
+          <p class="text-slate-400 text-xs">Change system parameters (<code class="text-violet-300 text-xs">ALTER SYSTEM SET ...</code>), kill sessions, flush the shared pool. Key for performance tuning and emergency response.</p>
+        </div>
+        <div class="priv-card glass rounded-xl p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <code class="text-violet-300 text-xs font-bold">CREATE TABLESPACE</code>
+            <span class="badge badge-amber">DBA</span>
+          </div>
+          <p class="text-slate-400 text-xs">Create new tablespace storage containers. Granted to DBAs who manage storage. Misuse can create tablespaces that consume all disk space.</p>
+        </div>
+        <div class="priv-card glass rounded-xl p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <code class="text-violet-300 text-xs font-bold">AUDIT SYSTEM</code>
+            <span class="badge badge-amber">Audit DBA</span>
+          </div>
+          <p class="text-slate-400 text-xs">Enable/disable auditing for SQL statements and system events. Required for compliance setup. Should be separate from general DBA to enforce separation of duties.</p>
+        </div>
+        <div class="priv-card glass rounded-xl p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <code class="text-violet-300 text-xs font-bold">CREATE ROLE</code>
+            <span class="badge badge-violet">Role Admin</span>
+          </div>
+          <p class="text-slate-400 text-xs">Create new roles in the database. Used by security administrators to define new job-function roles. Combined with GRANT ANY ROLE, this is very powerful.</p>
+        </div>
+        <div class="priv-card glass rounded-xl p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <code class="text-violet-300 text-xs font-bold">GRANT ANY PRIVILEGE</code>
+            <span class="badge badge-red">High Risk</span>
+          </div>
+          <p class="text-slate-400 text-xs">Grant any system privilege to any user or role. Effectively equivalent to DBA access. Only grant to the most trusted security administrators.</p>
+        </div>
+      </div>
+
+      <!-- Special SYSDBA box -->
+      <div class="glass rounded-2xl p-6 mt-6 border border-violet-500/20">
+        <h4 class="font-bold text-white mb-3 flex items-center gap-2"><i class="fas fa-crown text-violet-400"></i> Special Admin Privileges: SYSDBA &amp; SYSOPER</h4>
+        <p class="text-slate-400 text-sm mb-4">These are <em>not</em> regular system privileges — they are special authentication modes that bypass normal database security. Granted via <code class="text-violet-300 text-xs">GRANT SYSDBA TO username</code> and stored in the external password file, not the data dictionary.</p>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-violet-500/5 rounded-xl p-4 border border-violet-500/20">
+            <code class="text-violet-300 text-sm font-bold">SYSDBA</code>
+            <ul class="text-slate-400 text-xs mt-3 space-y-1">
+              <li>• Connect when database is down (MOUNT/NOMOUNT)</li>
+              <li>• STARTUP / SHUTDOWN</li>
+              <li>• CREATE SPFILE / PFILE</li>
+              <li>• FLASHBACK DATABASE</li>
+              <li>• ALTER DATABASE ARCHIVELOG</li>
+              <li>• Full DBA system privileges</li>
+              <li>• Logs in as SYS</li>
+            </ul>
+          </div>
+          <div class="bg-slate-500/5 rounded-xl p-4 border border-slate-500/20">
+            <code class="text-slate-300 text-sm font-bold">SYSOPER</code>
+            <ul class="text-slate-400 text-xs mt-3 space-y-1">
+              <li>• STARTUP / SHUTDOWN</li>
+              <li>• ALTER DATABASE OPEN/MOUNT/BACKUP</li>
+              <li>• CREATE SPFILE</li>
+              <li>• RECOVER DATABASE (no data access)</li>
+              <li>• Cannot view user data</li>
+              <li>• Logs in as PUBLIC (not SYS)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="terminal mt-4">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">SQL*Plus — check password file users</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Who has SYSDBA / SYSOPER access? (password file)</span>
+<span class="kw">SELECT</span> username, sysdba, sysoper, sysbackup, sysdg, syskm, sysrac
+<span class="kw">FROM</span>   <span class="fn">V$PWFILE_USERS</span>
+<span class="kw">ORDER BY</span> username;
+
+<span class="cm">-- Grant SYSDBA to a new DBA (adds to password file)</span>
+<span class="kw">GRANT</span> <span class="flag">SYSDBA</span> <span class="kw">TO</span> <span class="var">dba_jones</span>;
+
+<span class="cm">-- Revoke SYSDBA</span>
+<span class="kw">REVOKE</span> <span class="flag">SYSDBA</span> <span class="kw">FROM</span> <span class="var">dba_jones</span>;
+
+<span class="cm">-- Connect as SYSDBA (from OS or SQL*Plus)</span>
+<span class="cm">-- sqlplus / AS SYSDBA   (OS authentication, no password needed if in dba group)</span>
+<span class="cm">-- sqlplus sys/password@ORCL AS SYSDBA</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Dangerous -->
+    <div id="sp-danger" class="tab-content">
+      <div class="glass rounded-xl p-5 border border-red-500/20 mb-6">
+        <p class="text-red-300 font-semibold mb-2"><i class="fas fa-radiation mr-2"></i>Privileges That Should Never Be Granted to Application Accounts</p>
+        <p class="text-slate-400 text-sm">The following privileges can cause serious security breaches or data loss if granted to non-DBA accounts. These are commonly flagged by Oracle security audits and STIG (Security Technical Implementation Guide) checks.</p>
+      </div>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="priv-card danger-card glass rounded-xl p-5">
+          <code class="text-red-400 text-xs font-bold">DROP ANY TABLE</code>
+          <p class="text-slate-400 text-xs mt-2">Drop tables in any schema — permanently destroying data. Even with Flashback, recovery may be impossible if recyclebin is off.</p>
+        </div>
+        <div class="priv-card danger-card glass rounded-xl p-5">
+          <code class="text-red-400 text-xs font-bold">TRUNCATE ANY TABLE</code>
+          <div class="badge badge-red text-xs mt-1">Requires DROP ANY TABLE</div>
+          <p class="text-slate-400 text-xs mt-2">TRUNCATE bypasses the recycle bin and undo segments. Data is immediately unrecoverable. Often overlooked in privilege reviews.</p>
+        </div>
+        <div class="priv-card danger-card glass rounded-xl p-5">
+          <code class="text-red-400 text-xs font-bold">ALTER ANY TABLE</code>
+          <p class="text-slate-400 text-xs mt-2">Modify any table's structure — add/drop columns, disable constraints. Can break application logic across the entire database.</p>
+        </div>
+        <div class="priv-card danger-card glass rounded-xl p-5">
+          <code class="text-red-400 text-xs font-bold">BECOME USER</code>
+          <p class="text-slate-400 text-xs mt-2">Impersonate any user — used by Data Pump during import. Should only exist on the DATA_PUMP_OPERATOR_ROLE or dedicated import accounts.</p>
+        </div>
+        <div class="priv-card danger-card glass rounded-xl p-5">
+          <code class="text-red-400 text-xs font-bold">ALTER ANY PROCEDURE</code>
+          <p class="text-slate-400 text-xs mt-2">Recompile or replace stored code in any schema. Can inject malicious PL/SQL into existing trusted procedures.</p>
+        </div>
+        <div class="priv-card danger-card glass rounded-xl p-5">
+          <code class="text-red-400 text-xs font-bold">CREATE ANY DIRECTORY</code>
+          <p class="text-slate-400 text-xs mt-2">Create OS-level directory aliases. Combined with UTL_FILE, can read/write any file the Oracle OS user can access — a common data exfiltration path.</p>
+        </div>
+        <div class="priv-card danger-card glass rounded-xl p-5">
+          <code class="text-red-400 text-xs font-bold">EXEMPT ACCESS POLICY</code>
+          <p class="text-slate-400 text-xs mt-2">Bypass Oracle Virtual Private Database (VPD) row-level security policies. Users with this privilege see ALL rows even when VPD policies restrict them.</p>
+        </div>
+        <div class="priv-card danger-card glass rounded-xl p-5">
+          <code class="text-red-400 text-xs font-bold">GRANT ANY OBJECT PRIVILEGE</code>
+          <p class="text-slate-400 text-xs mt-2">Grant object privileges on objects owned by other users. Effectively allows the holder to grant themselves access to any data.</p>
+        </div>
+      </div>
+
+      <!-- Check for over-privileged users -->
+      <div class="terminal mt-8">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Security Audit Query — find dangerous privilege holders</span></div>
+        <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Find all users/roles with dangerous system privileges</span>
+<span class="kw">SELECT</span> grantee, privilege, admin_option
+<span class="kw">FROM</span>   <span class="fn">DBA_SYS_PRIVS</span>
+<span class="kw">WHERE</span>  privilege <span class="kw">IN</span> (
+         <span class="str">'DROP ANY TABLE'</span>,     <span class="str">'TRUNCATE ANY TABLE'</span>,
+         <span class="str">'ALTER ANY TABLE'</span>,    <span class="str">'DELETE ANY TABLE'</span>,
+         <span class="str">'CREATE ANY DIRECTORY'</span>,<span class="str">'BECOME USER'</span>,
+         <span class="str">'EXEMPT ACCESS POLICY'</span>,<span class="str">'GRANT ANY PRIVILEGE'</span>,
+         <span class="str">'GRANT ANY OBJECT PRIVILEGE'</span>, <span class="str">'ALTER ANY PROCEDURE'</span>
+       )
+<span class="kw">ORDER BY</span> grantee, privilege;
+
+<span class="cm">-- Find non-DBA users who have DBA role</span>
+<span class="kw">SELECT</span> grantee, granted_role, admin_option, default_role
+<span class="kw">FROM</span>   <span class="fn">DBA_ROLE_PRIVS</span>
+<span class="kw">WHERE</span>  granted_role = <span class="str">'DBA'</span>
+<span class="kw">AND</span>    grantee <span class="kw">NOT IN</span> (<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>)
+<span class="kw">ORDER BY</span> grantee;</code></pre>
+      </div>
+    </div>
+  </div><!-- end tab panels -->
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 4 — OBJECT PRIVILEGES
+     ═════════════════════════════════════════════════════ -->
+<section id="object-privs" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-violet mb-4"><i class="fas fa-table-columns mr-1"></i> Section 4</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">Object Privileges</h2>
+    <p class="text-slate-400 max-w-3xl mb-10">Object privileges grant access to a <em>specific object</em> owned by a specific schema — a table, view, sequence, procedure, etc. This is the preferred way to grant access: precise and least-privilege by design.</p>
+  </div>
+
+  <!-- Object types table -->
+  <div class="reveal overflow-x-auto mb-10">
+    <table class="w-full text-sm text-left border border-white/5 rounded-xl overflow-hidden">
+      <thead>
+        <tr class="bg-violet-500/10 border-b border-white/10 text-slate-300 text-xs">
+          <th class="py-3 px-4 font-semibold">Object Type</th>
+          <th class="py-3 px-4 font-semibold">Available Privileges</th>
+          <th class="py-3 px-4 font-semibold">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="vs-row border-b border-white/5">
+          <td class="py-3 px-4 font-semibold text-violet-300">TABLE</td>
+          <td class="py-3 px-4 font-mono text-xs text-slate-300">SELECT, INSERT, UPDATE, DELETE, ALTER, INDEX, REFERENCES, FLASHBACK, DEBUG</td>
+          <td class="py-3 px-4 text-slate-400 text-xs">Most common. UPDATE/DELETE can be column-specific. REFERENCES allows creating FK constraints pointing to this table.</td>
+        </tr>
+        <tr class="vs-row border-b border-white/5">
+          <td class="py-3 px-4 font-semibold text-sky-300">VIEW</td>
+          <td class="py-3 px-4 font-mono text-xs text-slate-300">SELECT, INSERT, UPDATE, DELETE, FLASHBACK, DEBUG</td>
+          <td class="py-3 px-4 text-slate-400 text-xs">DML on a view requires the view to be updatable. Views are the primary way to restrict column/row access.</td>
+        </tr>
+        <tr class="vs-row border-b border-white/5">
+          <td class="py-3 px-4 font-semibold text-green-300">SEQUENCE</td>
+          <td class="py-3 px-4 font-mono text-xs text-slate-300">SELECT, ALTER</td>
+          <td class="py-3 px-4 text-slate-400 text-xs">SELECT allows using NEXTVAL/CURRVAL. Common for application accounts that insert rows using sequence-generated PKs.</td>
+        </tr>
+        <tr class="vs-row border-b border-white/5">
+          <td class="py-3 px-4 font-semibold text-amber-300">PROCEDURE / FUNCTION / PACKAGE</td>
+          <td class="py-3 px-4 font-mono text-xs text-slate-300">EXECUTE, DEBUG</td>
+          <td class="py-3 px-4 text-slate-400 text-xs">EXECUTE on a package grants access to all public subprograms. Use AUTHID CURRENT_USER in the package to run as caller, not definer.</td>
+        </tr>
+        <tr class="vs-row border-b border-white/5">
+          <td class="py-3 px-4 font-semibold text-pink-300">DIRECTORY</td>
+          <td class="py-3 px-4 font-mono text-xs text-slate-300">READ, WRITE, EXECUTE</td>
+          <td class="py-3 px-4 text-slate-400 text-xs">Controls access to OS directory aliases for external files (Data Pump, UTL_FILE). WRITE is very sensitive — file overwrite possible.</td>
+        </tr>
+        <tr class="vs-row">
+          <td class="py-3 px-4 font-semibold text-cyan-300">TYPE / JAVA CLASS</td>
+          <td class="py-3 px-4 font-mono text-xs text-slate-300">EXECUTE, UNDER, DEBUG</td>
+          <td class="py-3 px-4 text-slate-400 text-xs">UNDER allows creating subtypes. Java class EXECUTE needed to call Java stored procedures from SQL/PL/SQL.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Object privilege syntax -->
+  <div class="reveal mb-10">
+    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-terminal text-violet-400"></i> Object Privilege Syntax</h3>
+    <div class="syntax-block">
+<span class="syntax-req">GRANT</span> object_privilege [(<span class="syntax-opt">column_list</span>)] [, ...]
+  <span class="syntax-req">ON</span>  [schema.]object_name
+  <span class="syntax-req">TO</span>  { user | role | PUBLIC }
+  [<span class="syntax-opt">WITH GRANT OPTION</span>]<span class="syntax-opt">  -- grantee can re-grant; revoke CASCADES</span>
+;
+
+<span class="syntax-req">REVOKE</span> object_privilege [, ...]
+  <span class="syntax-req">ON</span>  [schema.]object_name
+  <span class="syntax-req">FROM</span> { user | role | PUBLIC }
+  [<span class="syntax-opt">CASCADE CONSTRAINTS</span>]<span class="syntax-opt"> -- remove FK constraints that depended on REFERENCES priv</span>
+;
+    </div>
+  </div>
+
+  <!-- Object privilege examples terminal -->
+  <div class="reveal terminal mb-10">
+    <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">SQL*Plus — object privilege examples</span></div>
+    <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Grant SELECT on a table to a reporting user</span>
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> hr.employees <span class="kw">TO</span> <span class="var">reporting_user</span>;
+
+<span class="cm">-- Grant SELECT and INSERT on a specific table (app account)</span>
+<span class="kw">GRANT</span> <span class="flag">SELECT</span>, <span class="flag">INSERT</span> <span class="kw">ON</span> sales.orders <span class="kw">TO</span> <span class="var">app_salesdb</span>;
+
+<span class="cm">-- Grant UPDATE on specific columns only (column-level privilege)</span>
+<span class="kw">GRANT</span> <span class="flag">UPDATE</span> (salary, commission_pct) <span class="kw">ON</span> hr.employees <span class="kw">TO</span> <span class="var">hr_manager</span>;
+
+<span class="cm">-- Grant EXECUTE on a package</span>
+<span class="kw">GRANT</span> <span class="flag">EXECUTE</span> <span class="kw">ON</span> hr.emp_pkg <span class="kw">TO</span> <span class="var">app_salesdb</span>;
+
+<span class="cm">-- Grant SELECT on a sequence (for INSERT with PK generation)</span>
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> hr.employees_seq <span class="kw">TO</span> <span class="var">app_salesdb</span>;
+
+<span class="cm">-- Grant with GRANT OPTION (receiver can re-grant to others)</span>
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> hr.employees <span class="kw">TO</span> <span class="var">lead_dev</span> <span class="flag">WITH GRANT OPTION</span>;
+
+<span class="cm">-- Revoke — GRANT OPTION revoke CASCADES to re-grantees</span>
+<span class="kw">REVOKE</span> <span class="flag">SELECT</span> <span class="kw">ON</span> hr.employees <span class="kw">FROM</span> <span class="var">lead_dev</span>;  <span class="cm">-- also revokes from anyone lead_dev granted to</span>
+
+<span class="cm">-- Grant SELECT to all users (PUBLIC) — use with caution</span>
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> app.reference_data <span class="kw">TO</span> <span class="flag">PUBLIC</span>;
+
+<span class="cm">-- Query: what object privileges has a specific user received?</span>
+<span class="kw">SELECT</span> owner, table_name, privilege, grantable
+<span class="kw">FROM</span>   <span class="fn">DBA_TAB_PRIVS</span>
+<span class="kw">WHERE</span>  grantee = <span class="str">'REPORTING_USER'</span>
+<span class="kw">ORDER BY</span> owner, table_name;
+
+<span class="cm">-- Column-level object privileges</span>
+<span class="kw">SELECT</span> owner, table_name, column_name, privilege
+<span class="kw">FROM</span>   <span class="fn">DBA_COL_PRIVS</span>
+<span class="kw">WHERE</span>  grantee = <span class="str">'HR_MANAGER'</span>;</code></pre>
+  </div>
+
+  <!-- GRANT OPTION vs ADMIN OPTION callout -->
+  <div class="reveal grid md:grid-cols-2 gap-6">
+    <div class="glass rounded-2xl p-6 border border-green-500/20">
+      <h4 class="font-bold text-green-300 mb-3"><i class="fas fa-code-branch mr-2"></i>WITH GRANT OPTION (Object Privs)</h4>
+      <ul class="text-slate-400 text-sm space-y-2">
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-green-400 text-xs mt-1 shrink-0"></i>Allows re-granting the object privilege to others</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-green-400 text-xs mt-1 shrink-0"></i>Cannot be granted to a role (only users or PUBLIC)</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-red-400 text-xs mt-1 shrink-0"></i><strong class="text-white">Revoke CASCADES</strong> — all downstream grantees lose the privilege automatically</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-green-400 text-xs mt-1 shrink-0"></i>Visible in DBA_TAB_PRIVS as GRANTABLE='YES'</li>
+      </ul>
+    </div>
+    <div class="glass rounded-2xl p-6 border border-amber-500/20">
+      <h4 class="font-bold text-amber-300 mb-3"><i class="fas fa-user-shield mr-2"></i>WITH ADMIN OPTION (System Privs)</h4>
+      <ul class="text-slate-400 text-sm space-y-2">
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-amber-400 text-xs mt-1 shrink-0"></i>Allows re-granting the system privilege to others</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-amber-400 text-xs mt-1 shrink-0"></i>Can be granted to roles</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-red-400 text-xs mt-1 shrink-0"></i><strong class="text-white">Revoke does NOT cascade</strong> — downstream grantees keep the privilege</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-amber-400 text-xs mt-1 shrink-0"></i>Visible in DBA_SYS_PRIVS as ADMIN_OPTION='YES'</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 5 — ROLES
+     ═════════════════════════════════════════════════════ -->
+<section id="roles" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-violet mb-4"><i class="fas fa-layer-group mr-1"></i> Section 5</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">Roles</h2>
+    <p class="text-slate-400 max-w-3xl mb-4">A role is a named collection of privileges and other roles. Instead of granting dozens of privileges individually to each user, you grant one role. When the role changes, all users with that role are automatically updated. Oracle 19c supports a maximum of <strong class="text-violet-300">148 user-defined roles per user session</strong> simultaneously.</p>
+  </div>
+
+  <!-- Why roles -->
+  <div class="reveal grid md:grid-cols-3 gap-6 mb-12">
+    <div class="glass rounded-xl p-5 text-center">
+      <div class="w-12 h-12 rounded-xl bg-violet-500/15 flex items-center justify-center mx-auto mb-3"><i class="fas fa-arrows-to-circle text-violet-400"></i></div>
+      <h4 class="font-bold text-white mb-2">Simplify Management</h4>
+      <p class="text-slate-400 text-sm">Grant one role instead of 20 individual privileges. Revoke the role to immediately remove all access — one command.</p>
+    </div>
+    <div class="glass rounded-xl p-5 text-center">
+      <div class="w-12 h-12 rounded-xl bg-violet-500/15 flex items-center justify-center mx-auto mb-3"><i class="fas fa-sitemap text-violet-400"></i></div>
+      <h4 class="font-bold text-white mb-2">Match Job Functions</h4>
+      <p class="text-slate-400 text-sm">Create roles named after real job roles (APP_READ_ROLE, HR_MANAGER_ROLE). Maps security configuration to the org chart.</p>
+    </div>
+    <div class="glass rounded-xl p-5 text-center">
+      <div class="w-12 h-12 rounded-xl bg-violet-500/15 flex items-center justify-center mx-auto mb-3"><i class="fas fa-toggle-on text-violet-400"></i></div>
+      <h4 class="font-bold text-white mb-2">Enable / Disable</h4>
+      <p class="text-slate-400 text-sm">Roles can be enabled/disabled per session with <code class="text-violet-300 text-xs">SET ROLE</code>. A user can have a role but disable it temporarily.</p>
+    </div>
+  </div>
+
+  <!-- Predefined Roles -->
+  <div class="reveal mb-12">
+    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><i class="fas fa-star text-violet-400"></i> Oracle Predefined Roles (19c)</h3>
+    <p class="text-slate-400 text-sm mb-6">Oracle ships with several built-in roles. You should know what each one actually contains — granting the wrong predefined role is a common mistake in production environments.</p>
+
+    <div class="grid gap-4">
+      <!-- CONNECT -->
+      <div class="glass rounded-xl border border-white/6 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <span class="badge badge-green">CONNECT</span>
+            <span class="text-white text-sm font-medium">Most Commonly Granted</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-slate-400 text-sm mb-3">In Oracle 19c, CONNECT only contains <strong class="text-white">2 privileges</strong>. This is very different from older versions (8i/9i) where CONNECT had many more privileges. Always verify what CONNECT means in your specific version.</p>
+          <div class="grid md:grid-cols-2 gap-3">
+            <div class="bg-green-500/5 rounded-lg p-3 border border-green-500/15">
+              <code class="text-green-300 text-xs">CREATE SESSION</code>
+              <p class="text-slate-400 text-xs mt-1">Allows connecting to the database</p>
+            </div>
+            <div class="bg-green-500/5 rounded-lg p-3 border border-green-500/15">
+              <code class="text-green-300 text-xs">SET CONTAINER</code>
+              <p class="text-slate-400 text-xs mt-1">Switch between PDBs in multitenant (CDB) environments</p>
+            </div>
+          </div>
+          <div class="terminal mt-4">
+            <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+            <pre class="p-3 text-xs font-mono leading-6"><code><span class="kw">SELECT</span> privilege <span class="kw">FROM</span> <span class="fn">DBA_SYS_PRIVS</span> <span class="kw">WHERE</span> grantee = <span class="str">'CONNECT'</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESOURCE -->
+      <div class="glass rounded-xl border border-white/6 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <span class="badge badge-sky">RESOURCE</span>
+            <span class="text-white text-sm font-medium">Schema Object Creation</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-slate-400 text-sm mb-3">RESOURCE allows creating schema objects. It also grants <code class="text-violet-300 text-xs">UNLIMITED TABLESPACE</code> — which overrides tablespace quotas and allows the user to use <strong class="text-white">any amount of space in any tablespace</strong>. Often granted more than necessary.</p>
+          <div class="grid md:grid-cols-3 gap-3">
+            <div class="bg-sky-500/5 rounded-lg p-3 border border-sky-500/15"><code class="text-sky-300 text-xs">CREATE TABLE</code></div>
+            <div class="bg-sky-500/5 rounded-lg p-3 border border-sky-500/15"><code class="text-sky-300 text-xs">CREATE CLUSTER</code></div>
+            <div class="bg-sky-500/5 rounded-lg p-3 border border-sky-500/15"><code class="text-sky-300 text-xs">CREATE SEQUENCE</code></div>
+            <div class="bg-sky-500/5 rounded-lg p-3 border border-sky-500/15"><code class="text-sky-300 text-xs">CREATE PROCEDURE</code></div>
+            <div class="bg-sky-500/5 rounded-lg p-3 border border-sky-500/15"><code class="text-sky-300 text-xs">CREATE TRIGGER</code></div>
+            <div class="bg-sky-500/5 rounded-lg p-3 border border-sky-500/15"><code class="text-sky-300 text-xs">CREATE TYPE</code></div>
+            <div class="bg-amber-500/5 rounded-lg p-3 border border-amber-500/15 col-span-3"><code class="text-amber-300 text-xs">UNLIMITED TABLESPACE</code><span class="text-slate-500 text-xs ml-3">⚠ Often overlooked — grants unlimited space in all tablespaces</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DBA -->
+      <div class="glass rounded-xl border border-white/6 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <span class="badge badge-red">DBA</span>
+            <span class="text-white text-sm font-medium">Almost All System Privileges — Use with Extreme Care</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-slate-400 text-sm mb-3">The DBA role contains most system privileges (200+) with ADMIN OPTION. It is the most powerful role in the database short of SYSDBA. <strong class="text-red-300">Never grant DBA to application accounts or general users.</strong></p>
+          <div class="glass rounded-lg p-4 border border-red-500/20">
+            <p class="text-slate-400 text-xs">Includes all CREATE ANY, DROP ANY, ALTER ANY, SELECT ANY, INSERT ANY, UPDATE ANY, DELETE ANY, EXECUTE ANY, GRANT ANY and hundreds more. The DBA role also includes the RESOURCE, CONNECT, and EXP_FULL_DATABASE roles.</p>
+          </div>
+          <div class="terminal mt-4">
+            <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+            <pre class="p-3 text-xs font-mono leading-6"><code><span class="cm">-- How many privileges does DBA contain?</span>
+<span class="kw">SELECT</span> <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> <span class="fn">DBA_SYS_PRIVS</span> <span class="kw">WHERE</span> grantee = <span class="str">'DBA'</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXP/IMP FULL DATABASE -->
+      <div class="glass rounded-xl border border-white/6 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <span class="badge badge-amber">EXP_FULL_DATABASE</span>
+            <span class="badge badge-amber ml-1">IMP_FULL_DATABASE</span>
+            <span class="text-white text-sm font-medium">Data Pump Roles</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-slate-400 text-sm mb-3">Required for full database exports and imports using Oracle Data Pump (expdp/impdp). These are sensitive roles that grant access to all data.</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="bg-amber-500/5 rounded-lg p-4 border border-amber-500/15">
+              <code class="text-amber-300 text-sm font-bold">EXP_FULL_DATABASE</code>
+              <ul class="text-slate-400 text-xs mt-2 space-y-1">
+                <li>• SELECT ANY TABLE (read all data)</li>
+                <li>• BACKUP ANY TABLE</li>
+                <li>• EXECUTE ANY PROCEDURE</li>
+                <li>• EXECUTE ANY TYPE</li>
+              </ul>
+            </div>
+            <div class="bg-amber-500/5 rounded-lg p-4 border border-amber-500/15">
+              <code class="text-amber-300 text-sm font-bold">IMP_FULL_DATABASE</code>
+              <ul class="text-slate-400 text-xs mt-2 space-y-1">
+                <li>• BECOME USER</li>
+                <li>• CREATE ANY TABLE / INDEX</li>
+                <li>• INSERT ANY TABLE / UPDATE ANY TABLE</li>
+                <li>• DROP ANY TABLE</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SELECT_CATALOG_ROLE -->
+      <div class="glass rounded-xl border border-white/6 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <span class="badge badge-violet">SELECT_CATALOG_ROLE</span>
+            <span class="text-white text-sm font-medium">Read Data Dictionary Views</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-slate-400 text-sm mb-3">Grants SELECT access to most DBA_* and V$ views. Common for monitoring tools, DBAs who need read-only access to dictionary, and middleware accounts that query metadata. Safer alternative to SELECT ANY DICTIONARY privilege.</p>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+            <pre class="p-3 text-xs font-mono leading-6"><code><span class="kw">GRANT</span> <span class="flag">SELECT_CATALOG_ROLE</span> <span class="kw">TO</span> <span class="var">monitoring_user</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE ROLE syntax + examples -->
+  <div class="reveal mb-10">
+    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><i class="fas fa-plus-circle text-violet-400"></i> Creating Custom Roles</h3>
+    <div class="syntax-block mb-6">
+<span class="syntax-req">CREATE ROLE</span> role_name
+  [<span class="syntax-opt">NOT IDENTIFIED</span>          <span class="syntax-opt">-- default: no password needed to activate</span>
+  | <span class="syntax-opt">IDENTIFIED BY</span> <span class="syntax-val">password</span>    <span class="syntax-opt">-- password required to SET ROLE</span>
+  | <span class="syntax-opt">IDENTIFIED USING</span> <span class="syntax-val">pkg</span>     <span class="syntax-opt">-- application-level role (PL/SQL package gate)</span>
+  | <span class="syntax-opt">IDENTIFIED EXTERNALLY</span>    <span class="syntax-opt">-- OS/directory group membership controls activation</span>
+  | <span class="syntax-opt">IDENTIFIED GLOBALLY</span>     <span class="syntax-opt">-- Oracle Internet Directory (OID/LDAP) group</span>]
+;
+    </div>
+    <div class="terminal">
+      <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Real-world custom role examples</span></div>
+      <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- 1. Read-only reporting role</span>
+<span class="kw">CREATE ROLE</span> <span class="var">app_reporting_role</span>;
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> sales.orders          <span class="kw">TO</span> <span class="var">app_reporting_role</span>;
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> sales.order_items     <span class="kw">TO</span> <span class="var">app_reporting_role</span>;
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> hr.employees          <span class="kw">TO</span> <span class="var">app_reporting_role</span>;
+<span class="cm">-- Grant the role to all reporting users</span>
+<span class="kw">GRANT</span> <span class="var">app_reporting_role</span> <span class="kw">TO</span> <span class="var">alice</span>, <span class="var">bob</span>, <span class="var">carol</span>;
+
+<span class="cm">-- 2. Application DML role (read + write to specific tables)</span>
+<span class="kw">CREATE ROLE</span> <span class="var">crm_app_role</span>;
+<span class="kw">GRANT</span> <span class="flag">SELECT</span>, <span class="flag">INSERT</span>, <span class="flag">UPDATE</span> <span class="kw">ON</span> crm.customers  <span class="kw">TO</span> <span class="var">crm_app_role</span>;
+<span class="kw">GRANT</span> <span class="flag">SELECT</span>, <span class="flag">INSERT</span>          <span class="kw">ON</span> crm.contacts   <span class="kw">TO</span> <span class="var">crm_app_role</span>;
+<span class="kw">GRANT</span> <span class="flag">EXECUTE</span>                 <span class="kw">ON</span> crm.crm_pkg    <span class="kw">TO</span> <span class="var">crm_app_role</span>;
+<span class="kw">GRANT</span> <span class="var">crm_app_role</span> <span class="kw">TO</span> <span class="var">app_crm_user</span>;
+
+<span class="cm">-- 3. Password-protected role (application must call SET ROLE to activate)</span>
+<span class="kw">CREATE ROLE</span> <span class="var">admin_ops_role</span> <span class="flag">IDENTIFIED BY</span> <span class="str">"Str0ngRoleP@ss"</span>;
+<span class="kw">GRANT</span> <span class="flag">DELETE</span> <span class="kw">ON</span> audit.log_archive <span class="kw">TO</span> <span class="var">admin_ops_role</span>;
+<span class="kw">GRANT</span> <span class="var">admin_ops_role</span> <span class="kw">TO</span> <span class="var">dba_ops</span>;
+<span class="cm">-- dba_ops must activate the role in their session:</span>
+<span class="kw">SET ROLE</span> <span class="var">admin_ops_role</span> <span class="flag">IDENTIFIED BY</span> <span class="str">"Str0ngRoleP@ss"</span>;
+
+<span class="cm">-- 4. Role nesting (role within a role)</span>
+<span class="kw">CREATE ROLE</span> <span class="var">senior_dev_role</span>;
+<span class="kw">GRANT</span> <span class="var">app_reporting_role</span> <span class="kw">TO</span> <span class="var">senior_dev_role</span>;  <span class="cm">-- inherit all reporting privs</span>
+<span class="kw">GRANT</span> <span class="flag">CREATE TABLE</span>, <span class="flag">CREATE VIEW</span>       <span class="kw">TO</span> <span class="var">senior_dev_role</span>;
+<span class="kw">GRANT</span> <span class="var">senior_dev_role</span> <span class="kw">TO</span> <span class="var">dev_smith</span>;
+
+<span class="cm">-- 5. Drop a role (revoked from all grantees automatically)</span>
+<span class="kw">DROP ROLE</span> <span class="var">old_legacy_role</span>;
+
+<span class="cm">-- Query: what roles and privileges does a user have?</span>
+<span class="kw">SELECT</span> granted_role, admin_option, default_role
+<span class="kw">FROM</span>   <span class="fn">DBA_ROLE_PRIVS</span>
+<span class="kw">WHERE</span>  grantee = <span class="str">'DEV_SMITH'</span>
+<span class="kw">ORDER BY</span> granted_role;
+
+<span class="cm">-- Query: what privileges are inside a role?</span>
+<span class="kw">SELECT</span> privilege, admin_option
+<span class="kw">FROM</span>   <span class="fn">DBA_SYS_PRIVS</span>
+<span class="kw">WHERE</span>  grantee = <span class="str">'CRM_APP_ROLE'</span>
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span> owner || <span class="str">'.'</span> || table_name || <span class="str">' ('</span> || privilege || <span class="str">')'</span>, <span class="str">'NO'</span>
+<span class="kw">FROM</span>   <span class="fn">DBA_TAB_PRIVS</span>
+<span class="kw">WHERE</span>  grantee = <span class="str">'CRM_APP_ROLE'</span>;</code></pre>
+    </div>
+  </div>
+
+  <!-- Role vs Direct Privilege comparison -->
+  <div class="reveal">
+    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><i class="fas fa-scale-balanced text-violet-400"></i> Roles vs Direct Privileges — When to Use Which</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border border-white/5 rounded-xl overflow-hidden">
+        <thead>
+          <tr class="bg-violet-500/10 border-b border-white/10">
+            <th class="py-3 px-4 text-left text-slate-300 text-xs font-semibold">Scenario</th>
+            <th class="py-3 px-4 text-left text-xs font-semibold text-green-400">Use Role</th>
+            <th class="py-3 px-4 text-left text-xs font-semibold text-amber-400">Use Direct Privilege</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="vs-row border-b border-white/5">
+            <td class="py-3 px-4 text-slate-300 text-xs">Many users need same access</td>
+            <td class="py-3 px-4 text-green-400 text-xs">✓ Grant one role to all</td>
+            <td class="py-3 px-4 text-slate-500 text-xs">Tedious — N×M grants</td>
+          </tr>
+          <tr class="vs-row border-b border-white/5">
+            <td class="py-3 px-4 text-slate-300 text-xs">Access needed inside a stored procedure/definer-rights view</td>
+            <td class="py-3 px-4 text-slate-500 text-xs">✗ Role privs inactive in definer-rights objects</td>
+            <td class="py-3 px-4 text-amber-400 text-xs">✓ Direct grant required</td>
+          </tr>
+          <tr class="vs-row border-b border-white/5">
+            <td class="py-3 px-4 text-slate-300 text-xs">Application service account</td>
+            <td class="py-3 px-4 text-green-400 text-xs">✓ Grant app role — easy to audit</td>
+            <td class="py-3 px-4 text-slate-500 text-xs">Acceptable but harder to maintain</td>
+          </tr>
+          <tr class="vs-row border-b border-white/5">
+            <td class="py-3 px-4 text-slate-300 text-xs">WITH GRANT OPTION needed (re-grant)</td>
+            <td class="py-3 px-4 text-slate-500 text-xs">✗ Roles cannot use GRANT OPTION</td>
+            <td class="py-3 px-4 text-amber-400 text-xs">✓ Only direct grants support GRANT OPTION</td>
+          </tr>
+          <tr class="vs-row">
+            <td class="py-3 px-4 text-slate-300 text-xs">Revoking all access instantly</td>
+            <td class="py-3 px-4 text-green-400 text-xs">✓ Drop role or revoke role — one step</td>
+            <td class="py-3 px-4 text-slate-500 text-xs">Must revoke each privilege individually</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="glass rounded-xl p-5 mt-6 border border-violet-500/20">
+      <p class="text-violet-300 font-semibold text-sm mb-2"><i class="fas fa-lightbulb mr-2"></i>Key Rule: Definer-Rights Objects</p>
+      <p class="text-slate-400 text-sm">If a stored procedure runs with AUTHID DEFINER (the default), it executes with the <em>owner's</em> privileges — <strong class="text-white">but role privileges are NOT active inside definer-rights PL/SQL</strong>. This means if the owner has a role granting SELECT on a table, the procedure still cannot query it. You must GRANT the privilege <strong class="text-white">directly</strong> to the schema owner for the procedure to work. — <em>Oracle PL/SQL Language Reference, Security Model</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 6 — PROFILES
+     ═════════════════════════════════════════════════════ -->
+<section id="profiles" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-violet mb-4"><i class="fas fa-id-badge mr-1"></i> Section 6</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">Profiles</h2>
+    <p class="text-slate-400 max-w-3xl mb-4">A profile is a set of limits assigned to a user account. It controls two things: <strong class="text-violet-300">password policy</strong> (complexity, expiry, lockout) and <strong class="text-violet-300">resource limits</strong> (CPU time, idle time, connections). Every user has exactly one profile — the default is the <code class="text-violet-300 text-sm">DEFAULT</code> profile.</p>
+    <div class="glass rounded-xl p-4 border border-amber-500/20 mb-10">
+      <p class="text-amber-300 text-sm"><i class="fas fa-triangle-exclamation mr-2"></i><strong>Resource limits only enforce when <code class="font-mono">RESOURCE_LIMIT = TRUE</code></strong> (ALTER SYSTEM SET RESOURCE_LIMIT=TRUE). Password limits always enforce regardless of this parameter.</p>
+    </div>
+  </div>
+
+  <!-- Two categories -->
+  <div class="reveal grid md:grid-cols-2 gap-6 mb-12">
+    <div class="glass-strong rounded-2xl p-6 border border-violet-500/20">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center"><i class="fas fa-key text-violet-400"></i></div>
+        <h3 class="font-bold text-white">Password Parameters</h3>
+      </div>
+      <p class="text-slate-400 text-sm mb-4">Always active — enforce independently of RESOURCE_LIMIT. These are the parameters you configure for Oracle security compliance.</p>
+      <ul class="text-slate-400 text-sm space-y-2">
+        <li class="flex gap-2"><code class="text-violet-300 text-xs w-52 shrink-0">FAILED_LOGIN_ATTEMPTS</code> Account locked after N failed attempts</li>
+        <li class="flex gap-2"><code class="text-violet-300 text-xs w-52 shrink-0">PASSWORD_LIFE_TIME</code> Days before password expires</li>
+        <li class="flex gap-2"><code class="text-violet-300 text-xs w-52 shrink-0">PASSWORD_REUSE_TIME</code> Days before reusing a password</li>
+        <li class="flex gap-2"><code class="text-violet-300 text-xs w-52 shrink-0">PASSWORD_REUSE_MAX</code> Min changes before reuse</li>
+        <li class="flex gap-2"><code class="text-violet-300 text-xs w-52 shrink-0">PASSWORD_LOCK_TIME</code> Days account stays locked</li>
+        <li class="flex gap-2"><code class="text-violet-300 text-xs w-52 shrink-0">PASSWORD_GRACE_TIME</code> Grace days after expiry</li>
+        <li class="flex gap-2"><code class="text-violet-300 text-xs w-52 shrink-0">PASSWORD_VERIFY_FUNCTION</code> PL/SQL complexity checker</li>
+        <li class="flex gap-2"><code class="text-violet-300 text-xs w-52 shrink-0">INACTIVE_ACCOUNT_TIME</code> Lock after N days no login (19c)</li>
+        <li class="flex gap-2"><code class="text-violet-300 text-xs w-52 shrink-0">PASSWORD_ROLLOVER_TIME</code> Old password still works during rollover</li>
+      </ul>
+    </div>
+    <div class="glass-strong rounded-2xl p-6 border border-sky-500/20">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center"><i class="fas fa-gauge text-sky-400"></i></div>
+        <h3 class="font-bold text-white">Resource Parameters</h3>
+      </div>
+      <p class="text-slate-400 text-sm mb-4">Only active when RESOURCE_LIMIT=TRUE. Used to prevent runaway sessions from consuming excessive database resources.</p>
+      <ul class="text-slate-400 text-sm space-y-2">
+        <li class="flex gap-2"><code class="text-sky-300 text-xs w-52 shrink-0">SESSIONS_PER_USER</code> Concurrent sessions per account</li>
+        <li class="flex gap-2"><code class="text-sky-300 text-xs w-52 shrink-0">CPU_PER_SESSION</code> CPU time (hundredths of seconds)</li>
+        <li class="flex gap-2"><code class="text-sky-300 text-xs w-52 shrink-0">CPU_PER_CALL</code> CPU per single SQL call</li>
+        <li class="flex gap-2"><code class="text-sky-300 text-xs w-52 shrink-0">LOGICAL_READS_PER_SESSION</code> Block reads per session</li>
+        <li class="flex gap-2"><code class="text-sky-300 text-xs w-52 shrink-0">LOGICAL_READS_PER_CALL</code> Block reads per SQL call</li>
+        <li class="flex gap-2"><code class="text-sky-300 text-xs w-52 shrink-0">IDLE_TIME</code> Minutes before idle disconnect</li>
+        <li class="flex gap-2"><code class="text-sky-300 text-xs w-52 shrink-0">CONNECT_TIME</code> Total minutes per session</li>
+        <li class="flex gap-2"><code class="text-sky-300 text-xs w-52 shrink-0">PRIVATE_SGA</code> SGA memory (bytes) per session</li>
+        <li class="flex gap-2"><code class="text-sky-300 text-xs w-52 shrink-0">COMPOSITE_LIMIT</code> Weighted sum of CPU + reads</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CREATE PROFILE full syntax -->
+  <div class="reveal mb-10">
+    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-terminal text-violet-400"></i> CREATE PROFILE — Full Syntax</h3>
+    <div class="syntax-block">
+<span class="syntax-req">CREATE PROFILE</span> profile_name <span class="syntax-req">LIMIT</span>
+
+  <span class="syntax-opt">-- === PASSWORD PARAMETERS ===</span>
+  <span class="syntax-kw">FAILED_LOGIN_ATTEMPTS</span>    <span class="syntax-val">{ integer | DEFAULT | UNLIMITED }</span>
+  <span class="syntax-kw">PASSWORD_LIFE_TIME</span>       <span class="syntax-val">{ days | DEFAULT | UNLIMITED }</span>
+  <span class="syntax-kw">PASSWORD_REUSE_TIME</span>      <span class="syntax-val">{ days | DEFAULT | UNLIMITED }</span>
+  <span class="syntax-kw">PASSWORD_REUSE_MAX</span>       <span class="syntax-val">{ integer | DEFAULT | UNLIMITED }</span>
+  <span class="syntax-kw">PASSWORD_LOCK_TIME</span>       <span class="syntax-val">{ days | DEFAULT | UNLIMITED }</span>  <span class="syntax-opt">-- fractions ok: 1/24 = 1 hour</span>
+  <span class="syntax-kw">PASSWORD_GRACE_TIME</span>      <span class="syntax-val">{ days | DEFAULT | UNLIMITED }</span>
+  <span class="syntax-kw">PASSWORD_VERIFY_FUNCTION</span> <span class="syntax-val">{ function_name | DEFAULT | NULL }</span>
+  <span class="syntax-kw">INACTIVE_ACCOUNT_TIME</span>    <span class="syntax-val">{ 15..24855 | DEFAULT | UNLIMITED }</span> <span class="syntax-opt">-- 19c+</span>
+  <span class="syntax-kw">PASSWORD_ROLLOVER_TIME</span>   <span class="syntax-val">{ 1hr..60days | DEFAULT | UNLIMITED }</span> <span class="syntax-opt">-- 21c+</span>
+
+  <span class="syntax-opt">-- === RESOURCE PARAMETERS (requires RESOURCE_LIMIT=TRUE) ===</span>
+  <span class="syntax-kw">SESSIONS_PER_USER</span>        <span class="syntax-val">{ integer | DEFAULT | UNLIMITED }</span>
+  <span class="syntax-kw">CPU_PER_SESSION</span>          <span class="syntax-val">{ 100ths-of-seconds | DEFAULT | UNLIMITED }</span>
+  <span class="syntax-kw">CPU_PER_CALL</span>             <span class="syntax-val">{ 100ths-of-seconds | DEFAULT | UNLIMITED }</span>
+  <span class="syntax-kw">CONNECT_TIME</span>             <span class="syntax-val">{ minutes | DEFAULT | UNLIMITED }</span>
+  <span class="syntax-kw">IDLE_TIME</span>                <span class="syntax-val">{ minutes | DEFAULT | UNLIMITED }</span>
+  <span class="syntax-kw">LOGICAL_READS_PER_SESSION</span> <span class="syntax-val">{ blocks | DEFAULT | UNLIMITED }</span>
+  <span class="syntax-kw">LOGICAL_READS_PER_CALL</span>  <span class="syntax-val">{ blocks | DEFAULT | UNLIMITED }</span>
+  <span class="syntax-kw">PRIVATE_SGA</span>              <span class="syntax-val">{ bytes[K|M] | DEFAULT | UNLIMITED }</span>
+  <span class="syntax-kw">COMPOSITE_LIMIT</span>          <span class="syntax-val">{ service-units | DEFAULT | UNLIMITED }</span>
+;
+    </div>
+  </div>
+
+  <!-- Real examples -->
+  <div class="reveal terminal mb-10">
+    <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Real-world profile examples</span></div>
+    <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- 1. STIG-compliant security profile (Defense/Government standard)</span>
+<span class="cm">--    ora12c_stig_verify_function is in $ORACLE_HOME/rdbms/admin/catpvf.sql</span>
+<span class="kw">CREATE PROFILE</span> <span class="var">ora_stig_profile</span> <span class="flag">LIMIT</span>
+  <span class="key">FAILED_LOGIN_ATTEMPTS</span>    <span class="num">3</span>
+  <span class="key">PASSWORD_LIFE_TIME</span>       <span class="num">60</span>
+  <span class="key">PASSWORD_REUSE_TIME</span>      <span class="num">365</span>
+  <span class="key">PASSWORD_REUSE_MAX</span>       <span class="num">10</span>
+  <span class="key">PASSWORD_LOCK_TIME</span>       <span class="num">UNLIMITED</span>         <span class="cm">-- manual unlock required</span>
+  <span class="key">PASSWORD_GRACE_TIME</span>      <span class="num">5</span>
+  <span class="key">PASSWORD_VERIFY_FUNCTION</span> <span class="fn">ora12c_stig_verify_function</span>
+  <span class="key">INACTIVE_ACCOUNT_TIME</span>   <span class="num">35</span>
+  <span class="key">IDLE_TIME</span>                <span class="num">15</span>
+;
+
+<span class="cm">-- 2. Standard enterprise profile (most production databases)</span>
+<span class="kw">CREATE PROFILE</span> <span class="var">app_user_profile</span> <span class="flag">LIMIT</span>
+  <span class="key">FAILED_LOGIN_ATTEMPTS</span>    <span class="num">5</span>
+  <span class="key">PASSWORD_LIFE_TIME</span>       <span class="num">90</span>
+  <span class="key">PASSWORD_REUSE_TIME</span>      <span class="num">180</span>
+  <span class="key">PASSWORD_REUSE_MAX</span>       <span class="num">5</span>
+  <span class="key">PASSWORD_LOCK_TIME</span>       <span class="num">1</span><span class="cm">/</span><span class="num">24</span>              <span class="cm">-- auto-unlock after 1 hour</span>
+  <span class="key">PASSWORD_GRACE_TIME</span>      <span class="num">7</span>
+  <span class="key">PASSWORD_VERIFY_FUNCTION</span> <span class="fn">ora12c_strong_verify_function</span>
+  <span class="key">INACTIVE_ACCOUNT_TIME</span>   <span class="num">90</span>
+  <span class="key">SESSIONS_PER_USER</span>        <span class="num">5</span>
+  <span class="key">IDLE_TIME</span>                <span class="num">30</span>
+;
+
+<span class="cm">-- 3. Service account profile (app never changes password, no expiry)</span>
+<span class="kw">CREATE PROFILE</span> <span class="var">svc_account_profile</span> <span class="flag">LIMIT</span>
+  <span class="key">FAILED_LOGIN_ATTEMPTS</span>    <span class="num">3</span>
+  <span class="key">PASSWORD_LIFE_TIME</span>       <span class="num">UNLIMITED</span>
+  <span class="key">PASSWORD_REUSE_TIME</span>      <span class="num">UNLIMITED</span>
+  <span class="key">PASSWORD_REUSE_MAX</span>       <span class="num">UNLIMITED</span>
+  <span class="key">PASSWORD_LOCK_TIME</span>       <span class="num">1</span><span class="cm">/</span><span class="num">1440</span>            <span class="cm">-- unlock after 1 minute</span>
+  <span class="key">INACTIVE_ACCOUNT_TIME</span>   <span class="num">UNLIMITED</span>
+  <span class="key">SESSIONS_PER_USER</span>        <span class="num">100</span>               <span class="cm">-- connection pool</span>
+;
+
+<span class="cm">-- Assign profile to a user</span>
+<span class="kw">ALTER USER</span> <span class="var">jane_analyst</span> <span class="flag">PROFILE</span> <span class="var">app_user_profile</span>;
+
+<span class="cm">-- Check all users and their profiles</span>
+<span class="kw">SELECT</span> username, profile, account_status, expiry_date, lock_date
+<span class="kw">FROM</span>   <span class="fn">DBA_USERS</span>
+<span class="kw">ORDER BY</span> profile, username;
+
+<span class="cm">-- Inspect a profile's limits</span>
+<span class="kw">SELECT</span> resource_name, limit
+<span class="kw">FROM</span>   <span class="fn">DBA_PROFILES</span>
+<span class="kw">WHERE</span>  profile = <span class="str">'APP_USER_PROFILE'</span>
+<span class="kw">ORDER BY</span> resource_type, resource_name;
+
+<span class="cm">-- Drop a profile (CASCADE reassigns users to DEFAULT)</span>
+<span class="kw">DROP PROFILE</span> <span class="var">old_profile</span> <span class="flag">CASCADE</span>;</code></pre>
+  </div>
+
+  <!-- PASSWORD_VERIFY_FUNCTION callout -->
+  <div class="reveal glass rounded-2xl p-6 border border-violet-500/20 mb-10">
+    <h4 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-shield-check text-violet-400"></i> Password Verify Functions — What They Check</h4>
+    <p class="text-slate-400 text-sm mb-4">Oracle ships PL/SQL functions that validate password complexity when a user sets their password. These must be created by running a script from <code class="text-violet-300 text-xs">$ORACLE_HOME/rdbms/admin/catpvf.sql</code> (12.2+) or <code class="text-violet-300 text-xs">utlpwdmg.sql</code> (older versions). They are installed in the SYS schema.</p>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="bg-violet-500/5 rounded-xl p-4 border border-violet-500/20">
+        <code class="text-violet-300 text-xs font-bold">ora12c_stig_verify_function</code>
+        <p class="text-slate-400 text-xs mt-2">Strictest — for STIG compliance. Minimum 15 characters, must contain uppercase, lowercase, digit, and special character. Checks against username. Used by government and defense.</p>
+      </div>
+      <div class="bg-sky-500/5 rounded-xl p-4 border border-sky-500/20">
+        <code class="text-sky-300 text-xs font-bold">ora12c_strong_verify_function</code>
+        <p class="text-slate-400 text-xs mt-2">Strong but practical. Minimum 8 characters, requires at least 1 uppercase, 1 lowercase, 1 digit, 1 special character. Common in enterprise environments.</p>
+      </div>
+      <div class="bg-green-500/5 rounded-xl p-4 border border-green-500/20">
+        <code class="text-green-300 text-xs font-bold">ora_complexity_check</code>
+        <p class="text-slate-400 text-xs mt-2">Helper function called by the above. Can also be used directly. Configurable minimum lengths and character requirements for custom verify functions.</p>
+      </div>
+    </div>
+    <div class="terminal mt-4">
+      <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+      <pre class="p-3 text-xs font-mono leading-6"><code><span class="cm">-- Create the password verify functions (run as SYSDBA)</span>
+<span class="kw">@</span><span class="var">$ORACLE_HOME/rdbms/admin/catpvf.sql</span>
+
+<span class="cm">-- Verify functions are now in SYS schema</span>
+<span class="kw">SELECT</span> object_name <span class="kw">FROM</span> <span class="fn">DBA_OBJECTS</span>
+<span class="kw">WHERE</span>  owner = <span class="str">'SYS'</span> <span class="kw">AND</span> object_type = <span class="str">'FUNCTION'</span>
+<span class="kw">AND</span>    object_name <span class="kw">LIKE</span> <span class="str">'ORA%VERIFY%'</span>;</code></pre>
+    </div>
+  </div>
+
+  <!-- INACTIVE_ACCOUNT_TIME highlight -->
+  <div class="reveal glass rounded-2xl p-6 border border-sky-500/20">
+    <h4 class="font-bold text-white mb-3 flex items-center gap-2"><i class="fas fa-clock text-sky-400"></i> INACTIVE_ACCOUNT_TIME (Oracle 12.2+)</h4>
+    <p class="text-slate-400 text-sm mb-3">Automatically locks an account that has not been used for the specified number of days. Range: <strong class="text-white">15 to 24,855 days</strong>. This is a key control for dormant accounts — one of the most common security vulnerabilities in Oracle databases.</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <p class="text-slate-400 text-xs mb-2">Example: Set to 35 days (STIG requirement)</p>
+        <div class="terminal"><div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div><pre class="p-3 text-xs font-mono leading-6"><code><span class="cm">-- Find dormant accounts (not logged in recently)</span>
+<span class="kw">SELECT</span> username, last_login, account_status
+<span class="kw">FROM</span>   <span class="fn">DBA_USERS</span>
+<span class="kw">WHERE</span>  last_login &lt; <span class="fn">SYSDATE</span> - <span class="num">90</span>
+<span class="kw">OR</span>     last_login <span class="kw">IS NULL</span>
+<span class="kw">ORDER BY</span> last_login;</code></pre></div>
+      </div>
+      <div>
+        <p class="text-slate-400 text-xs mb-2">Account status after INACTIVE_ACCOUNT_TIME exceeded:</p>
+        <div class="space-y-2 text-xs">
+          <div class="flex items-center gap-2"><span class="badge badge-red">LOCKED(TIMED)</span><span class="text-slate-400">Account locked by inactivity timer</span></div>
+          <div class="flex items-center gap-2"><span class="badge badge-green">OPEN</span><span class="text-slate-400">Account is active and accessible</span></div>
+          <div class="flex items-center gap-2"><span class="badge badge-amber">EXPIRED &amp; LOCKED</span><span class="text-slate-400">Password expired and account locked</span></div>
+          <div class="flex items-center gap-2"><span class="badge badge-violet">EXPIRED(GRACE)</span><span class="text-slate-400">In grace period — must change password</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 7 — CDB / PDB USER MANAGEMENT
+     ═════════════════════════════════════════════════════ -->
+<section id="cdb-pdb" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-violet mb-4"><i class="fas fa-layer-group mr-1"></i> Section 7</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">CDB / PDB User Management</h2>
+    <p class="text-slate-400 max-w-3xl mb-4">Oracle 12c introduced Multitenant architecture — one Container Database (CDB) hosting multiple Pluggable Databases (PDBs). User management changes significantly in this architecture: you can create users at the CDB level (common users) or at the PDB level (local users).</p>
+  </div>
+
+  <!-- Architecture SVG -->
+  <div class="reveal mb-12">
+    <svg viewBox="0 0 840 380" class="w-full" style="max-height:380px" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace" font-size="11">
+      <defs>
+        <linearGradient id="cdbGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.2"/>
+          <stop offset="100%" stop-color="#6d28d9" stop-opacity="0.08"/>
+        </linearGradient>
+        <linearGradient id="pdbGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#0284c7" stop-opacity="0.06"/>
+        </linearGradient>
+        <linearGradient id="rootGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#6d28d9" stop-opacity="0.1"/>
+        </linearGradient>
+      </defs>
+      <!-- CDB border -->
+      <rect x="20" y="20" width="800" height="340" rx="16" fill="url(#cdbGrad)" stroke="#8b5cf6" stroke-width="1.5" stroke-opacity="0.4"/>
+      <text x="420" y="48" fill="#a78bfa" font-size="13" font-weight="700" text-anchor="middle">Container Database (CDB)</text>
+
+      <!-- CDB$ROOT -->
+      <rect x="40" y="60" width="760" height="80" rx="10" fill="url(#rootGrad)" stroke="#8b5cf6" stroke-width="1" stroke-opacity="0.5"/>
+      <text x="60" y="85" fill="#a78bfa" font-size="11" font-weight="700">CDB$ROOT</text>
+      <text x="60" y="103" fill="#64748b" font-size="10">Common users (C## prefix) are created here</text>
+      <text x="60" y="119" fill="#64748b" font-size="10">SYS, SYSTEM, and C##users live in ROOT</text>
+      <!-- Common user icon -->
+      <circle cx="720" cy="100" r="18" fill="#8b5cf6" fill-opacity="0.2" stroke="#8b5cf6" stroke-width="1"/>
+      <text x="720" y="105" fill="#a78bfa" text-anchor="middle" font-size="10">C##DBA</text>
+
+      <!-- Arrow: ROOT → PDBs -->
+      <line x1="420" y1="140" x2="420" y2="162" stroke="#8b5cf6" stroke-width="1" stroke-opacity="0.5" stroke-dasharray="4,3"/>
+
+      <!-- PDB1 -->
+      <rect x="40" y="165" width="230" height="165" rx="10" fill="url(#pdbGrad)" stroke="#0ea5e9" stroke-width="1" stroke-opacity="0.4"/>
+      <text x="155" y="190" fill="#38bdf8" font-size="11" font-weight="700" text-anchor="middle">PDB1 (HRDB)</text>
+      <rect x="60" y="200" width="190" height="30" rx="6" fill="#0ea5e9" fill-opacity="0.07" stroke="#0ea5e9" stroke-opacity="0.2" stroke-width="1"/>
+      <text x="155" y="220" fill="#94a3b8" font-size="9" text-anchor="middle">Local user: hr_user (no C##)</text>
+      <rect x="60" y="238" width="190" height="30" rx="6" fill="#8b5cf6" fill-opacity="0.07" stroke="#8b5cf6" stroke-opacity="0.2" stroke-width="1"/>
+      <text x="155" y="258" fill="#a78bfa" font-size="9" text-anchor="middle">Common user: C##DBA (inherited)</text>
+      <text x="155" y="300" fill="#64748b" font-size="9" text-anchor="middle">CONTAINER=CURRENT</text>
+      <text x="155" y="315" fill="#64748b" font-size="9" text-anchor="middle">Local privs apply here</text>
+
+      <!-- PDB2 -->
+      <rect x="305" y="165" width="230" height="165" rx="10" fill="url(#pdbGrad)" stroke="#0ea5e9" stroke-width="1" stroke-opacity="0.4"/>
+      <text x="420" y="190" fill="#38bdf8" font-size="11" font-weight="700" text-anchor="middle">PDB2 (SALESDB)</text>
+      <rect x="325" y="200" width="190" height="30" rx="6" fill="#0ea5e9" fill-opacity="0.07" stroke="#0ea5e9" stroke-opacity="0.2" stroke-width="1"/>
+      <text x="420" y="220" fill="#94a3b8" font-size="9" text-anchor="middle">Local user: sales_app (no C##)</text>
+      <rect x="325" y="238" width="190" height="30" rx="6" fill="#8b5cf6" fill-opacity="0.07" stroke="#8b5cf6" stroke-opacity="0.2" stroke-width="1"/>
+      <text x="420" y="258" fill="#a78bfa" font-size="9" text-anchor="middle">Common user: C##DBA (inherited)</text>
+      <text x="420" y="300" fill="#64748b" font-size="9" text-anchor="middle">CONTAINER=CURRENT</text>
+      <text x="420" y="315" fill="#64748b" font-size="9" text-anchor="middle">Local privs apply here</text>
+
+      <!-- PDB3 -->
+      <rect x="570" y="165" width="230" height="165" rx="10" fill="url(#pdbGrad)" stroke="#0ea5e9" stroke-width="1" stroke-opacity="0.4"/>
+      <text x="685" y="190" fill="#38bdf8" font-size="11" font-weight="700" text-anchor="middle">PDB3 (FINANCEDB)</text>
+      <rect x="590" y="200" width="190" height="30" rx="6" fill="#0ea5e9" fill-opacity="0.07" stroke="#0ea5e9" stroke-opacity="0.2" stroke-width="1"/>
+      <text x="685" y="220" fill="#94a3b8" font-size="9" text-anchor="middle">Local user: fin_report (no C##)</text>
+      <rect x="590" y="238" width="190" height="30" rx="6" fill="#8b5cf6" fill-opacity="0.07" stroke="#8b5cf6" stroke-opacity="0.2" stroke-width="1"/>
+      <text x="685" y="258" fill="#a78bfa" font-size="9" text-anchor="middle">Common user: C##DBA (inherited)</text>
+      <text x="685" y="300" fill="#64748b" font-size="9" text-anchor="middle">CONTAINER=CURRENT</text>
+      <text x="685" y="315" fill="#64748b" font-size="9" text-anchor="middle">Local privs apply here</text>
+    </svg>
+    <p class="text-slate-500 text-xs text-center mt-2">Common users (C## prefix) exist across all PDBs. Local users exist only in their own PDB.</p>
+  </div>
+
+  <!-- CDB commands -->
+  <div class="reveal terminal mb-10">
+    <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">CDB / PDB user management commands</span></div>
+    <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- 1. Create a common user (must use C## prefix, created in CDB$ROOT)</span>
+<span class="cm">--    Must connect to CDB$ROOT as SYSDBA first</span>
+<span class="kw">ALTER SESSION SET</span> <span class="key">CONTAINER</span> = <span class="var">CDB$ROOT</span>;
+
+<span class="kw">CREATE USER</span> <span class="var">C##DBA_JONES</span>
+  <span class="flag">IDENTIFIED BY</span> <span class="str">"SecureP@ss2024"</span>
+  <span class="flag">CONTAINER</span> = <span class="flag">ALL</span>;                  <span class="cm">-- exists in all current + future PDBs</span>
+
+<span class="kw">GRANT</span> <span class="flag">CREATE SESSION</span> <span class="kw">TO</span> <span class="var">C##DBA_JONES</span> <span class="flag">CONTAINER</span>=<span class="flag">ALL</span>;
+<span class="kw">GRANT</span> <span class="flag">DBA</span> <span class="kw">TO</span> <span class="var">C##DBA_JONES</span> <span class="flag">CONTAINER</span>=<span class="flag">ALL</span>;
+
+<span class="cm">-- 2. Create a local user (inside a specific PDB)</span>
+<span class="kw">ALTER SESSION SET</span> <span class="key">CONTAINER</span> = <span class="var">HRPDB</span>;
+
+<span class="kw">CREATE USER</span> <span class="var">hr_analyst</span>                 <span class="cm">-- no C## prefix for local users</span>
+  <span class="flag">IDENTIFIED BY</span> <span class="str">"HrPass2024!"</span>
+  <span class="flag">DEFAULT TABLESPACE</span> <span class="var">users</span>
+  <span class="flag">QUOTA</span> <span class="num">500M</span> <span class="kw">ON</span> <span class="var">users</span>;
+
+<span class="kw">GRANT</span> <span class="flag">CREATE SESSION</span>, <span class="flag">SELECT</span> <span class="kw">ON</span> hr.employees <span class="kw">TO</span> <span class="var">hr_analyst</span>;
+
+<span class="cm">-- 3. Grant privilege to common user in ONE PDB only</span>
+<span class="kw">ALTER SESSION SET</span> <span class="key">CONTAINER</span> = <span class="var">HRPDB</span>;
+<span class="kw">GRANT</span> <span class="flag">CREATE TABLE</span> <span class="kw">TO</span> <span class="var">C##DBA_JONES</span> <span class="flag">CONTAINER</span>=<span class="flag">CURRENT</span>;
+
+<span class="cm">-- 4. Switch containers from inside SQL*Plus</span>
+<span class="kw">ALTER SESSION SET</span> <span class="key">CONTAINER</span> = <span class="var">SALESPDB</span>;
+
+<span class="cm">-- 5. Show current container</span>
+<span class="kw">SELECT</span> <span class="fn">SYS_CONTEXT</span>(<span class="str">'USERENV'</span>,<span class="str">'CON_NAME'</span>) <span class="kw">AS</span> current_container <span class="kw">FROM DUAL</span>;
+
+<span class="cm">-- 6. List all PDBs in the CDB</span>
+<span class="kw">SELECT</span> pdb_id, pdb_name, status, open_mode
+<span class="kw">FROM</span>   <span class="fn">DBA_PDBS</span>
+<span class="kw">ORDER BY</span> pdb_id;
+
+<span class="cm">-- 7. View common users vs local users</span>
+<span class="kw">SELECT</span> username, common, con_id, account_status
+<span class="kw">FROM</span>   <span class="fn">CDB_USERS</span>
+<span class="kw">WHERE</span>  common = <span class="str">'YES'</span>  <span class="cm">-- common users</span>
+<span class="kw">ORDER BY</span> username;
+
+<span class="kw">SELECT</span> username, common, con_id, account_status
+<span class="kw">FROM</span>   <span class="fn">CDB_USERS</span>
+<span class="kw">WHERE</span>  common = <span class="str">'NO'</span>   <span class="cm">-- local PDB users</span>
+<span class="kw">ORDER BY</span> con_id, username;</code></pre>
+  </div>
+
+  <!-- Key rules CDB/PDB -->
+  <div class="reveal grid md:grid-cols-2 gap-6">
+    <div class="glass rounded-xl p-5 border border-violet-500/20">
+      <h4 class="font-bold text-violet-300 mb-3"><i class="fas fa-c text-violet-400 mr-2"></i>Common User Rules</h4>
+      <ul class="text-slate-400 text-sm space-y-2">
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-violet-400 text-xs mt-1 shrink-0"></i>Name must start with <code class="text-violet-300">C##</code> (case-insensitive)</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-violet-400 text-xs mt-1 shrink-0"></i>Created in CDB$ROOT — visible in all PDBs</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-violet-400 text-xs mt-1 shrink-0"></i>Privileges granted with <code class="text-violet-300">CONTAINER=ALL</code> apply everywhere</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-violet-400 text-xs mt-1 shrink-0"></i>Privileges granted with <code class="text-violet-300">CONTAINER=CURRENT</code> apply only in that PDB</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-violet-400 text-xs mt-1 shrink-0"></i>Can connect to both CDB$ROOT and any PDB they have CREATE SESSION for</li>
+      </ul>
+    </div>
+    <div class="glass rounded-xl p-5 border border-sky-500/20">
+      <h4 class="font-bold text-sky-300 mb-3"><i class="fas fa-l text-sky-400 mr-2"></i>Local User Rules</h4>
+      <ul class="text-slate-400 text-sm space-y-2">
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Name must NOT start with C## (enforced by Oracle)</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Exists only in the PDB where created</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Cannot connect to CDB$ROOT</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Cannot be granted CONTAINER=ALL privileges</li>
+        <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Preferred for application accounts — isolated per PDB</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 8 — SECURITY BEST PRACTICES
+     ═════════════════════════════════════════════════════ -->
+<section id="security" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-red mb-4"><i class="fas fa-shield-halved mr-1"></i> Section 8</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">Oracle Security Best Practices</h2>
+    <p class="text-slate-400 max-w-3xl mb-10">Security in Oracle is not a one-time configuration — it is an ongoing practice. This section covers the key controls recommended by Oracle documentation and STIG (Security Technical Implementation Guide) standards used by enterprises and government agencies.</p>
+  </div>
+
+  <!-- 1. Principle of Least Privilege -->
+  <div class="reveal glass rounded-2xl p-8 mb-8 border border-violet-500/15">
+    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-minimize text-violet-400"></i> 1. Principle of Least Privilege</h3>
+    <p class="text-slate-400 mb-4">Every user and application account should have only the privileges required to perform their job — no more. This limits the "blast radius" of a compromised account.</p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="space-y-3">
+        <div class="flex gap-3 items-start">
+          <div class="w-6 h-6 rounded bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5"><i class="fas fa-times text-red-400 text-xs"></i></div>
+          <div><p class="text-red-300 text-sm font-semibold">Wrong approach</p><p class="text-slate-400 text-xs">GRANT DBA TO app_user — "It works, ship it."</p></div>
+        </div>
+        <div class="flex gap-3 items-start">
+          <div class="w-6 h-6 rounded bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5"><i class="fas fa-times text-red-400 text-xs"></i></div>
+          <div><p class="text-red-300 text-sm font-semibold">Wrong approach</p><p class="text-slate-400 text-xs">GRANT SELECT ANY TABLE TO reporting_user — "They need to see all data."</p></div>
+        </div>
+        <div class="flex gap-3 items-start">
+          <div class="w-6 h-6 rounded bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5"><i class="fas fa-times text-red-400 text-xs"></i></div>
+          <div><p class="text-red-300 text-sm font-semibold">Wrong approach</p><p class="text-slate-400 text-xs">Sharing one application user account among multiple team members.</p></div>
+        </div>
+      </div>
+      <div class="space-y-3">
+        <div class="flex gap-3 items-start">
+          <div class="w-6 h-6 rounded bg-green-500/20 flex items-center justify-center shrink-0 mt-0.5"><i class="fas fa-check text-green-400 text-xs"></i></div>
+          <div><p class="text-green-300 text-sm font-semibold">Correct approach</p><p class="text-slate-400 text-xs">Grant only CREATE SESSION + specific object privileges needed for the job.</p></div>
+        </div>
+        <div class="flex gap-3 items-start">
+          <div class="w-6 h-6 rounded bg-green-500/20 flex items-center justify-center shrink-0 mt-0.5"><i class="fas fa-check text-green-400 text-xs"></i></div>
+          <div><p class="text-green-300 text-sm font-semibold">Correct approach</p><p class="text-slate-400 text-xs">Use views to expose only required columns/rows, then GRANT SELECT on the view.</p></div>
+        </div>
+        <div class="flex gap-3 items-start">
+          <div class="w-6 h-6 rounded bg-green-500/20 flex items-center justify-center shrink-0 mt-0.5"><i class="fas fa-check text-green-400 text-xs"></i></div>
+          <div><p class="text-green-300 text-sm font-semibold">Correct approach</p><p class="text-slate-400 text-xs">One database account per person — enables individual auditing and accountability.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Lock Default Accounts -->
+  <div class="reveal glass rounded-2xl p-8 mb-8 border border-amber-500/15">
+    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-lock text-amber-400"></i> 2. Lock and Expire Default Oracle Accounts</h3>
+    <p class="text-slate-400 mb-4">Oracle ships with many pre-defined accounts — sample schemas (HR, OE, PM, SH), internal accounts (ANONYMOUS, DBSNMP), and utility accounts. Any account not actively used should be locked and expired.</p>
+    <div class="terminal mb-4">
+      <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Finding and locking default accounts</span></div>
+      <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Find users with KNOWN DEFAULT passwords (Oracle maintains this view)</span>
+<span class="kw">SELECT</span> username, account_status
+<span class="kw">FROM</span>   <span class="fn">DBA_USERS_WITH_DEFPWD</span>
+<span class="kw">ORDER BY</span> username;
+
+<span class="cm">-- Lock sample schema accounts that are open</span>
+<span class="kw">ALTER USER</span> <span class="var">HR</span>        <span class="flag">ACCOUNT LOCK PASSWORD EXPIRE</span>;
+<span class="kw">ALTER USER</span> <span class="var">OE</span>        <span class="flag">ACCOUNT LOCK PASSWORD EXPIRE</span>;
+<span class="kw">ALTER USER</span> <span class="var">PM</span>        <span class="flag">ACCOUNT LOCK PASSWORD EXPIRE</span>;
+<span class="kw">ALTER USER</span> <span class="var">SH</span>        <span class="flag">ACCOUNT LOCK PASSWORD EXPIRE</span>;
+<span class="kw">ALTER USER</span> <span class="var">IX</span>        <span class="flag">ACCOUNT LOCK PASSWORD EXPIRE</span>;
+<span class="kw">ALTER USER</span> <span class="var">SCOTT</span>     <span class="flag">ACCOUNT LOCK PASSWORD EXPIRE</span>;
+<span class="kw">ALTER USER</span> <span class="var">ANONYMOUS</span> <span class="flag">ACCOUNT LOCK</span>;
+<span class="kw">ALTER USER</span> <span class="var">DBSNMP</span>    <span class="flag">ACCOUNT LOCK PASSWORD EXPIRE</span>;  <span class="cm">-- only lock if not using OEM</span>
+
+<span class="cm">-- Find all accounts that are currently OPEN (should be minimal set)</span>
+<span class="kw">SELECT</span> username, account_status, last_login, profile
+<span class="kw">FROM</span>   <span class="fn">DBA_USERS</span>
+<span class="kw">WHERE</span>  account_status = <span class="str">'OPEN'</span>
+<span class="kw">ORDER BY</span> username;</code></pre>
+    </div>
+    <div class="glass rounded-xl p-4 border border-amber-500/20">
+      <p class="text-amber-300 text-sm font-semibold mb-2">SYSTEM account best practice</p>
+      <p class="text-slate-400 text-sm">Never use SYSTEM for day-to-day DBA work. Create named DBA accounts (john_dba, jane_dba). Grant DBA role or grant SYSDBA via password file. The SYSTEM account should only be used for emergencies and its use should trigger an alert.</p>
+    </div>
+  </div>
+
+  <!-- 3. Unified Audit -->
+  <div class="reveal glass rounded-2xl p-8 mb-8 border border-violet-500/15">
+    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-eye text-violet-400"></i> 3. Enable and Configure Unified Auditing (12c+)</h3>
+    <p class="text-slate-400 mb-4">Oracle Unified Auditing (introduced in 12c) replaces traditional auditing. It captures all audit events in <code class="text-violet-300 text-xs">UNIFIED_AUDIT_TRAIL</code> and provides predefined audit policies for common compliance requirements.</p>
+    <div class="grid md:grid-cols-3 gap-4 mb-6">
+      <div class="glass rounded-xl p-4 border border-violet-500/15">
+        <code class="text-violet-300 text-xs font-bold">ORA_SECURECONFIG</code>
+        <span class="badge badge-green text-xs ml-2">Default ON</span>
+        <p class="text-slate-400 text-xs mt-2">Audits sensitive system configuration changes — ALTER SYSTEM, CREATE/ALTER/DROP ROLE, GRANT/REVOKE ANY PRIVILEGE, CREATE/ALTER PROFILE, and other security-sensitive DDL.</p>
+      </div>
+      <div class="glass rounded-xl p-4 border border-violet-500/15">
+        <code class="text-violet-300 text-xs font-bold">ORA_DATABASE_PARAMETER</code>
+        <span class="badge badge-amber text-xs ml-2">Default ON</span>
+        <p class="text-slate-400 text-xs mt-2">Audits changes to database initialization parameters using ALTER SYSTEM. Critical for detecting unauthorized performance or security parameter changes.</p>
+      </div>
+      <div class="glass rounded-xl p-4 border border-violet-500/15">
+        <code class="text-violet-300 text-xs font-bold">ORA_ACCOUNT_MGMT</code>
+        <span class="badge badge-sky text-xs ml-2">Configurable</span>
+        <p class="text-slate-400 text-xs mt-2">Audits user account management — CREATE/ALTER/DROP USER, GRANT ROLE, failed logins. Essential for access management compliance.</p>
+      </div>
+    </div>
+    <div class="terminal">
+      <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Unified Audit policy commands</span></div>
+      <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Check which unified audit policies are enabled</span>
+<span class="kw">SELECT</span> policy_name, enabled_opt, user_name
+<span class="kw">FROM</span>   <span class="fn">AUDIT_UNIFIED_ENABLED_POLICIES</span>
+<span class="kw">ORDER BY</span> policy_name;
+
+<span class="cm">-- Enable the account management audit policy for all users</span>
+<span class="kw">AUDIT POLICY</span> <span class="var">ORA_ACCOUNT_MGMT</span>;
+
+<span class="cm">-- Create a custom audit policy for DML on a sensitive table</span>
+<span class="kw">CREATE AUDIT POLICY</span> <span class="var">audit_payroll_dml</span>
+  <span class="flag">ACTIONS</span> <span class="flag">SELECT</span>, <span class="flag">INSERT</span>, <span class="flag">UPDATE</span>, <span class="flag">DELETE</span>
+  <span class="flag">ON</span> hr.payroll
+  <span class="flag">WHEN</span> <span class="str">'SYS_CONTEXT(''USERENV'',''SESSION_USER'') != ''HR'''</span>
+  <span class="flag">EVALUATE PER SESSION</span>;
+<span class="kw">AUDIT POLICY</span> <span class="var">audit_payroll_dml</span>;
+
+<span class="cm">-- Query the audit trail for failed logins</span>
+<span class="kw">SELECT</span> event_timestamp, db_user_name, client_ip, action_name,
+       return_code, unified_audit_policies
+<span class="kw">FROM</span>   <span class="fn">UNIFIED_AUDIT_TRAIL</span>
+<span class="kw">WHERE</span>  action_name = <span class="str">'LOGON'</span>
+<span class="kw">AND</span>    return_code != <span class="num">0</span>
+<span class="kw">AND</span>    event_timestamp > <span class="fn">SYSDATE</span> - <span class="num">1</span>
+<span class="kw">ORDER BY</span> event_timestamp <span class="flag">DESC</span>;</code></pre>
+    </div>
+  </div>
+
+  <!-- 4. Separate duties -->
+  <div class="reveal grid md:grid-cols-2 gap-6 mb-8">
+    <div class="glass rounded-2xl p-6 border border-violet-500/15">
+      <h3 class="text-xl font-bold text-white mb-4"><i class="fas fa-users-between-lines text-violet-400 mr-2"></i>4. Separation of Duties</h3>
+      <p class="text-slate-400 text-sm mb-4">No single person should have unchecked end-to-end control. Apply SoD to your Oracle DBA team:</p>
+      <div class="space-y-3">
+        <div class="glass rounded-lg p-3 border border-white/5">
+          <p class="text-violet-300 text-xs font-bold">DBA (Database Administrator)</p>
+          <p class="text-slate-400 text-xs">Instance management, storage, performance tuning, backup. Has SYSDBA but not security policy control.</p>
+        </div>
+        <div class="glass rounded-lg p-3 border border-white/5">
+          <p class="text-violet-300 text-xs font-bold">Security Administrator</p>
+          <p class="text-xs text-slate-400">Manages users, roles, profiles, audit policies. Has GRANT ANY PRIVILEGE but not SYSDBA.</p>
+        </div>
+        <div class="glass rounded-lg p-3 border border-white/5">
+          <p class="text-violet-300 text-xs font-bold">Audit Administrator</p>
+          <p class="text-slate-400 text-xs">Reviews audit trails, creates audit policies. READ-ONLY access to UNIFIED_AUDIT_TRAIL. Cannot modify database config.</p>
+        </div>
+      </div>
+    </div>
+    <div class="glass rounded-2xl p-6 border border-sky-500/15">
+      <h3 class="text-xl font-bold text-white mb-4"><i class="fas fa-magnifying-glass text-sky-400 mr-2"></i>5. Regular Privilege Reviews</h3>
+      <p class="text-slate-400 text-sm mb-4">Privileges accumulate over time ("privilege creep"). Schedule quarterly reviews:</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+        <pre class="p-3 text-xs font-mono leading-6"><code><span class="cm">-- Users with DBA role (non-standard)</span>
+<span class="kw">SELECT</span> grantee <span class="kw">FROM</span> <span class="fn">DBA_ROLE_PRIVS</span>
+<span class="kw">WHERE</span>  granted_role=<span class="str">'DBA'</span>
+<span class="kw">AND</span>    grantee <span class="kw">NOT IN</span>(<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>);
+
+<span class="cm">-- Unused accounts (90 days no login)</span>
+<span class="kw">SELECT</span> username, last_login
+<span class="kw">FROM</span>   <span class="fn">DBA_USERS</span>
+<span class="kw">WHERE</span>  last_login &lt; <span class="fn">SYSDATE</span>-<span class="num">90</span>
+<span class="kw">AND</span>    account_status=<span class="str">'OPEN'</span>;
+
+<span class="cm">-- Default password accounts still open</span>
+<span class="kw">SELECT</span> username <span class="kw">FROM</span> <span class="fn">DBA_USERS_WITH_DEFPWD</span>
+<span class="kw">WHERE</span>  account_status=<span class="str">'OPEN'</span>;</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 9 — REAL-LIFE SCENARIOS
+     ═════════════════════════════════════════════════════ -->
+<section id="scenarios" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-violet mb-4"><i class="fas fa-flask mr-1"></i> Section 9</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">Real-Life Scenarios</h2>
+    <p class="text-slate-400 max-w-3xl mb-10">These are situations every Oracle DBA encounters on the job. Each scenario walks through the exact commands you need — from the initial problem to the complete solution.</p>
+  </div>
+
+  <div class="reveal space-y-4">
+
+    <!-- Scenario 1 -->
+    <div class="glass rounded-xl border border-white/6 overflow-hidden">
+      <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+        <div class="flex items-center gap-4">
+          <div class="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center shrink-0"><span class="text-violet-400 font-bold text-sm">1</span></div>
+          <div>
+            <p class="font-bold text-white">New developer joins — set up their database account</p>
+            <p class="text-slate-500 text-xs mt-0.5">HR schema access, read-only to start, own dev schema for experiments</p>
+          </div>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+      </button>
+      <div class="acc-content px-6 pb-6">
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Onboard new developer</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Step 1: Create the developer's account</span>
+<span class="kw">CREATE USER</span> <span class="var">dev_priya</span>
+  <span class="flag">IDENTIFIED BY</span> <span class="str">"TempPass#2024"</span>
+  <span class="flag">DEFAULT TABLESPACE</span> <span class="var">users</span>
+  <span class="flag">TEMPORARY TABLESPACE</span> <span class="var">temp</span>
+  <span class="flag">QUOTA</span> <span class="num">500M</span> <span class="kw">ON</span> <span class="var">users</span>
+  <span class="flag">PROFILE</span> <span class="var">app_user_profile</span>        <span class="cm">-- enforce password policy</span>
+  <span class="flag">PASSWORD EXPIRE</span>;               <span class="cm">-- force password change on first login</span>
+
+<span class="cm">-- Step 2: Grant connect ability</span>
+<span class="kw">GRANT</span> <span class="flag">CREATE SESSION</span> <span class="kw">TO</span> <span class="var">dev_priya</span>;
+
+<span class="cm">-- Step 3: Grant read access to HR schema tables</span>
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> hr.employees       <span class="kw">TO</span> <span class="var">dev_priya</span>;
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> hr.departments     <span class="kw">TO</span> <span class="var">dev_priya</span>;
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> hr.jobs            <span class="kw">TO</span> <span class="var">dev_priya</span>;
+
+<span class="cm">-- Step 4: Allow dev_priya to create objects in their OWN schema</span>
+<span class="kw">GRANT</span> <span class="flag">CREATE TABLE</span>, <span class="flag">CREATE VIEW</span>,
+      <span class="flag">CREATE SEQUENCE</span>, <span class="flag">CREATE PROCEDURE</span> <span class="kw">TO</span> <span class="var">dev_priya</span>;
+
+<span class="cm">-- Verify: what can dev_priya do?</span>
+<span class="kw">SELECT</span> privilege <span class="kw">FROM</span> <span class="fn">DBA_SYS_PRIVS</span>  <span class="kw">WHERE</span> grantee=<span class="str">'DEV_PRIYA'</span>
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span> owner||<span class="str">'.'</span>||table_name||<span class="str">' ('</span>||privilege||<span class="str">')'</span>
+<span class="kw">FROM</span>   <span class="fn">DBA_TAB_PRIVS</span> <span class="kw">WHERE</span> grantee=<span class="str">'DEV_PRIYA'</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario 2 -->
+    <div class="glass rounded-xl border border-white/6 overflow-hidden">
+      <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+        <div class="flex items-center gap-4">
+          <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center shrink-0"><span class="text-sky-400 font-bold text-sm">2</span></div>
+          <div>
+            <p class="font-bold text-white">User locked out — account shows LOCKED(TIMED)</p>
+            <p class="text-slate-500 text-xs mt-0.5">Too many failed login attempts, or INACTIVE_ACCOUNT_TIME exceeded</p>
+          </div>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+      </button>
+      <div class="acc-content px-6 pb-6">
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Unlock a locked account</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Step 1: Check the account status and find when it was locked</span>
+<span class="kw">SELECT</span> username, account_status, lock_date, expiry_date, last_login, profile
+<span class="kw">FROM</span>   <span class="fn">DBA_USERS</span>
+<span class="kw">WHERE</span>  username = <span class="str">'DEV_PRIYA'</span>;
+
+<span class="cm">-- Step 2a: Unlock if locked by failed attempts (LOCKED or LOCKED(TIMED))</span>
+<span class="kw">ALTER USER</span> <span class="var">dev_priya</span> <span class="flag">ACCOUNT UNLOCK</span>;
+
+<span class="cm">-- Step 2b: If password also expired (EXPIRED & LOCKED) — reset and expire</span>
+<span class="kw">ALTER USER</span> <span class="var">dev_priya</span>
+  <span class="flag">IDENTIFIED BY</span> <span class="str">"NewTemp#2024"</span>
+  <span class="flag">ACCOUNT UNLOCK</span>
+  <span class="flag">PASSWORD EXPIRE</span>;               <span class="cm">-- user must change on next login</span>
+
+<span class="cm">-- Step 3: Check the audit trail — how many times did they fail?</span>
+<span class="kw">SELECT</span> event_timestamp, db_user_name, client_ip, action_name, return_code
+<span class="kw">FROM</span>   <span class="fn">UNIFIED_AUDIT_TRAIL</span>
+<span class="kw">WHERE</span>  db_user_name = <span class="str">'DEV_PRIYA'</span>
+<span class="kw">AND</span>    action_name  = <span class="str">'LOGON'</span>
+<span class="kw">AND</span>    return_code != <span class="num">0</span>
+<span class="kw">ORDER BY</span> event_timestamp <span class="flag">DESC</span>
+<span class="flag">FETCH FIRST</span> <span class="num">20</span> <span class="flag">ROWS ONLY</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario 3 -->
+    <div class="glass rounded-xl border border-white/6 overflow-hidden">
+      <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+        <div class="flex items-center gap-4">
+          <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0"><span class="text-green-400 font-bold text-sm">3</span></div>
+          <div>
+            <p class="font-bold text-white">Employee leaves the company — immediately revoke all access</p>
+            <p class="text-slate-500 text-xs mt-0.5">Security incident response: offboarding procedure</p>
+          </div>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+      </button>
+      <div class="acc-content px-6 pb-6">
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Emergency offboarding — John Smith is leaving today</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Step 1: Immediately kill all active sessions for this user</span>
+<span class="kw">SELECT</span> sid, serial#, status, machine, logon_time
+<span class="kw">FROM</span>   <span class="fn">V$SESSION</span>
+<span class="kw">WHERE</span>  username = <span class="str">'JOHN_SMITH'</span>;
+
+<span class="cm">-- Kill each active session (replace SID,SERIAL# from above)</span>
+<span class="kw">ALTER SYSTEM KILL SESSION</span> <span class="str">'142,8763'</span> <span class="flag">IMMEDIATE</span>;
+
+<span class="cm">-- Step 2: Lock the account immediately (prevents new logins)</span>
+<span class="kw">ALTER USER</span> <span class="var">john_smith</span> <span class="flag">ACCOUNT LOCK</span>;
+
+<span class="cm">-- Step 3: Expire the password (so even if unlocked, must be reset)</span>
+<span class="kw">ALTER USER</span> <span class="var">john_smith</span> <span class="flag">PASSWORD EXPIRE</span>;
+
+<span class="cm">-- Step 4: Document — what did john_smith have access to?</span>
+<span class="kw">SELECT</span> <span class="str">'SYSTEM_PRIV'</span> AS type, privilege     <span class="kw">AS access</span> <span class="kw">FROM</span> <span class="fn">DBA_SYS_PRIVS</span>  <span class="kw">WHERE</span> grantee=<span class="str">'JOHN_SMITH'</span>
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span> <span class="str">'ROLE'</span>,          granted_role              <span class="kw">FROM</span> <span class="fn">DBA_ROLE_PRIVS</span> <span class="kw">WHERE</span> grantee=<span class="str">'JOHN_SMITH'</span>
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span> <span class="str">'OBJECT'</span>,        owner||<span class="str">'.'</span>||table_name   <span class="kw">FROM</span> <span class="fn">DBA_TAB_PRIVS</span>  <span class="kw">WHERE</span> grantee=<span class="str">'JOHN_SMITH'</span>;
+
+<span class="cm">-- Step 5 (after 90 days retention): Drop the account</span>
+<span class="cm">-- DROP USER john_smith CASCADE;  -- CASCADE drops all objects owned</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario 4 -->
+    <div class="glass rounded-xl border border-white/6 overflow-hidden">
+      <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+        <div class="flex items-center gap-4">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0"><span class="text-amber-400 font-bold text-sm">4</span></div>
+          <div>
+            <p class="font-bold text-white">Create a read-only schema for a BI / reporting tool</p>
+            <p class="text-slate-500 text-xs mt-0.5">Tableau / Power BI connects to Oracle — needs SELECT-only, no DML</p>
+          </div>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+      </button>
+      <div class="acc-content px-6 pb-6">
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">BI tool — read-only service account</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- 1. Create a dedicated role for reporting</span>
+<span class="kw">CREATE ROLE</span> <span class="var">bi_reporting_role</span>;
+
+<span class="cm">-- 2. Grant SELECT on all tables the BI tool needs</span>
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> sales.orders        <span class="kw">TO</span> <span class="var">bi_reporting_role</span>;
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> sales.order_items   <span class="kw">TO</span> <span class="var">bi_reporting_role</span>;
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> hr.employees        <span class="kw">TO</span> <span class="var">bi_reporting_role</span>;
+<span class="kw">GRANT</span> <span class="flag">SELECT</span> <span class="kw">ON</span> finance.revenue     <span class="kw">TO</span> <span class="var">bi_reporting_role</span>;
+
+<span class="cm">-- 3. Create the service account with service profile (no expiry)</span>
+<span class="kw">CREATE USER</span> <span class="var">svc_bi_tableau</span>
+  <span class="flag">IDENTIFIED BY</span> <span class="str">"BiT00l$ecret#1"</span>
+  <span class="flag">DEFAULT TABLESPACE</span> <span class="var">users</span>
+  <span class="flag">QUOTA</span> <span class="num">0</span> <span class="kw">ON</span> <span class="var">users</span>               <span class="cm">-- no space needed, read-only</span>
+  <span class="flag">PROFILE</span> <span class="var">svc_account_profile</span>;   <span class="cm">-- no password expiry</span>
+
+<span class="cm">-- 4. Grant connect + the reporting role</span>
+<span class="kw">GRANT</span> <span class="flag">CREATE SESSION</span>   <span class="kw">TO</span> <span class="var">svc_bi_tableau</span>;
+<span class="kw">GRANT</span> <span class="var">bi_reporting_role</span> <span class="kw">TO</span> <span class="var">svc_bi_tableau</span>;
+
+<span class="cm">-- 5. Set the role as DEFAULT (active immediately on login)</span>
+<span class="kw">ALTER USER</span> <span class="var">svc_bi_tableau</span> <span class="flag">DEFAULT ROLE</span> <span class="var">bi_reporting_role</span>;
+
+<span class="cm">-- 6. Optionally restrict to specific IP (use Oracle Connection Manager or VPD)</span>
+<span class="cm">-- Or use a LOGON TRIGGER to enforce IP restrictions:</span>
+<span class="kw">CREATE OR REPLACE TRIGGER</span> <span class="var">restrict_bi_ip</span>
+  <span class="flag">AFTER LOGON ON</span> <span class="var">svc_bi_tableau</span><span class="flag">.SCHEMA</span>
+<span class="kw">BEGIN</span>
+  <span class="kw">IF</span> <span class="fn">SYS_CONTEXT</span>(<span class="str">'USERENV'</span>,<span class="str">'IP_ADDRESS'</span>) <span class="kw">NOT IN</span>
+     (<span class="str">'10.0.1.50'</span>, <span class="str">'10.0.1.51'</span>)  <span class="cm">-- allowed BI server IPs</span>
+  <span class="kw">THEN</span>
+    <span class="fn">RAISE_APPLICATION_ERROR</span>(-<span class="num">20001</span>, <span class="str">'Unauthorized IP address'</span>);
+  <span class="kw">END IF</span>;
+<span class="kw">END</span>;
+/</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario 5 -->
+    <div class="glass rounded-xl border border-white/6 overflow-hidden">
+      <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+        <div class="flex items-center gap-4">
+          <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0"><span class="text-red-400 font-bold text-sm">5</span></div>
+          <div>
+            <p class="font-bold text-white">Security audit — find all privilege escalation risks</p>
+            <p class="text-slate-500 text-xs mt-0.5">Pre-audit cleanup: identify over-privileged accounts before the auditors arrive</p>
+          </div>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+      </button>
+      <div class="acc-content px-6 pb-6">
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Security audit queries</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- 1. Users with DBA role (not SYS/SYSTEM)</span>
+<span class="kw">SELECT</span> grantee, admin_option
+<span class="kw">FROM</span>   <span class="fn">DBA_ROLE_PRIVS</span>
+<span class="kw">WHERE</span>  granted_role=<span class="str">'DBA'</span>
+<span class="kw">AND</span>    grantee <span class="kw">NOT IN</span> (<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>);
+
+<span class="cm">-- 2. Users with dangerous ANY privileges</span>
+<span class="kw">SELECT</span> grantee, privilege, admin_option
+<span class="kw">FROM</span>   <span class="fn">DBA_SYS_PRIVS</span>
+<span class="kw">WHERE</span>  privilege <span class="kw">LIKE</span> <span class="str">'%ANY%'</span>
+<span class="kw">AND</span>    grantee <span class="kw">NOT IN</span>
+       (<span class="kw">SELECT</span> role <span class="kw">FROM</span> <span class="fn">DBA_ROLES</span>)      <span class="cm">-- exclude roles, show direct grants</span>
+<span class="kw">AND</span>    grantee <span class="kw">NOT IN</span> (<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>)
+<span class="kw">ORDER BY</span> grantee;
+
+<span class="cm">-- 3. Objects granted to PUBLIC (visible to everyone)</span>
+<span class="kw">SELECT</span> owner, table_name, privilege
+<span class="kw">FROM</span>   <span class="fn">DBA_TAB_PRIVS</span>
+<span class="kw">WHERE</span>  grantee=<span class="str">'PUBLIC'</span>
+<span class="kw">ORDER BY</span> owner, table_name;
+
+<span class="cm">-- 4. Users still using default passwords</span>
+<span class="kw">SELECT</span> username, account_status <span class="kw">FROM</span> <span class="fn">DBA_USERS_WITH_DEFPWD</span>;
+
+<span class="cm">-- 5. Accounts open with no login in 90+ days</span>
+<span class="kw">SELECT</span> username, last_login, account_status, profile
+<span class="kw">FROM</span>   <span class="fn">DBA_USERS</span>
+<span class="kw">WHERE</span>  account_status = <span class="str">'OPEN'</span>
+<span class="kw">AND</span>   (last_login IS NULL OR last_login &lt; <span class="fn">SYSDATE</span>-<span class="num">90</span>)
+<span class="kw">AND</span>    username <span class="kw">NOT IN</span> (<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>,<span class="str">'DBSNMP'</span>)
+<span class="kw">ORDER BY</span> last_login;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario 6 -->
+    <div class="glass rounded-xl border border-white/6 overflow-hidden">
+      <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+        <div class="flex items-center gap-4">
+          <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center shrink-0"><span class="text-purple-400 font-bold text-sm">6</span></div>
+          <div>
+            <p class="font-bold text-white">Schema-only user for microservices (NO AUTHENTICATION)</p>
+            <p class="text-slate-500 text-xs mt-0.5">Own the objects; application connects as a different service account</p>
+          </div>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+      </button>
+      <div class="acc-content px-6 pb-6">
+        <p class="text-slate-400 text-sm mb-4">A schema-only account (introduced in Oracle 18c) cannot log in to the database. It owns objects, but application code connects as a separate service account and accesses the schema via synonyms or explicit schema prefixes. This is a modern security best practice.</p>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Schema-only account pattern (Oracle 18c+)</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- 1. Create the schema-only account (NO AUTHENTICATION = cannot log in)</span>
+<span class="kw">CREATE USER</span> <span class="var">inventory_schema</span>
+  <span class="flag">NO AUTHENTICATION</span>              <span class="cm">-- no password, cannot log in directly</span>
+  <span class="flag">DEFAULT TABLESPACE</span> <span class="var">app_data</span>
+  <span class="flag">QUOTA UNLIMITED ON</span> <span class="var">app_data</span>;
+
+<span class="cm">-- 2. Create the objects in the schema</span>
+<span class="cm">-- (Connect as DBA and create tables on behalf of schema_owner)</span>
+<span class="kw">CREATE TABLE</span> inventory_schema.products (
+  product_id   <span class="key">NUMBER</span>        <span class="flag">PRIMARY KEY</span>,
+  product_name <span class="key">VARCHAR2</span>(<span class="num">200</span>) <span class="flag">NOT NULL</span>,
+  qty_on_hand  <span class="key">NUMBER</span>        <span class="flag">DEFAULT</span> <span class="num">0</span>
+);
+
+<span class="cm">-- 3. Create the service account that the app actually uses</span>
+<span class="kw">CREATE USER</span> <span class="var">svc_inventory_app</span>
+  <span class="flag">IDENTIFIED BY</span> <span class="str">"Inv@ppS3rv1ce#"</span>
+  <span class="flag">PROFILE</span> <span class="var">svc_account_profile</span>
+  <span class="flag">DEFAULT TABLESPACE</span> <span class="var">users</span>
+  <span class="flag">QUOTA</span> <span class="num">0</span> <span class="kw">ON</span> <span class="var">users</span>;
+
+<span class="kw">GRANT</span> <span class="flag">CREATE SESSION</span> <span class="kw">TO</span> <span class="var">svc_inventory_app</span>;
+
+<span class="cm">-- 4. Grant the service account access to schema_owner's objects</span>
+<span class="kw">GRANT</span> <span class="flag">SELECT</span>, <span class="flag">INSERT</span>, <span class="flag">UPDATE</span> <span class="kw">ON</span> inventory_schema.products <span class="kw">TO</span> <span class="var">svc_inventory_app</span>;
+
+<span class="cm">-- 5. App accesses via explicit prefix: inventory_schema.products</span>
+<span class="cm">-- Or create synonyms in app's schema for convenience</span>
+<span class="kw">CREATE SYNONYM</span> svc_inventory_app.products
+  <span class="kw">FOR</span> inventory_schema.products;
+
+<span class="cm">-- Verify: account_status = 'NONE' for schema-only accounts</span>
+<span class="kw">SELECT</span> username, authentication_type, account_status
+<span class="kw">FROM</span>   <span class="fn">DBA_USERS</span>
+<span class="kw">WHERE</span>  username = <span class="str">'INVENTORY_SCHEMA'</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 10 — DBA QUICK REFERENCE
+     ═════════════════════════════════════════════════════ -->
+<section id="cheatsheet" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-violet mb-4"><i class="fas fa-book-open mr-1"></i> Section 10</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">DBA Quick Reference</h2>
+    <p class="text-slate-400 max-w-3xl mb-10">The key data dictionary views every Oracle DBA uses daily for user and security management. Bookmark this section.</p>
+  </div>
+
+  <div class="reveal grid md:grid-cols-2 gap-6 mb-10">
+
+    <!-- Users & Accounts -->
+    <div class="glass rounded-2xl p-6 border border-white/6">
+      <h4 class="font-bold text-violet-300 mb-4 flex items-center gap-2"><i class="fas fa-user-circle text-violet-400"></i> Users &amp; Accounts</h4>
+      <div class="space-y-2">
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-44 shrink-0">DBA_USERS</code>
+          <span class="text-slate-400 text-xs">All accounts: status, profile, expiry, tablespace, last_login</span>
+        </div>
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-44 shrink-0">DBA_USERS_WITH_DEFPWD</code>
+          <span class="text-slate-400 text-xs">Accounts using Oracle's known default passwords — security risk</span>
+        </div>
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-44 shrink-0">V$SESSION</code>
+          <span class="text-slate-400 text-xs">Active sessions: SID, SERIAL#, username, status, machine, logon_time</span>
+        </div>
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-44 shrink-0">V$PWFILE_USERS</code>
+          <span class="text-slate-400 text-xs">Users with SYSDBA/SYSOPER/SYSBACKUP etc. — password file entries</span>
+        </div>
+        <div class="flex items-start gap-3 py-2">
+          <code class="text-violet-300 text-xs w-44 shrink-0">CDB_USERS</code>
+          <span class="text-slate-400 text-xs">All users across all PDBs in a CDB environment; includes CON_ID</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privileges -->
+    <div class="glass rounded-2xl p-6 border border-white/6">
+      <h4 class="font-bold text-violet-300 mb-4 flex items-center gap-2"><i class="fas fa-shield-halved text-violet-400"></i> Privileges</h4>
+      <div class="space-y-2">
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-40 shrink-0">DBA_SYS_PRIVS</code>
+          <span class="text-slate-400 text-xs">System privileges granted to users and roles; ADMIN_OPTION flag</span>
+        </div>
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-40 shrink-0">DBA_TAB_PRIVS</code>
+          <span class="text-slate-400 text-xs">Object privileges on tables/views/sequences; GRANTABLE flag</span>
+        </div>
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-40 shrink-0">DBA_COL_PRIVS</code>
+          <span class="text-slate-400 text-xs">Column-level object privileges (UPDATE(salary), etc.)</span>
+        </div>
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-40 shrink-0">SESSION_PRIVS</code>
+          <span class="text-slate-400 text-xs">System privileges active in <em>your current session</em></span>
+        </div>
+        <div class="flex items-start gap-3 py-2">
+          <code class="text-violet-300 text-xs w-40 shrink-0">SESSION_ROLES</code>
+          <span class="text-slate-400 text-xs">Roles currently enabled in your session (SET ROLE aware)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roles -->
+    <div class="glass rounded-2xl p-6 border border-white/6">
+      <h4 class="font-bold text-violet-300 mb-4 flex items-center gap-2"><i class="fas fa-layer-group text-violet-400"></i> Roles</h4>
+      <div class="space-y-2">
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-40 shrink-0">DBA_ROLES</code>
+          <span class="text-slate-400 text-xs">All roles defined in the database; authentication type</span>
+        </div>
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-40 shrink-0">DBA_ROLE_PRIVS</code>
+          <span class="text-slate-400 text-xs">Role assignments to users and other roles; DEFAULT_ROLE flag</span>
+        </div>
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-40 shrink-0">ROLE_SYS_PRIVS</code>
+          <span class="text-slate-400 text-xs">System privileges contained inside a role</span>
+        </div>
+        <div class="flex items-start gap-3 py-2">
+          <code class="text-violet-300 text-xs w-40 shrink-0">ROLE_TAB_PRIVS</code>
+          <span class="text-slate-400 text-xs">Object privileges contained inside a role</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profiles & Audit -->
+    <div class="glass rounded-2xl p-6 border border-white/6">
+      <h4 class="font-bold text-violet-300 mb-4 flex items-center gap-2"><i class="fas fa-file-shield text-violet-400"></i> Profiles &amp; Audit</h4>
+      <div class="space-y-2">
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-44 shrink-0">DBA_PROFILES</code>
+          <span class="text-slate-400 text-xs">All profiles and their limit values (password + resource)</span>
+        </div>
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-44 shrink-0">UNIFIED_AUDIT_TRAIL</code>
+          <span class="text-slate-400 text-xs">All unified audit events (12c+). Query for logons, DDL, DML</span>
+        </div>
+        <div class="flex items-start gap-3 py-2 border-b border-white/5">
+          <code class="text-violet-300 text-xs w-44 shrink-0">AUDIT_UNIFIED_POLICIES</code>
+          <span class="text-slate-400 text-xs">Defined unified audit policies (predefined + custom)</span>
+        </div>
+        <div class="flex items-start gap-3 py-2">
+          <code class="text-violet-300 text-xs w-44 shrink-0">AUDIT_UNIFIED_ENABLED_POLICIES</code>
+          <span class="text-slate-400 text-xs">Which unified audit policies are currently enabled</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Master query cheatsheet -->
+  <div class="reveal terminal">
+    <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Master queries — copy-paste ready</span></div>
+    <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Who am I and what are my current privileges?</span>
+<span class="kw">SELECT USER FROM DUAL</span>;
+<span class="kw">SELECT</span> privilege <span class="kw">FROM</span> <span class="fn">SESSION_PRIVS</span>  <span class="kw">ORDER BY</span> privilege;
+<span class="kw">SELECT</span> role      <span class="kw">FROM</span> <span class="fn">SESSION_ROLES</span>  <span class="kw">ORDER BY</span> role;
+
+<span class="cm">-- Complete privilege inventory for any user (direct + via roles)</span>
+<span class="kw">SELECT</span> <span class="str">'SYS_PRIV'</span> type, grantee, privilege obj, admin_option flag
+<span class="kw">FROM</span> <span class="fn">DBA_SYS_PRIVS</span> <span class="kw">WHERE</span> grantee=<span class="str">'TARGET_USER'</span>
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span> <span class="str">'ROLE'</span>, grantee, granted_role, default_role
+<span class="kw">FROM</span> <span class="fn">DBA_ROLE_PRIVS</span> <span class="kw">WHERE</span> grantee=<span class="str">'TARGET_USER'</span>
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span> <span class="str">'OBJ_PRIV'</span>, grantee, owner||<span class="str">'.'</span>||table_name, privilege
+<span class="kw">FROM</span> <span class="fn">DBA_TAB_PRIVS</span> <span class="kw">WHERE</span> grantee=<span class="str">'TARGET_USER'</span>
+<span class="kw">ORDER BY</span> 1, 3;
+
+<span class="cm">-- What does a role contain? (recursive — shows nested roles too)</span>
+<span class="kw">SELECT</span> granted_role <span class="kw">FROM</span> <span class="fn">DBA_ROLE_PRIVS</span> <span class="kw">WHERE</span> grantee=<span class="str">'ROLE_NAME'</span>
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span> privilege     <span class="kw">FROM</span> <span class="fn">DBA_SYS_PRIVS</span>  <span class="kw">WHERE</span> grantee=<span class="str">'ROLE_NAME'</span>
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span> owner||<span class="str">'.'</span>||table_name||<span class="str">' ('</span>||privilege||<span class="str">')'</span>
+<span class="kw">FROM</span>   <span class="fn">DBA_TAB_PRIVS</span> <span class="kw">WHERE</span> grantee=<span class="str">'ROLE_NAME'</span>;
+
+<span class="cm">-- Quick health check: accounts that need attention</span>
+<span class="kw">SELECT</span> username, account_status, expiry_date, last_login, profile
+<span class="kw">FROM</span>   <span class="fn">DBA_USERS</span>
+<span class="kw">WHERE</span>  account_status <span class="kw">NOT IN</span> (<span class="str">'LOCKED'</span>,<span class="str">'EXPIRED & LOCKED'</span>)
+<span class="kw">AND</span>    username <span class="kw">NOT IN</span>
+       (<span class="kw">SELECT</span> username <span class="kw">FROM</span> <span class="fn">V$PWFILE_USERS</span>)  <span class="cm">-- exclude SYSDBA accounts</span>
+<span class="kw">ORDER BY</span> username;</code></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     FOOTER
+     ═════════════════════════════════════════════════════ -->
+<footer class="border-t border-white/5 py-12 px-6 mt-12">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid md:grid-cols-3 gap-8 mb-10">
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center"><i class="fas fa-user-shield text-violet-400 text-sm"></i></div>
+          <span class="font-bold text-white font-display">Oracle User Management</span>
+        </div>
+        <p class="text-slate-500 text-sm leading-relaxed">A job-training reference for Oracle DBAs. All syntax and commands sourced from Oracle official documentation. Content is updated for Oracle 19c.</p>
+      </div>
+      <div>
+        <h5 class="font-semibold text-white mb-4 text-sm">Official Oracle Documentation</h5>
+        <ul class="space-y-2">
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/" class="text-slate-500 hover:text-violet-400 text-xs transition-colors" target="_blank" rel="noopener"><i class="fas fa-external-link-alt mr-2 text-xs"></i>Oracle Database Security Guide 19c</a></li>
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-USER.html" class="text-slate-500 hover:text-violet-400 text-xs transition-colors" target="_blank" rel="noopener"><i class="fas fa-external-link-alt mr-2 text-xs"></i>CREATE USER SQL Reference</a></li>
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/GRANT.html" class="text-slate-500 hover:text-violet-400 text-xs transition-colors" target="_blank" rel="noopener"><i class="fas fa-external-link-alt mr-2 text-xs"></i>GRANT SQL Reference</a></li>
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dbseg/managing-security-for-application-developers.html" class="text-slate-500 hover:text-violet-400 text-xs transition-colors" target="_blank" rel="noopener"><i class="fas fa-external-link-alt mr-2 text-xs"></i>Application Security Guide</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5 class="font-semibold text-white mb-4 text-sm">Explore More</h5>
+        <ul class="space-y-2">
+          <li><a href="index.html" class="text-slate-500 hover:text-violet-400 text-xs transition-colors"><i class="fas fa-home mr-2 text-xs"></i>Back to Home</a></li>
+          <li><a href="aws-rds-oracle.html" class="text-slate-500 hover:text-violet-400 text-xs transition-colors"><i class="fas fa-cloud mr-2 text-xs"></i>AWS RDS Oracle Guide</a></li>
+          <li><a href="oracle-architecture.html" class="text-slate-500 hover:text-violet-400 text-xs transition-colors"><i class="fas fa-server mr-2 text-xs"></i>Oracle Architecture</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/5 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <p class="text-slate-600 text-xs">Oracle User Management Guide — Oracle DBA Simplified. Built for job training purposes.</p>
+      <div class="flex gap-4">
+        <span class="badge badge-violet text-xs">Oracle 19c</span>
+        <span class="badge badge-sky text-xs">12c Compatible</span>
+        <span class="badge badge-green text-xs">STIG Aligned</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Back to top -->
+<button id="back-top" class="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-violet-600 text-white flex items-center justify-center shadow-lg opacity-0 transition-all duration-300 hover:bg-violet-500 z-40">
+  <i class="fas fa-chevron-up text-xs"></i>
+</button>
+
+<!-- Mobile menu overlay -->
+<div id="mob-menu" class="md:hidden glass-strong border-t border-white/5 fixed top-16 left-0 right-0 z-40 px-6 py-4">
+  <div class="flex flex-col gap-3">
+    <a href="#overview"     class="nav-link py-1">Overview</a>
+    <a href="#create-user"  class="nav-link py-1">Create User</a>
+    <a href="#system-privs" class="nav-link py-1">System Privileges</a>
+    <a href="#object-privs" class="nav-link py-1">Object Privileges</a>
+    <a href="#roles"        class="nav-link py-1">Roles</a>
+    <a href="#profiles"     class="nav-link py-1">Profiles</a>
+    <a href="#cdb-pdb"      class="nav-link py-1">CDB/PDB</a>
+    <a href="#security"     class="nav-link py-1">Security</a>
+    <a href="#scenarios"    class="nav-link py-1">Scenarios</a>
+    <a href="#cheatsheet"   class="nav-link py-1">Cheatsheet</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+     ═════════════════════════════════════════════════════ -->
+<script>
+// Tab system
+function initTabs(groupName) {
+  const btns = document.querySelectorAll(`[data-tab][data-group="${groupName}"]`);
+  function activate(val) {
+    btns.forEach(b => b.classList.toggle('active', b.dataset.tab === val));
+    btns.forEach(b => {
+      const pane = document.getElementById(b.dataset.tab);
+      if (pane) pane.classList.toggle('active', b.dataset.tab === val);
+    });
+  }
+  btns.forEach(b => b.addEventListener('click', () => activate(b.dataset.tab)));
+  if (btns.length) activate(btns[0].dataset.tab);
+}
+initTabs('spriv');
+
+// Accordion
+document.querySelectorAll('.acc-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const content = btn.nextElementSibling;
+    btn.classList.toggle('open');
+    content.classList.toggle('open');
+  });
+});
+
+// Scroll reveal
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+// Back-to-top
+const backBtn = document.getElementById('back-top');
+window.addEventListener('scroll', () => {
+  backBtn.style.opacity = window.scrollY > 400 ? '1' : '0';
+  backBtn.style.pointerEvents = window.scrollY > 400 ? 'auto' : 'none';
+});
+backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+// Active nav link
+const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+const sections = document.querySelectorAll('section[id]');
+const navObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    }
+  });
+}, { rootMargin: '-40% 0px -55% 0px' });
+sections.forEach(s => navObs.observe(s));
+
+// Mobile menu toggle
+const menuBtn = document.getElementById('menu-btn');
+const mobMenu = document.getElementById('mob-menu');
+if (menuBtn) {
+  menuBtn.addEventListener('click', () => mobMenu.classList.toggle('open'));
+  document.querySelectorAll('#mob-menu .nav-link').forEach(a => {
+    a.addEventListener('click', () => mobMenu.classList.remove('open'));
+  });
+}
+</script>
+</body>
+</html>
