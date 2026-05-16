@@ -303,8 +303,8 @@
       <!-- Layer 5: Data Block -->
       <rect x="105" y="468" width="650" height="42" rx="10" fill="url(#blkGrad)" stroke="#38bdf8" stroke-width="1.2" stroke-opacity="0.4"/>
       <text x="125" y="492" fill="#38bdf8" font-size="12" font-weight="700" font-family="Sora, sans-serif">DATA BLOCK</text>
-      <text x="250" y="492" fill="#94a3b8" font-size="11">Smallest I/O unit — default 8KB. Contains row data, block header, free space. Set by DB_BLOCK_SIZE.</text>
-      <text x="700" y="492" fill="#38bdf8" font-size="22" font-weight="800" font-family="Sora, sans-serif">L5</text>
+      <text x="250" y="492" fill="#94a3b8" font-size="11">Smallest I/O unit — default 8KB. Set by DB_BLOCK_SIZE (set at DB creation, cannot change).</text>
+      <text x="688" y="492" fill="#38bdf8" font-size="22" font-weight="800" font-family="Sora, sans-serif">L5</text>
     </svg>
   </div>
 
@@ -1177,12 +1177,12 @@
 <span class="kw">SELECT</span> df.tablespace_name,
        <span class="fn">ROUND</span>(<span class="fn">SUM</span>(df.bytes)/1048576,1) total_mb,
        <span class="fn">ROUND</span>(<span class="fn">NVL</span>(<span class="fn">SUM</span>(fs.bytes),0)/1048576,1) free_mb,
-       <span class="fn">ROUND</span>((<fn>SUM</fn>(df.bytes)-<span class="fn">NVL</span>(<fn>SUM</fn>(fs.bytes),0))/<fn>SUM</fn>(df.bytes)*100,1) pct_used
+       <span class="fn">ROUND</span>((<span class="fn">SUM</span>(df.bytes)-<span class="fn">NVL</span>(<span class="fn">SUM</span>(fs.bytes),0))/<span class="fn">SUM</span>(df.bytes)*100,1) pct_used
 <span class="kw">FROM</span>  <span class="fn">DBA_DATA_FILES</span> df
       <span class="kw">LEFT JOIN</span> <span class="fn">DBA_FREE_SPACE</span> fs <span class="kw">ON</span> df.tablespace_name=fs.tablespace_name
                                  <span class="kw">AND</span> df.file_id=fs.file_id
 <span class="kw">GROUP BY</span> df.tablespace_name
-<span class="kw">HAVING</span> <span class="fn">NVL</span>(<span class="fn">SUM</span>(fs.bytes),0)/<fn>SUM</fn>(df.bytes)*100 < <span class="num">10</span>  <span class="cm">-- less than 10% free</span>
+<span class="kw">HAVING</span> <span class="fn">NVL</span>(<span class="fn">SUM</span>(fs.bytes),0)/<span class="fn">SUM</span>(df.bytes)*100 < <span class="num">10</span>  <span class="cm">-- less than 10% free</span>
 <span class="kw">ORDER BY</span> pct_used <span class="flag">DESC</span>;
 
 <span class="cm">-- Step 2a: Add a new datafile (RECOMMENDED - fastest fix)</span>
@@ -1369,8 +1369,8 @@
         <div class="terminal">
           <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">ORA-30036 Resolution commands</span></div>
           <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Step 1: Check undo tablespace size and usage</span>
-<span class="kw">SELECT</span> tablespace_name, <span class="fn">ROUND</span>(<fn>SUM</fn>(bytes)/1048576,1) total_mb,
-       <span class="fn">ROUND</span>(<fn>SUM</fn>(DECODE(autoextensible,'YES',maxbytes,bytes))/1048576,1) max_mb
+<span class="kw">SELECT</span> tablespace_name, <span class="fn">ROUND</span>(<span class="fn">SUM</span>(bytes)/1048576,1) total_mb,
+       <span class="fn">ROUND</span>(<span class="fn">SUM</span>(DECODE(autoextensible,'YES',maxbytes,bytes))/1048576,1) max_mb
 <span class="kw">FROM</span>   <span class="fn">DBA_DATA_FILES</span>
 <span class="kw">WHERE</span>  tablespace_name = <span class="str">'UNDOTBS1'</span>
 <span class="kw">GROUP BY</span> tablespace_name;
@@ -1450,8 +1450,8 @@
 <span class="kw">ALTER SYSTEM SET</span> <span class="key">UNDO_RETENTION</span> = <span class="num">3600</span>;  <span class="cm">-- 1 hour (was 900 = 15 min)</span>
 
 <span class="cm">-- Check max query length in last 30 intervals (~5 hours)</span>
-<span class="kw">SELECT</span> <fn>MAX</fn>(maxquerylen) max_query_secs,
-       <fn>MAX</fn>(ssolderrcnt) total_1555_errors
+<span class="kw">SELECT</span> <span class="fn">MAX</span>(maxquerylen) max_query_secs,
+       <span class="fn">MAX</span>(ssolderrcnt) total_1555_errors
 <span class="kw">FROM</span>   <span class="fn">V$UNDOSTAT</span>
 <span class="kw">WHERE</span>  begin_time > <span class="fn">SYSDATE</span> - <span class="num">1</span>;
 <span class="cm">-- Set UNDO_RETENTION >= max_query_secs to prevent ORA-01555</span>
@@ -1461,8 +1461,8 @@
 
 <span class="cm">-- Calculate recommended undo size:</span>
 <span class="cm">-- Undo_MB = UNDO_RETENTION * undo_blocks_per_sec * block_size / 1048576</span>
-<span class="kw">SELECT</span> <fn>ROUND</fn>(
-         <fn>MAX</fn>(undoblks / ((end_time - begin_time) * <span class="num">86400</span>))  <span class="cm">-- undo blocks/sec</span>
+<span class="kw">SELECT</span> <span class="fn">ROUND</span>(
+         <span class="fn">MAX</span>(undoblks / ((end_time - begin_time) * <span class="num">86400</span>))  <span class="cm">-- undo blocks/sec</span>
          * <span class="num">3600</span>    <span class="cm">-- target retention: 3600 seconds (1 hour)</span>
          * <span class="num">8192</span>    <span class="cm">-- block_size</span>
          / <span class="num">1048576</span> <span class="cm">-- to MB</span>
@@ -1792,31 +1792,31 @@
 <span class="cm">-- 1. Tablespace usage (% used — alert at 80%)</span>
 <span class="kw">SELECT</span>
   df.tablespace_name,
-  <span class="fn">ROUND</span>(<fn>SUM</fn>(df.bytes)/1048576,1)                           total_mb,
-  <span class="fn">ROUND</span>(<fn>SUM</fn>(df.bytes)-<fn>NVL</fn>(<fn>SUM</fn>(fs.bytes),0),0)/1048576    used_mb,
-  <span class="fn">ROUND</span>(<fn>NVL</fn>(<fn>SUM</fn>(fs.bytes),0)/1048576,1)                    free_mb,
-  <span class="fn">ROUND</span>((<fn>SUM</fn>(df.bytes)-<fn>NVL</fn>(<fn>SUM</fn>(fs.bytes),0))/<fn>SUM</fn>(df.bytes)*100,1) pct_used,
-  <span class="fn">ROUND</span>(<fn>SUM</fn>(<fn>DECODE</fn>(df.autoextensible,'YES',df.maxbytes,df.bytes))/1048576,1) max_mb
+  <span class="fn">ROUND</span>(<span class="fn">SUM</span>(df.bytes)/1048576,1)                           total_mb,
+  <span class="fn">ROUND</span>(<span class="fn">SUM</span>(df.bytes)-<span class="fn">NVL</span>(<span class="fn">SUM</span>(fs.bytes),0),0)/1048576    used_mb,
+  <span class="fn">ROUND</span>(<span class="fn">NVL</span>(<span class="fn">SUM</span>(fs.bytes),0)/1048576,1)                    free_mb,
+  <span class="fn">ROUND</span>((<span class="fn">SUM</span>(df.bytes)-<span class="fn">NVL</span>(<span class="fn">SUM</span>(fs.bytes),0))/<span class="fn">SUM</span>(df.bytes)*100,1) pct_used,
+  <span class="fn">ROUND</span>(<span class="fn">SUM</span>(<span class="fn">DECODE</span>(df.autoextensible,'YES',df.maxbytes,df.bytes))/1048576,1) max_mb
 <span class="kw">FROM</span>
   (<span class="kw">SELECT</span> tablespace_name, file_id, bytes, autoextensible, maxbytes <span class="kw">FROM</span> <span class="fn">DBA_DATA_FILES</span>) df
   <span class="kw">LEFT JOIN</span>
-  (<span class="kw">SELECT</span> tablespace_name, file_id, <fn>SUM</fn>(bytes) bytes <span class="kw">FROM</span> <span class="fn">DBA_FREE_SPACE</span> <span class="kw">GROUP BY</span> tablespace_name, file_id) fs
+  (<span class="kw">SELECT</span> tablespace_name, file_id, <span class="fn">SUM</span>(bytes) bytes <span class="kw">FROM</span> <span class="fn">DBA_FREE_SPACE</span> <span class="kw">GROUP BY</span> tablespace_name, file_id) fs
   <span class="kw">ON</span> df.tablespace_name=fs.tablespace_name <span class="kw">AND</span> df.file_id=fs.file_id
 <span class="kw">GROUP BY</span> df.tablespace_name
 <span class="kw">ORDER BY</span> pct_used <span class="flag">DESC</span>;
 
 <span class="cm">-- 2. Top 10 largest segments in the database</span>
 <span class="kw">SELECT</span> owner, segment_name, segment_type, tablespace_name,
-       <fn>ROUND</fn>(bytes/1048576,1) mb, extents
+       <span class="fn">ROUND</span>(bytes/1048576,1) mb, extents
 <span class="kw">FROM</span>   <span class="fn">DBA_SEGMENTS</span>
 <span class="kw">ORDER BY</span> bytes <span class="flag">DESC</span>
 <span class="flag">FETCH FIRST</span> <span class="num">10</span> <span class="flag">ROWS ONLY</span>;
 
 <span class="cm">-- 3. Datafiles approaching MAXSIZE</span>
 <span class="kw">SELECT</span> tablespace_name, file_name,
-       <fn>ROUND</fn>(bytes/1048576,1)    current_mb,
-       <fn>ROUND</fn>(maxbytes/1048576,1) max_mb,
-       <fn>ROUND</fn>(bytes/maxbytes*100,1) pct_of_max
+       <span class="fn">ROUND</span>(bytes/1048576,1)    current_mb,
+       <span class="fn">ROUND</span>(maxbytes/1048576,1) max_mb,
+       <span class="fn">ROUND</span>(bytes/maxbytes*100,1) pct_of_max
 <span class="kw">FROM</span>   <span class="fn">DBA_DATA_FILES</span>
 <span class="kw">WHERE</span>  autoextensible = <span class="str">'YES'</span>
 <span class="kw">AND</span>    maxbytes > <span class="num">0</span>
@@ -1825,21 +1825,21 @@
 
 <span class="cm">-- 4. Undo tuning health check</span>
 <span class="kw">SELECT</span>
-  <fn>MAX</fn>(maxquerylen)    max_query_secs,
+  <span class="fn">MAX</span>(maxquerylen)    max_query_secs,
   (SELECT value FROM v$parameter WHERE name='undo_retention') undo_retention_secs,
-  <fn>SUM</fn>(nospaceerrcnt)  total_30036_errors,
-  <fn>SUM</fn>(ssolderrcnt)   total_01555_errors
+  <span class="fn">SUM</span>(nospaceerrcnt)  total_30036_errors,
+  <span class="fn">SUM</span>(ssolderrcnt)   total_01555_errors
 <span class="kw">FROM</span>   <span class="fn">V$UNDOSTAT</span>
 <span class="kw">WHERE</span>  begin_time > <span class="fn">SYSDATE</span> - <span class="num">7</span>; <span class="cm">-- last 7 days</span>
 
 <span class="cm">-- 5. Fragmentation check (high fragment_count = fragmented)</span>
 <span class="kw">SELECT</span> tablespace_name,
-       <fn>COUNT</fn>(*) fragment_count,
-       <fn>ROUND</fn>(<fn>MAX</fn>(bytes)/1048576,2) largest_free_mb,
-       <fn>ROUND</fn>(<fn>SUM</fn>(bytes)/1048576,2) total_free_mb
+       <span class="fn">COUNT</span>(*) fragment_count,
+       <span class="fn">ROUND</span>(<span class="fn">MAX</span>(bytes)/1048576,2) largest_free_mb,
+       <span class="fn">ROUND</span>(<span class="fn">SUM</span>(bytes)/1048576,2) total_free_mb
 <span class="kw">FROM</span>   <span class="fn">DBA_FREE_SPACE</span>
 <span class="kw">GROUP BY</span> tablespace_name
-<span class="kw">HAVING</span> <fn>COUNT</fn>(*) > <span class="num">100</span>    <span class="cm">-- flag tablespaces with many free fragments</span>
+<span class="kw">HAVING</span> <span class="fn">COUNT</span>(*) > <span class="num">100</span>    <span class="cm">-- flag tablespaces with many free fragments</span>
 <span class="kw">ORDER BY</span> fragment_count <span class="flag">DESC</span>;</code></pre>
   </div>
 </section>
