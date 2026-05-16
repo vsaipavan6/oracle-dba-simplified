@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Oracle Tablespace Management | Oracle DBA Simplified</title>
+  <meta name="description" content="Complete guide to Oracle Tablespace Management — datafiles, extents, segments, space management, and tablespace best practices. Interview-ready Oracle DBA training."/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config={darkMode:'class',theme:{extend:{colors:{oracle:{red:'#f97316',dark:'#ea580c',light:'#fb923c'}},fontFamily:{display:['Sora','sans-serif'],body:['DM Sans','sans-serif'],mono:['JetBrains Mono','monospace']}}}}
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{--color-primary:#f97316;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#0a0a0f;color:#e2e8f0;overflow-x:hidden;}
+    ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:#0a0a0f;}::-webkit-scrollbar-thumb{background:#f97316;border-radius:3px;}
+    .glass{background:rgba(255,255,255,0.04);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);}
+    .glass-strong{background:rgba(255,255,255,0.07);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);}
+    .gradient-text{background:linear-gradient(135deg,#fb923c,#f97316,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12;pointer-events:none;}
+    .grid-bg{background-image:linear-gradient(rgba(249,115,22,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(249,115,22,.03) 1px,transparent 1px);background-size:64px 64px;}
+    .nav-link{font-size:.875rem;color:#94a3b8;transition:color .2s;}
+    .nav-link:hover,.nav-link.active{color:#fb923c;}
+    .btn-primary{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border-radius:6px;padding:10px 24px;font-weight:700;font-size:.875rem;transition:all .2s;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(249,115,22,.4);}
+    .badge{font-size:.75rem;padding:3px 10px;border-radius:100px;font-weight:600;display:inline-block;}
+    .badge-orange{background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.25);}
+    .badge-green{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);}
+    .badge-red{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.25);}
+    .badge-amber{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.25);}
+    .badge-blue{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.25);}
+    .badge-sky{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.25);}
+    .badge-violet{background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.25);}
+    .badge-teal{background:rgba(20,184,166,.15);color:#2dd4bf;border:1px solid rgba(20,184,166,.25);}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease;}
+    .reveal.visible{opacity:1;transform:none;}
+    .terminal{background:#0d0d14;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden;}
+    .terminal-bar{background:#1a1a25;padding:10px 16px;display:flex;align-items:center;gap:8px;}
+    .t-dot{width:11px;height:11px;border-radius:50%;}
+    code .kw{color:#fb923c;} code .fn{color:#fbbf24;} code .str{color:#a8ff78;} code .cm{color:#6b7280;font-style:italic;} code .num{color:#f87171;} code .var{color:#38bdf8;} code .flag{color:#22d3ee;} code .key{color:#c084fc;} code .opt{color:#e879f9;}
+    .tab-btn{padding:8px 18px;border-radius:8px;font-size:.8rem;font-weight:600;transition:all .2s;cursor:pointer;border:1px solid transparent;color:#64748b;white-space:nowrap;}
+    .tab-btn.active,.tab-btn:hover{background:rgba(249,115,22,.12);color:#fb923c;border-color:rgba(249,115,22,.3);}
+    .tab-content{display:none;}.tab-content.active{display:block;}
+    .acc-content{max-height:0;overflow:hidden;transition:max-height .5s ease;}
+    .acc-content.open{max-height:8000px;}
+    .acc-icon{transition:transform .3s;}
+    .acc-btn.open .acc-icon{transform:rotate(180deg);}
+    #mob-menu{max-height:0;overflow:hidden;transition:max-height .4s;}
+    #mob-menu.open{max-height:600px;}
+    .priv-card{border:1px solid rgba(255,255,255,.06);transition:all .25s;cursor:default;}
+    .priv-card:hover{border-color:rgba(249,115,22,.3);background:rgba(249,115,22,.04);}
+    .danger-card{border-color:rgba(239,68,68,.2)!important;}
+    .danger-card:hover{border-color:rgba(239,68,68,.4)!important;background:rgba(239,68,68,.03)!important;}
+    .syntax-block{background:#0d0d14;border:1px solid #1e1e2e;border-radius:10px;padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:.75rem;line-height:1.8;overflow-x:auto;}
+    .syntax-req{color:#fb923c;font-weight:600;}
+    .syntax-opt{color:#6b7280;}
+    .syntax-val{color:#a8ff78;}
+    .syntax-kw{color:#38bdf8;}
+    .vs-row:nth-child(odd){background:rgba(255,255,255,.015);}
+    @keyframes orange-pulse{0%,100%{box-shadow:0 0 15px rgba(249,115,22,.2)}50%{box-shadow:0 0 40px rgba(249,115,22,.5)}}
+    .o-glow{animation:orange-pulse 3s ease-in-out infinite;}
+    .layer-block{border:1px solid rgba(255,255,255,.06);border-radius:10px;transition:all .25s;}
+    .layer-block:hover{border-color:rgba(249,115,22,.4);transform:translateX(4px);}
+    .issue-card{border-left:3px solid #f97316;background:rgba(249,115,22,.04);}
+    .issue-card.critical{border-left-color:#ef4444;background:rgba(239,68,68,.04);}
+  </style>
+</head>
+<body class="dark grid-bg">
+
+<!-- orbs -->
+<div class="orb w-96 h-96 bg-orange-500 top-0 left-1/4 pointer-events-none"></div>
+<div class="orb w-64 h-64 bg-red-500 bottom-40 right-10 pointer-events-none"></div>
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/5">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="flex items-center gap-2 text-neutral-400 hover:text-orange-400 transition-colors text-sm font-medium">
+        <i class="fas fa-arrow-left text-xs"></i> Back to Home
+      </a>
+      <span class="text-neutral-700">|</span>
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg bg-orange-500/20 flex items-center justify-center">
+          <i class="fas fa-database text-orange-400 text-xs"></i>
+        </div>
+        <span class="font-bold text-white font-display text-sm hidden sm:block">Tablespace Management</span>
+      </div>
+    </div>
+    <div class="hidden md:flex items-center gap-6">
+      <a href="#overview"     class="nav-link">Overview</a>
+      <a href="#hierarchy"    class="nav-link">Storage Layers</a>
+      <a href="#types"        class="nav-link">TS Types</a>
+      <a href="#create"       class="nav-link">CREATE</a>
+      <a href="#space-mgmt"   class="nav-link">Space Mgmt</a>
+      <a href="#operations"   class="nav-link">Operations</a>
+      <a href="#issues"       class="nav-link">Issues</a>
+      <a href="#cheatsheet"   class="nav-link">Cheatsheet</a>
+    </div>
+    <button id="menu-btn" class="md:hidden text-slate-400 hover:text-orange-400 p-2">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="relative min-h-screen flex items-center pt-16 px-6 overflow-hidden">
+  <div class="max-w-7xl mx-auto w-full py-20">
+    <div class="max-w-4xl">
+      <div class="reveal flex items-center gap-3 mb-6">
+        <span class="badge badge-orange"><i class="fas fa-database mr-1"></i> DBA Core Skill</span>
+        <span class="badge badge-green"><i class="fas fa-check mr-1"></i> Interview Ready</span>
+        <span class="badge badge-amber"><i class="fas fa-star mr-1"></i> Oracle 19c</span>
+      </div>
+      <h1 class="reveal font-display font-bold text-5xl md:text-6xl leading-tight mb-6">
+        <span class="gradient-text">Oracle Tablespace</span><br/>
+        <span class="text-white">Management</span>
+      </h1>
+      <p class="reveal text-slate-400 text-lg leading-relaxed max-w-3xl mb-8">
+        Every byte of data Oracle stores lives inside a tablespace. Understanding how tablespaces, datafiles, segments, extents, and blocks relate to each other is the foundation of Oracle database administration — and one of the most common interview topics.
+      </p>
+
+      <!-- Stat cards -->
+      <div class="reveal grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        <div class="glass rounded-xl p-4 text-center">
+          <div class="text-2xl font-bold text-orange-400 font-display">5</div>
+          <div class="text-slate-500 text-xs mt-1">Storage Layers</div>
+        </div>
+        <div class="glass rounded-xl p-4 text-center">
+          <div class="text-2xl font-bold text-orange-400 font-display">128TB</div>
+          <div class="text-slate-500 text-xs mt-1">Max Bigfile Size</div>
+        </div>
+        <div class="glass rounded-xl p-4 text-center">
+          <div class="text-2xl font-bold text-orange-400 font-display">1022</div>
+          <div class="text-slate-500 text-xs mt-1">Max Datafiles/TS</div>
+        </div>
+        <div class="glass rounded-xl p-4 text-center">
+          <div class="text-2xl font-bold text-orange-400 font-display">8KB</div>
+          <div class="text-slate-500 text-xs mt-1">Default Block Size</div>
+        </div>
+      </div>
+
+      <!-- Quick reference terminal -->
+      <div class="reveal terminal">
+        <div class="terminal-bar">
+          <div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-xs text-slate-500 ml-2">Quick Interview Definitions</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Tablespace  : Logical storage container that groups related segments</span>
+<span class="cm">-- Datafile    : Physical OS file that stores tablespace data on disk</span>
+<span class="cm">-- Segment     : All space allocated for a single DB object (table, index)</span>
+<span class="cm">-- Extent      : Contiguous set of data blocks allocated at once</span>
+<span class="cm">-- Data Block  : Smallest unit of I/O in Oracle (default: 8KB)</span>
+
+<span class="cm">-- Relationship: Tablespace ← Segments ← Extents ← Data Blocks ← Datafiles</span>
+
+<span class="cm">-- "Where does my table data live?"</span>
+<span class="kw">SELECT</span> segment_name, tablespace_name, bytes/<span class="num">1024</span>/<span class="num">1024</span> <span class="kw">AS</span> mb
+<span class="kw">FROM</span>   <span class="fn">DBA_SEGMENTS</span>
+<span class="kw">WHERE</span>  owner = <span class="str">'HR'</span> <span class="kw">AND</span> segment_name = <span class="str">'EMPLOYEES'</span>;</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 1 — OVERVIEW / WHAT IS A TABLESPACE?
+     ═════════════════════════════════════════════════════ -->
+<section id="overview" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-orange mb-4"><i class="fas fa-circle-info mr-1"></i> Section 1</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">What Is a Tablespace?</h2>
+    <p class="text-slate-400 max-w-3xl mb-10">A tablespace is Oracle's <em>logical</em> storage unit — it groups related database objects together. You assign tables, indexes, and other objects to tablespaces. Physically, a tablespace is made up of one or more <strong class="text-orange-300">datafiles</strong> on disk. This separation of logical and physical storage is what makes Oracle storage management so flexible.</p>
+  </div>
+
+  <!-- Logical vs Physical -->
+  <div class="reveal grid md:grid-cols-2 gap-6 mb-12">
+    <div class="glass-strong rounded-2xl p-6 border border-orange-500/20">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center"><i class="fas fa-layer-group text-orange-400"></i></div>
+        <div>
+          <h3 class="font-bold text-white">Logical Layer</h3>
+          <p class="text-slate-500 text-xs">What the DBA sees and manages</p>
+        </div>
+      </div>
+      <ul class="text-slate-400 text-sm space-y-2">
+        <li class="flex gap-2"><i class="fas fa-circle text-orange-400 text-xs mt-1.5 shrink-0"></i><strong class="text-white">Tablespace</strong> — the named container (e.g., USERS, SYSAUX)</li>
+        <li class="flex gap-2"><i class="fas fa-circle text-orange-400 text-xs mt-1.5 shrink-0"></i><strong class="text-white">Segment</strong> — all space for one object (one table = one segment)</li>
+        <li class="flex gap-2"><i class="fas fa-circle text-orange-400 text-xs mt-1.5 shrink-0"></i><strong class="text-white">Extent</strong> — a chunk of contiguous blocks allocated together</li>
+        <li class="flex gap-2"><i class="fas fa-circle text-orange-400 text-xs mt-1.5 shrink-0"></i><strong class="text-white">Data Block</strong> — the smallest unit Oracle reads/writes (8KB default)</li>
+      </ul>
+    </div>
+    <div class="glass-strong rounded-2xl p-6 border border-sky-500/20">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center"><i class="fas fa-hard-drive text-sky-400"></i></div>
+        <div>
+          <h3 class="font-bold text-white">Physical Layer</h3>
+          <p class="text-slate-500 text-xs">What lives on the operating system</p>
+        </div>
+      </div>
+      <ul class="text-slate-400 text-sm space-y-2">
+        <li class="flex gap-2"><i class="fas fa-circle text-sky-400 text-xs mt-1.5 shrink-0"></i><strong class="text-white">Datafile</strong> — an actual .dbf file on disk, belongs to exactly one tablespace</li>
+        <li class="flex gap-2"><i class="fas fa-circle text-sky-400 text-xs mt-1.5 shrink-0"></i>One tablespace can have <strong class="text-white">many datafiles</strong> (up to 1,022 for smallfile TS)</li>
+        <li class="flex gap-2"><i class="fas fa-circle text-sky-400 text-xs mt-1.5 shrink-0"></i>Datafiles can be on local disk, SAN, NFS, or Oracle ASM</li>
+        <li class="flex gap-2"><i class="fas fa-circle text-sky-400 text-xs mt-1.5 shrink-0"></i>Bigfile TS: exactly <strong class="text-white">one</strong> datafile, up to <strong class="text-white">128TB</strong> (8KB blocks)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Interview question callout -->
+  <div class="reveal glass rounded-2xl p-6 border border-amber-500/20 mb-8">
+    <div class="flex gap-4">
+      <i class="fas fa-graduation-cap text-amber-400 text-xl mt-0.5 shrink-0"></i>
+      <div>
+        <p class="font-semibold text-amber-300 mb-2">Interview Question: "What is the difference between a tablespace and a datafile?"</p>
+        <p class="text-slate-400 text-sm"><strong class="text-white">Answer:</strong> A tablespace is a <em>logical</em> storage unit visible to Oracle — you assign objects to tablespaces. A datafile is the <em>physical</em> OS file on disk. One tablespace can consist of multiple datafiles, but one datafile belongs to exactly one tablespace. This separation means you can add more space to a tablespace by simply adding another datafile — without touching application code or table definitions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 2 — STORAGE HIERARCHY (5 LAYERS)
+     ═════════════════════════════════════════════════════ -->
+<section id="hierarchy" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-orange mb-4"><i class="fas fa-sitemap mr-1"></i> Section 2</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">The 5-Layer Storage Hierarchy</h2>
+    <p class="text-slate-400 max-w-3xl mb-10">Oracle organizes storage in 5 layers — from the database itself down to individual 8KB data blocks. Every query, every row, every index entry ultimately lives inside a data block. Understanding this hierarchy is <strong class="text-white">essential for every Oracle DBA interview.</strong></p>
+  </div>
+
+  <!-- Hierarchy SVG -->
+  <div class="reveal mb-12">
+    <svg viewBox="0 0 860 520" class="w-full" style="max-height:520px" xmlns="http://www.w3.org/2000/svg" font-family="DM Sans, sans-serif">
+      <defs>
+        <linearGradient id="dbGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#f97316" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#ea580c" stop-opacity="0.08"/>
+        </linearGradient>
+        <linearGradient id="tsGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#fb923c" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="#f97316" stop-opacity="0.06"/>
+        </linearGradient>
+        <linearGradient id="segGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.2"/>
+          <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.05"/>
+        </linearGradient>
+        <linearGradient id="extGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#34d399" stop-opacity="0.2"/>
+          <stop offset="100%" stop-color="#10b981" stop-opacity="0.05"/>
+        </linearGradient>
+        <linearGradient id="blkGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.07"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Layer 1: Database -->
+      <rect x="10" y="10" width="840" height="90" rx="12" fill="url(#dbGrad)" stroke="#f97316" stroke-width="1.5" stroke-opacity="0.5"/>
+      <text x="30" y="40" fill="#fb923c" font-size="13" font-weight="700" font-family="Sora, sans-serif">DATABASE</text>
+      <text x="30" y="60" fill="#94a3b8" font-size="11">The entire Oracle instance — one database holds ALL tablespaces</text>
+      <text x="30" y="78" fill="#64748b" font-size="10">Physical: Control file, Redo logs, Data files, Temp files, Undo files</text>
+      <text x="780" y="55" fill="#f97316" font-size="22" font-weight="800" font-family="Sora, sans-serif">L1</text>
+
+      <!-- Arrow down -->
+      <line x1="430" y1="100" x2="430" y2="120" stroke="#f97316" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="4,3"/>
+      <polygon points="425,120 435,120 430,130" fill="#f97316" fill-opacity="0.4"/>
+
+      <!-- Layer 2: Tablespace -->
+      <rect x="30" y="132" width="800" height="80" rx="10" fill="url(#tsGrad)" stroke="#fb923c" stroke-width="1.2" stroke-opacity="0.4"/>
+      <text x="50" y="158" fill="#fb923c" font-size="12" font-weight="700" font-family="Sora, sans-serif">TABLESPACE</text>
+      <text x="50" y="176" fill="#94a3b8" font-size="11">Logical container — groups related objects. e.g., SYSTEM, SYSAUX, USERS, UNDO, TEMP</text>
+      <text x="50" y="196" fill="#64748b" font-size="10">Physical: Made of one or more Datafiles (.dbf) on disk</text>
+      <text x="780" y="175" fill="#fb923c" font-size="22" font-weight="800" font-family="Sora, sans-serif">L2</text>
+
+      <!-- Arrow down -->
+      <line x1="430" y1="212" x2="430" y2="232" stroke="#fb923c" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="4,3"/>
+      <polygon points="425,232 435,232 430,242" fill="#fb923c" fill-opacity="0.4"/>
+
+      <!-- Layer 3: Segment -->
+      <rect x="55" y="244" width="750" height="80" rx="10" fill="url(#segGrad)" stroke="#fbbf24" stroke-width="1.2" stroke-opacity="0.4"/>
+      <text x="75" y="270" fill="#fbbf24" font-size="12" font-weight="700" font-family="Sora, sans-serif">SEGMENT</text>
+      <text x="75" y="288" fill="#94a3b8" font-size="11">All extents allocated for ONE database object. Types: Table, Index, Undo, Temp, LOB, Cluster</text>
+      <text x="75" y="308" fill="#64748b" font-size="10">One table = one segment. One index = one segment. An object spans extents — not blocks directly.</text>
+      <text x="760" y="287" fill="#fbbf24" font-size="22" font-weight="800" font-family="Sora, sans-serif">L3</text>
+
+      <!-- Arrow down -->
+      <line x1="430" y1="324" x2="430" y2="344" stroke="#fbbf24" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="4,3"/>
+      <polygon points="425,344 435,344 430,354" fill="#fbbf24" fill-opacity="0.4"/>
+
+      <!-- Layer 4: Extent -->
+      <rect x="80" y="356" width="700" height="80" rx="10" fill="url(#extGrad)" stroke="#34d399" stroke-width="1.2" stroke-opacity="0.4"/>
+      <text x="100" y="382" fill="#34d399" font-size="12" font-weight="700" font-family="Sora, sans-serif">EXTENT</text>
+      <text x="100" y="400" fill="#94a3b8" font-size="11">Contiguous set of data blocks — the unit of space allocation. Oracle extends a segment by adding extents.</text>
+      <text x="100" y="420" fill="#64748b" font-size="10">LMT AUTOALLOCATE: Oracle chooses size (64KB → 1MB → 8MB → 64MB as segment grows)</text>
+      <text x="730" y="399" fill="#34d399" font-size="22" font-weight="800" font-family="Sora, sans-serif">L4</text>
+
+      <!-- Arrow down -->
+      <line x1="430" y1="436" x2="430" y2="456" stroke="#34d399" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="4,3"/>
+      <polygon points="425,456 435,456 430,466" fill="#34d399" fill-opacity="0.4"/>
+
+      <!-- Layer 5: Data Block -->
+      <rect x="105" y="468" width="650" height="42" rx="10" fill="url(#blkGrad)" stroke="#38bdf8" stroke-width="1.2" stroke-opacity="0.4"/>
+      <text x="125" y="492" fill="#38bdf8" font-size="12" font-weight="700" font-family="Sora, sans-serif">DATA BLOCK</text>
+      <text x="250" y="492" fill="#94a3b8" font-size="11">Smallest I/O unit — default 8KB. Contains row data, block header, free space. Set by DB_BLOCK_SIZE.</text>
+      <text x="700" y="492" fill="#38bdf8" font-size="22" font-weight="800" font-family="Sora, sans-serif">L5</text>
+    </svg>
+  </div>
+
+  <!-- 5 layer detail cards -->
+  <div class="reveal space-y-5">
+
+    <!-- Database -->
+    <div class="layer-block p-6 glass">
+      <div class="flex items-start gap-5">
+        <div class="w-12 h-12 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0">
+          <i class="fas fa-server text-orange-400 text-lg"></i>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-3 mb-2">
+            <h3 class="font-bold text-white text-lg">Layer 1: Database</h3>
+            <span class="badge badge-orange">Top Level</span>
+          </div>
+          <p class="text-slate-400 text-sm mb-3">The Oracle Database is the top-level container. One database instance manages all tablespaces. The physical database consists of: the data files (tablespace data), redo log files (change records for recovery), and the control file (database metadata — where everything is).</p>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+            <pre class="p-3 text-xs font-mono leading-6"><code><span class="kw">SELECT</span> name, db_unique_name, open_mode, log_mode
+<span class="kw">FROM</span>   <span class="fn">V$DATABASE</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tablespace -->
+    <div class="layer-block p-6 glass">
+      <div class="flex items-start gap-5">
+        <div class="w-12 h-12 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0">
+          <i class="fas fa-box-archive text-orange-400 text-lg"></i>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-3 mb-2">
+            <h3 class="font-bold text-white text-lg">Layer 2: Tablespace</h3>
+            <span class="badge badge-orange">Logical Container</span>
+          </div>
+          <p class="text-slate-400 text-sm mb-3">A tablespace is a logical grouping of storage. When you create a table, you tell Oracle which tablespace to store it in. The tablespace tracks which datafiles belong to it and manages how space is allocated from those files. Every database has at minimum: <code class="text-orange-300 text-xs">SYSTEM</code>, <code class="text-orange-300 text-xs">SYSAUX</code>, <code class="text-orange-300 text-xs">TEMP</code>, and <code class="text-orange-300 text-xs">UNDO</code>.</p>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+            <pre class="p-3 text-xs font-mono leading-6"><code><span class="kw">SELECT</span> tablespace_name, contents, status, extent_management, segment_space_management
+<span class="kw">FROM</span>   <span class="fn">DBA_TABLESPACES</span>
+<span class="kw">ORDER BY</span> tablespace_name;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Segment -->
+    <div class="layer-block p-6 glass">
+      <div class="flex items-start gap-5">
+        <div class="w-12 h-12 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0">
+          <i class="fas fa-table text-amber-400 text-lg"></i>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-3 mb-2">
+            <h3 class="font-bold text-white text-lg">Layer 3: Segment</h3>
+            <span class="badge badge-amber">One per Object</span>
+          </div>
+          <p class="text-slate-400 text-sm mb-3">A segment is all the storage space for a single database object. When you create a table, Oracle creates a table segment. When you create an index, Oracle creates an index segment. A segment grows by acquiring new extents from its tablespace. Segment types include: <strong class="text-white">table segments</strong>, <strong class="text-white">index segments</strong>, <strong class="text-white">undo segments</strong>, <strong class="text-white">temporary segments</strong>, and <strong class="text-white">LOB segments</strong>.</p>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+            <pre class="p-3 text-xs font-mono leading-6"><code><span class="kw">SELECT</span> segment_name, segment_type, tablespace_name,
+       bytes/<span class="num">1024</span>/<span class="num">1024</span> mb, extents, blocks
+<span class="kw">FROM</span>   <span class="fn">DBA_SEGMENTS</span>
+<span class="kw">WHERE</span>  owner = <span class="str">'HR'</span>
+<span class="kw">ORDER BY</span> bytes <span class="flag">DESC</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Extent -->
+    <div class="layer-block p-6 glass">
+      <div class="flex items-start gap-5">
+        <div class="w-12 h-12 rounded-xl bg-green-500/15 flex items-center justify-center shrink-0">
+          <i class="fas fa-grip text-green-400 text-lg"></i>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-3 mb-2">
+            <h3 class="font-bold text-white text-lg">Layer 4: Extent</h3>
+            <span class="badge badge-green">Allocation Unit</span>
+          </div>
+          <p class="text-slate-400 text-sm mb-3">An extent is a contiguous set of data blocks. When a segment needs more space, Oracle allocates a new extent. Extents must be contiguous within a datafile — no gaps. With Locally Managed Tablespace AUTOALLOCATE (the default), Oracle automatically chooses the extent size, starting small and increasing as the segment grows. With UNIFORM SIZE, all extents are the same size you specify.</p>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+            <pre class="p-3 text-xs font-mono leading-6"><code><span class="kw">SELECT</span> segment_name, extent_id, file_id, block_id, bytes, blocks
+<span class="kw">FROM</span>   <span class="fn">DBA_EXTENTS</span>
+<span class="kw">WHERE</span>  owner=<span class="str">'HR'</span> <span class="kw">AND</span> segment_name=<span class="str">'EMPLOYEES'</span>
+<span class="kw">ORDER BY</span> extent_id;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Block -->
+    <div class="layer-block p-6 glass">
+      <div class="flex items-start gap-5">
+        <div class="w-12 h-12 rounded-xl bg-sky-500/15 flex items-center justify-center shrink-0">
+          <i class="fas fa-th text-sky-400 text-lg"></i>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-3 mb-2">
+            <h3 class="font-bold text-white text-lg">Layer 5: Data Block</h3>
+            <span class="badge badge-sky">Smallest I/O Unit</span>
+          </div>
+          <p class="text-slate-400 text-sm mb-3">The data block is the smallest unit Oracle reads from and writes to disk. Set by <code class="text-sky-300 text-xs">DB_BLOCK_SIZE</code> at database creation — cannot be changed afterwards. Valid values: <strong class="text-white">2KB, 4KB, 8KB (default), 16KB, 32KB</strong>. Each block has a header (block address, type), table directory, row directory, and row data. Oracle's Buffer Cache in the SGA caches blocks in memory to avoid repeated disk I/O.</p>
+          <div class="grid md:grid-cols-4 gap-3 mt-4">
+            <div class="bg-sky-500/5 rounded-lg p-3 border border-sky-500/15 text-center">
+              <div class="text-sky-300 font-bold text-sm">2KB</div><div class="text-slate-500 text-xs">Min block size</div>
+            </div>
+            <div class="bg-sky-500/5 rounded-lg p-3 border border-sky-500/15 text-center">
+              <div class="text-sky-300 font-bold text-sm">4KB</div><div class="text-slate-500 text-xs">Small OLTP</div>
+            </div>
+            <div class="bg-orange-500/10 rounded-lg p-3 border border-orange-500/25 text-center">
+              <div class="text-orange-300 font-bold text-sm">8KB ★</div><div class="text-slate-500 text-xs">Default (most DBs)</div>
+            </div>
+            <div class="bg-sky-500/5 rounded-lg p-3 border border-sky-500/15 text-center">
+              <div class="text-sky-300 font-bold text-sm">16/32KB</div><div class="text-slate-500 text-xs">DSS/Data Warehouse</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 3 — TABLESPACE TYPES
+     ═════════════════════════════════════════════════════ -->
+<section id="types" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-orange mb-4"><i class="fas fa-tags mr-1"></i> Section 3</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">Tablespace Types</h2>
+    <p class="text-slate-400 max-w-3xl mb-10">Oracle has three types of tablespaces based on what they store, and Oracle ships with specific required tablespaces in every database. Knowing when to use each type is a key DBA interview topic.</p>
+  </div>
+
+  <!-- Three types -->
+  <div class="reveal grid md:grid-cols-3 gap-6 mb-12">
+    <div class="glass-strong rounded-2xl p-6 border border-orange-500/20">
+      <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center mb-4"><i class="fas fa-database text-orange-400"></i></div>
+      <h3 class="font-bold text-white mb-2">PERMANENT</h3>
+      <span class="badge badge-orange mb-3">Default type</span>
+      <p class="text-slate-400 text-sm">Stores persistent data — tables, indexes, views, procedures, and other permanent objects. Data survives instance restarts and crashes (backed by redo logs). <strong class="text-white">Most tablespaces you create are permanent.</strong></p>
+    </div>
+    <div class="glass-strong rounded-2xl p-6 border border-sky-500/20">
+      <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center mb-4"><i class="fas fa-clock-rotate-left text-sky-400"></i></div>
+      <h3 class="font-bold text-white mb-2">UNDO</h3>
+      <span class="badge badge-sky mb-3">One per instance</span>
+      <p class="text-slate-400 text-sm">Stores undo data — the "before images" of changed rows. Enables <strong class="text-white">ROLLBACK</strong>, <strong class="text-white">read consistency</strong> (other sessions see data as it was before your transaction), and <strong class="text-white">Flashback queries</strong>. Oracle recommends Automatic Undo Management (AUM).</p>
+    </div>
+    <div class="glass-strong rounded-2xl p-6 border border-teal-500/20">
+      <div class="w-10 h-10 rounded-xl bg-teal-500/20 flex items-center justify-center mb-4"><i class="fas fa-wind text-teal-400"></i></div>
+      <h3 class="font-bold text-white mb-2">TEMPORARY</h3>
+      <span class="badge badge-teal mb-3">Sort workspace</span>
+      <p class="text-slate-400 text-sm">Stores temporary data for sort operations (ORDER BY, GROUP BY, DISTINCT, hash joins). Temporary segments are automatically released when the operation completes. All users share the same temp tablespace (default: TEMP). Temp tablespace uses <em>temp files</em>, not data files.</p>
+    </div>
+  </div>
+
+  <!-- Oracle built-in tablespaces -->
+  <div class="reveal mb-12">
+    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><i class="fas fa-star text-orange-400"></i> Oracle's Required Built-in Tablespaces</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border border-white/5 rounded-xl overflow-hidden">
+        <thead>
+          <tr class="bg-orange-500/10 border-b border-white/10">
+            <th class="py-3 px-4 text-left text-slate-300 text-xs font-semibold">Tablespace</th>
+            <th class="py-3 px-4 text-left text-xs font-semibold text-slate-300">Type</th>
+            <th class="py-3 px-4 text-left text-xs font-semibold text-slate-300">Purpose</th>
+            <th class="py-3 px-4 text-left text-xs font-semibold text-slate-300">Can Drop?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="vs-row border-b border-white/5">
+            <td class="py-3 px-4 font-mono text-orange-300 text-xs font-bold">SYSTEM</td>
+            <td class="py-3 px-4"><span class="badge badge-orange">PERMANENT</span></td>
+            <td class="py-3 px-4 text-slate-400 text-xs">Oracle data dictionary — all metadata about the database: table definitions, user accounts, privileges, stored code. Managed by SYS. <strong class="text-red-300">Never store application data here.</strong></td>
+            <td class="py-3 px-4 text-red-400 text-xs font-semibold">No — required</td>
+          </tr>
+          <tr class="vs-row border-b border-white/5">
+            <td class="py-3 px-4 font-mono text-amber-300 text-xs font-bold">SYSAUX</td>
+            <td class="py-3 px-4"><span class="badge badge-amber">PERMANENT</span></td>
+            <td class="py-3 px-4 text-slate-400 text-xs">Auxiliary to SYSTEM — stores data for optional Oracle components: AWR (performance stats), Streams, Spatial, Text, etc. Offloads SYSTEM tablespace. Created in 10g.</td>
+            <td class="py-3 px-4 text-red-400 text-xs font-semibold">No — required</td>
+          </tr>
+          <tr class="vs-row border-b border-white/5">
+            <td class="py-3 px-4 font-mono text-sky-300 text-xs font-bold">UNDOTBS1</td>
+            <td class="py-3 px-4"><span class="badge badge-sky">UNDO</span></td>
+            <td class="py-3 px-4 text-slate-400 text-xs">Stores undo/rollback segments. Managed automatically by Oracle (AUM). Size based on transaction volume and UNDO_RETENTION setting.</td>
+            <td class="py-3 px-4 text-amber-400 text-xs font-semibold">Only with alternate</td>
+          </tr>
+          <tr class="vs-row border-b border-white/5">
+            <td class="py-3 px-4 font-mono text-teal-300 text-xs font-bold">TEMP</td>
+            <td class="py-3 px-4"><span class="badge badge-teal">TEMPORARY</span></td>
+            <td class="py-3 px-4 text-slate-400 text-xs">Sort workspace for SQL operations. Uses temp files (not datafiles) — not backed up and not recoverable. Default temporary tablespace for all users.</td>
+            <td class="py-3 px-4 text-amber-400 text-xs font-semibold">Only with alternate</td>
+          </tr>
+          <tr class="vs-row">
+            <td class="py-3 px-4 font-mono text-green-300 text-xs font-bold">USERS</td>
+            <td class="py-3 px-4"><span class="badge badge-green">PERMANENT</span></td>
+            <td class="py-3 px-4 text-slate-400 text-xs">Default tablespace for user objects in a fresh database. Not critical — just a convenience tablespace. In production, replace with application-specific tablespaces.</td>
+            <td class="py-3 px-4 text-green-400 text-xs font-semibold">Yes</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Smallfile vs Bigfile -->
+  <div class="reveal">
+    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><i class="fas fa-scale-balanced text-orange-400"></i> Smallfile vs Bigfile Tablespace</h3>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6 border border-orange-500/15">
+        <h4 class="font-bold text-orange-300 mb-3 flex items-center gap-2"><i class="fas fa-files text-orange-400"></i> Smallfile Tablespace (Default)</h4>
+        <ul class="text-slate-400 text-sm space-y-2 mb-4">
+          <li class="flex gap-2"><i class="fas fa-circle-dot text-orange-400 text-xs mt-1 shrink-0"></i>Up to <strong class="text-white">1,022 datafiles</strong> per tablespace</li>
+          <li class="flex gap-2"><i class="fas fa-circle-dot text-orange-400 text-xs mt-1 shrink-0"></i>Max datafile size: <strong class="text-white">~32GB</strong> (8KB blocks, 4M blocks × 8KB)</li>
+          <li class="flex gap-2"><i class="fas fa-circle-dot text-orange-400 text-xs mt-1 shrink-0"></i>Each datafile managed individually (RESIZE, AUTOEXTEND)</li>
+          <li class="flex gap-2"><i class="fas fa-circle-dot text-orange-400 text-xs mt-1 shrink-0"></i>Better for most environments — more flexibility</li>
+          <li class="flex gap-2"><i class="fas fa-circle-dot text-orange-400 text-xs mt-1 shrink-0"></i>Can be spread across multiple mount points / disks</li>
+        </ul>
+        <div class="syntax-block text-xs">
+<span class="syntax-req">CREATE TABLESPACE</span> app_data <span class="syntax-opt">-- SMALLFILE is default</span>
+<span class="kw">DATAFILE</span> <span class="str">'/data/app_data01.dbf'</span> <span class="kw">SIZE</span> <span class="num">1G</span>;
+        </div>
+      </div>
+      <div class="glass rounded-2xl p-6 border border-sky-500/15">
+        <h4 class="font-bold text-sky-300 mb-3 flex items-center gap-2"><i class="fas fa-file text-sky-400"></i> Bigfile Tablespace (12c+)</h4>
+        <ul class="text-slate-400 text-sm space-y-2 mb-4">
+          <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Exactly <strong class="text-white">ONE datafile</strong> per tablespace (always)</li>
+          <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Max size: <strong class="text-white">128TB</strong> (8KB blocks), 32TB (2KB), 512TB (32KB)</li>
+          <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Simpler management — ALTER TABLESPACE instead of ALTER DATABASE DATAFILE</li>
+          <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Ideal for: Oracle ASM, large data warehouses, VLDB</li>
+          <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Not suitable for raw devices on many platforms</li>
+        </ul>
+        <div class="syntax-block text-xs">
+<span class="syntax-req">CREATE BIGFILE TABLESPACE</span> dw_data
+<span class="kw">DATAFILE</span> <span class="str">'+DATA/dw_data01.dbf'</span> <span class="kw">SIZE</span> <span class="num">10G</span>
+<span class="kw">AUTOEXTEND ON NEXT</span> <span class="num">10G</span> <span class="kw">MAXSIZE</span> <span class="num">100G</span>;
+        </div>
+      </div>
+    </div>
+    <div class="glass rounded-xl p-4 border border-amber-500/20 mt-4">
+      <p class="text-amber-300 text-sm"><i class="fas fa-graduation-cap mr-2"></i><strong>Interview Question:</strong> "When would you use a Bigfile tablespace?" — <span class="text-slate-400">Answer: When using Oracle ASM with very large data warehouses where you want simpler datafile management and can have a single, huge datafile. Not recommended for traditional file systems with smallfile-sized volume limits.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 4 — CREATE TABLESPACE
+     ═════════════════════════════════════════════════════ -->
+<section id="create" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-orange mb-4"><i class="fas fa-plus-circle mr-1"></i> Section 4</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">CREATE TABLESPACE</h2>
+    <p class="text-slate-400 max-w-3xl mb-10">The full CREATE TABLESPACE syntax with every important clause explained. Most of these options have intelligent defaults, but understanding each one lets you optimize storage for your specific workload.</p>
+  </div>
+
+  <!-- Full syntax -->
+  <div class="reveal mb-10">
+    <div class="syntax-block">
+<span class="syntax-req">CREATE</span> [<span class="syntax-opt">BIGFILE | SMALLFILE</span>] <span class="syntax-req">TABLESPACE</span> tablespace_name
+
+  <span class="syntax-opt">-- DATA FILE clause (for PERMANENT and UNDO tablespaces)</span>
+  <span class="syntax-kw">DATAFILE</span>  <span class="syntax-val">'/path/to/file.dbf'</span>  <span class="syntax-req">SIZE</span> <span class="syntax-val">size[K|M|G|T]</span>
+              [<span class="syntax-opt">REUSE</span>]              <span class="syntax-opt">-- reuse existing file</span>
+              [<span class="syntax-opt">AUTOEXTEND</span> {<span class="syntax-val">OFF</span> | <span class="syntax-opt">ON</span> [<span class="syntax-kw">NEXT</span> <span class="syntax-val">size</span>] [<span class="syntax-kw">MAXSIZE</span> {<span class="syntax-val">size</span> | <span class="syntax-val">UNLIMITED</span>}]}]
+  [, <span class="syntax-val">'/path/to/file2.dbf'</span> <span class="syntax-req">SIZE</span> <span class="syntax-val">size</span> ...]  <span class="syntax-opt">-- multiple datafiles</span>
+
+  <span class="syntax-opt">-- EXTENT MANAGEMENT (how extents are tracked)</span>
+  <span class="syntax-kw">EXTENT MANAGEMENT</span> {
+    <span class="syntax-val">LOCAL</span>                          <span class="syntax-opt">-- DEFAULT in 9i+: bitmap in tablespace header</span>
+    [<span class="syntax-opt">AUTOALLOCATE</span>                   <span class="syntax-opt">-- DEFAULT: Oracle chooses extent size</span>
+    | <span class="syntax-opt">UNIFORM</span> [<span class="syntax-opt">SIZE</span> <span class="syntax-val">size</span>]]         <span class="syntax-opt">-- all extents same size (default 1MB)</span>
+  | <span class="syntax-val">DICTIONARY</span>                      <span class="syntax-opt">-- legacy; deprecated in 12c+</span>
+  }
+
+  <span class="syntax-opt">-- SEGMENT SPACE MANAGEMENT (how free blocks tracked inside a segment)</span>
+  <span class="syntax-kw">SEGMENT SPACE MANAGEMENT</span> {
+    <span class="syntax-val">AUTO</span>    <span class="syntax-opt">-- DEFAULT (ASSM): bitmap in segment header blocks</span>
+  | <span class="syntax-val">MANUAL</span>  <span class="syntax-opt">-- freelist-based (legacy, not recommended)</span>
+  }
+
+  <span class="syntax-opt">-- TABLESPACE TYPE</span>
+  [<span class="syntax-opt">DEFAULT STORAGE (...)</span>]         <span class="syntax-opt">-- only for DICTIONARY managed (legacy)</span>
+  [<span class="syntax-opt">ONLINE | OFFLINE</span>]
+  [<span class="syntax-opt">LOGGING | NOLOGGING</span>]           <span class="syntax-opt">-- LOGGING is default (redo generated)</span>
+  [<span class="syntax-opt">FORCE LOGGING</span>]                 <span class="syntax-opt">-- override NOLOGGING for all operations</span>
+  [<span class="syntax-opt">ENCRYPTION USING 'AES256'</span>]     <span class="syntax-opt">-- Transparent Data Encryption (TDE)</span>
+  [<span class="syntax-opt">DEFAULT COMPRESS FOR OLTP</span>]     <span class="syntax-opt">-- Advanced Compression</span>
+;
+    </div>
+  </div>
+
+  <!-- Real-world examples terminal -->
+  <div class="reveal terminal mb-10">
+    <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Real-world CREATE TABLESPACE examples</span></div>
+    <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- 1. Standard application tablespace (best practice defaults)</span>
+<span class="kw">CREATE TABLESPACE</span> <span class="var">app_data</span>
+  <span class="flag">DATAFILE</span> <span class="str">'/oradata/ORCL/app_data01.dbf'</span> <span class="kw">SIZE</span> <span class="num">2G</span>
+           <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">512M</span> <span class="flag">MAXSIZE</span> <span class="num">20G</span>
+  <span class="flag">EXTENT MANAGEMENT LOCAL AUTOALLOCATE</span>   <span class="cm">-- Oracle picks extent sizes</span>
+  <span class="flag">SEGMENT SPACE MANAGEMENT AUTO</span>          <span class="cm">-- ASSM (bitmap-based free block tracking)</span>
+  <span class="flag">LOGGING</span>;                               <span class="cm">-- generate redo (data protection)</span>
+
+<span class="cm">-- 2. Index tablespace (separate from data is a best practice)</span>
+<span class="kw">CREATE TABLESPACE</span> <span class="var">app_idx</span>
+  <span class="flag">DATAFILE</span> <span class="str">'/oradata/ORCL/app_idx01.dbf'</span> <span class="kw">SIZE</span> <span class="num">1G</span>
+           <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">256M</span> <span class="flag">MAXSIZE</span> <span class="num">10G</span>
+  <span class="flag">EXTENT MANAGEMENT LOCAL AUTOALLOCATE</span>
+  <span class="flag">SEGMENT SPACE MANAGEMENT AUTO</span>;
+
+<span class="cm">-- 3. UNDO tablespace (for AUM)</span>
+<span class="kw">CREATE UNDO TABLESPACE</span> <span class="var">undotbs2</span>
+  <span class="flag">DATAFILE</span> <span class="str">'/oradata/ORCL/undotbs02.dbf'</span> <span class="kw">SIZE</span> <span class="num">4G</span>
+           <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">1G</span> <span class="flag">MAXSIZE</span> <span class="num">50G</span>;
+
+<span class="cm">-- 4. TEMP tablespace (for sort operations)</span>
+<span class="cm">--    Note: uses TEMPFILE not DATAFILE</span>
+<span class="kw">CREATE TEMPORARY TABLESPACE</span> <span class="var">temp2</span>
+  <span class="flag">TEMPFILE</span> <span class="str">'/oradata/ORCL/temp02.dbf'</span> <span class="kw">SIZE</span> <span class="num">2G</span>
+           <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">512M</span> <span class="flag">MAXSIZE</span> <span class="num">10G</span>
+  <span class="flag">EXTENT MANAGEMENT LOCAL UNIFORM SIZE</span> <span class="num">1M</span>;  <span class="cm">-- UNIFORM is best for TEMP</span>
+
+<span class="cm">-- 5. Data Warehouse tablespace (NOLOGGING for bulk loads)</span>
+<span class="kw">CREATE TABLESPACE</span> <span class="var">dw_data</span>
+  <span class="flag">DATAFILE</span> <span class="str">'/oradata/ORCL/dw_data01.dbf'</span> <span class="kw">SIZE</span> <span class="num">10G</span>
+           <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">2G</span> <span class="flag">MAXSIZE UNLIMITED</span>
+  <span class="flag">EXTENT MANAGEMENT LOCAL AUTOALLOCATE</span>
+  <span class="flag">SEGMENT SPACE MANAGEMENT AUTO</span>
+  <span class="flag">NOLOGGING</span>;  <span class="cm">-- faster bulk inserts, but NO redo = not recoverable without rman</span>
+
+<span class="cm">-- 6. Encrypted tablespace (TDE - Transparent Data Encryption)</span>
+<span class="kw">CREATE TABLESPACE</span> <span class="var">secure_data</span>
+  <span class="flag">DATAFILE</span> <span class="str">'/oradata/ORCL/secure01.dbf'</span> <span class="kw">SIZE</span> <span class="num">1G</span>
+  <span class="flag">ENCRYPTION USING</span> <span class="str">'AES256'</span>
+  <span class="flag">DEFAULT STORAGE</span>(<span class="flag">ENCRYPT</span>)
+  <span class="flag">EXTENT MANAGEMENT LOCAL AUTOALLOCATE</span>
+  <span class="flag">SEGMENT SPACE MANAGEMENT AUTO</span>;</code></pre>
+  </div>
+
+  <!-- Clause explanations -->
+  <div class="reveal grid md:grid-cols-2 gap-6">
+    <div class="priv-card glass rounded-xl p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <code class="text-orange-300 text-xs font-bold">AUTOEXTEND ON NEXT size MAXSIZE</code>
+        <span class="badge badge-green ml-auto">Recommended</span>
+      </div>
+      <p class="text-slate-400 text-xs">When the tablespace fills, Oracle automatically expands the datafile by NEXT bytes, up to MAXSIZE. <strong class="text-white">Always set MAXSIZE</strong> — UNLIMITED can fill the entire filesystem and crash the host.</p>
+    </div>
+    <div class="priv-card glass rounded-xl p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <code class="text-orange-300 text-xs font-bold">EXTENT MANAGEMENT LOCAL AUTOALLOCATE</code>
+        <span class="badge badge-orange ml-auto">Default</span>
+      </div>
+      <p class="text-slate-400 text-xs">Oracle picks extent sizes automatically — starts at 64KB for small segments, increases to 1MB, 8MB, then 64MB as the segment grows. Best for OLTP and mixed workloads.</p>
+    </div>
+    <div class="priv-card glass rounded-xl p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <code class="text-orange-300 text-xs font-bold">EXTENT MANAGEMENT LOCAL UNIFORM SIZE</code>
+        <span class="badge badge-sky ml-auto">For TEMP</span>
+      </div>
+      <p class="text-slate-400 text-xs">All extents are the same fixed size. Best for temporary tablespaces (avoids fragmentation of sort space). Oracle recommends 1MB UNIFORM for TEMP. Less ideal for OLTP permanent tablespaces.</p>
+    </div>
+    <div class="priv-card glass rounded-xl p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <code class="text-orange-300 text-xs font-bold">SEGMENT SPACE MANAGEMENT AUTO</code>
+        <span class="badge badge-green ml-auto">ASSM</span>
+      </div>
+      <p class="text-slate-400 text-xs">Automatic Segment Space Management — uses bitmaps in the segment header to track which blocks have free space. Far better than MANUAL (freelist) for concurrent DML workloads. Default for locally managed tablespaces.</p>
+    </div>
+    <div class="priv-card glass rounded-xl p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <code class="text-orange-300 text-xs font-bold">LOGGING vs NOLOGGING</code>
+        <span class="badge badge-amber ml-auto">Performance</span>
+      </div>
+      <p class="text-slate-400 text-xs">LOGGING (default) means all changes generate redo log entries for recovery. NOLOGGING skips redo for direct-path inserts — much faster for bulk loads, but the data cannot be media-recovered without a full backup first.</p>
+    </div>
+    <div class="priv-card glass rounded-xl p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <code class="text-orange-300 text-xs font-bold">REUSE (datafile clause)</code>
+        <span class="badge badge-violet ml-auto">Rare</span>
+      </div>
+      <p class="text-slate-400 text-xs">If the datafile already exists, REUSE allows Oracle to overwrite it. Without REUSE, Oracle raises an error if the file exists. Used during database rebuild scenarios. <strong class="text-white">Use with caution.</strong></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 5 — SPACE MANAGEMENT (LMT, ASSM, UNDO, TEMP)
+     ═════════════════════════════════════════════════════ -->
+<section id="space-mgmt" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-orange mb-4"><i class="fas fa-gauge mr-1"></i> Section 5</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">Space Management Deep Dive</h2>
+    <p class="text-slate-400 max-w-3xl mb-10">Space management in Oracle has two independent dimensions: how extents are tracked at the tablespace level (LMT vs DMT), and how free blocks are tracked within a segment (ASSM vs MANUAL). Both were redesigned in Oracle 9i and are now the standard approach.</p>
+  </div>
+
+  <!-- Tabs: LMT vs DMT, ASSM vs Manual, Undo, Temp -->
+  <div class="reveal">
+    <div class="flex flex-wrap gap-2 mb-6">
+      <button class="tab-btn active" data-tab="sm-lmt" data-group="spacemgmt">LMT vs DMT</button>
+      <button class="tab-btn" data-tab="sm-assm" data-group="spacemgmt">ASSM vs Manual</button>
+      <button class="tab-btn" data-tab="sm-undo" data-group="spacemgmt">Undo Management</button>
+      <button class="tab-btn" data-tab="sm-temp" data-group="spacemgmt">Temp Tablespace</button>
+      <button class="tab-btn" data-tab="sm-hwm" data-group="spacemgmt">HWM &amp; Shrink</button>
+    </div>
+
+    <!-- Tab: LMT vs DMT -->
+    <div id="sm-lmt" class="tab-content active">
+      <div class="grid md:grid-cols-2 gap-6 mb-6">
+        <div class="glass-strong rounded-2xl p-6 border border-green-500/20">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center"><i class="fas fa-check-circle text-green-400"></i></div>
+            <div>
+              <h3 class="font-bold text-white">Locally Managed Tablespace (LMT)</h3>
+              <p class="text-slate-500 text-xs">Default since Oracle 9i — use this always</p>
+            </div>
+          </div>
+          <ul class="text-slate-400 text-sm space-y-3">
+            <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Extent tracking uses a <strong class="text-white">bitmap stored in the tablespace header</strong> — no data dictionary reads for extent allocation</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Faster space allocation — no recursive SQL against SYS tables</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>No space fragmentation (bitmap recycles freed extents automatically)</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>No rollback segment contention during space allocation</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>All tablespaces created today are LMT by default</li>
+          </ul>
+        </div>
+        <div class="glass rounded-2xl p-6 border border-red-500/15 opacity-70">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center"><i class="fas fa-ban text-red-400"></i></div>
+            <div>
+              <h3 class="font-bold text-white">Dictionary Managed Tablespace (DMT)</h3>
+              <p class="text-slate-500 text-xs">Legacy — deprecated in Oracle 12c+</p>
+            </div>
+          </div>
+          <ul class="text-slate-400 text-sm space-y-3">
+            <li class="flex gap-2"><i class="fas fa-times text-red-400 text-xs mt-1 shrink-0"></i>Extent tracking via <strong class="text-white">SYS.FET$ and SYS.UET$</strong> tables in SYSTEM tablespace</li>
+            <li class="flex gap-2"><i class="fas fa-times text-red-400 text-xs mt-1 shrink-0"></i>Every extent allocation = recursive SQL = contention on SYSTEM tablespace</li>
+            <li class="flex gap-2"><i class="fas fa-times text-red-400 text-xs mt-1 shrink-0"></i>Prone to space fragmentation (free extents not automatically reusable)</li>
+            <li class="flex gap-2"><i class="fas fa-times text-red-400 text-xs mt-1 shrink-0"></i>Required specifying INITIAL, NEXT, MINEXTENTS, MAXEXTENTS storage parameters</li>
+            <li class="flex gap-2"><i class="fas fa-times text-red-400 text-xs mt-1 shrink-0"></i>You may still see DMT in old databases — convert with DBMS_SPACE_ADMIN</li>
+          </ul>
+        </div>
+      </div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Check tablespace extent management type</span></div>
+        <pre class="p-4 text-xs font-mono leading-7"><code><span class="kw">SELECT</span> tablespace_name, extent_management, allocation_type
+<span class="kw">FROM</span>   <span class="fn">DBA_TABLESPACES</span>
+<span class="kw">ORDER BY</span> tablespace_name;
+
+<span class="cm">-- EXTENT_MANAGEMENT: LOCAL or DICTIONARY</span>
+<span class="cm">-- ALLOCATION_TYPE: SYSTEM (AUTOALLOCATE) or UNIFORM</span>
+
+<span class="cm">-- Convert DMT tablespace to LMT (run as SYSDBA)</span>
+<span class="kw">EXEC</span> <span class="fn">DBMS_SPACE_ADMIN.TABLESPACE_MIGRATE_TO_LOCAL</span>(<span class="str">'OLD_DMT_TS'</span>);</code></pre>
+      </div>
+    </div>
+
+    <!-- Tab: ASSM vs Manual -->
+    <div id="sm-assm" class="tab-content">
+      <p class="text-slate-400 text-sm mb-6">Segment Space Management controls how Oracle tracks free blocks <em>within</em> a segment. ASSM (Automatic Segment Space Management) replaced the old freelist mechanism.</p>
+      <div class="grid md:grid-cols-2 gap-6 mb-6">
+        <div class="glass-strong rounded-2xl p-6 border border-green-500/20">
+          <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-robot text-green-400"></i> AUTOMATIC (ASSM)</h3>
+          <p class="text-slate-400 text-sm mb-4">Uses a <strong class="text-white">bitmap block hierarchy</strong> (Level 1, Level 2, and Level 3 bitmap blocks — also called "BMBs") to track which data blocks in each segment have free space. The bitmap is stored in the first few blocks of each extent.</p>
+          <div class="space-y-2 text-sm">
+            <div class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i><span class="text-slate-300">No contention under concurrent DML — each session uses different bitmap blocks</span></div>
+            <div class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i><span class="text-slate-300">Eliminates "freelist contention" waits (db file sequential read on header)</span></div>
+            <div class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i><span class="text-slate-300">Better space utilization — Oracle reclaims space from deleted rows automatically</span></div>
+            <div class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i><span class="text-slate-300">Required for partitioned tables with compression</span></div>
+            <div class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i><span class="text-slate-300">Default for all new LMT tablespaces — use this always</span></div>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-6 border border-amber-500/15 opacity-75">
+          <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-list text-amber-400"></i> MANUAL (Freelist-based)</h3>
+          <p class="text-slate-400 text-sm mb-4">Uses a <strong class="text-white">linked list of free blocks</strong> (freelist) maintained in the segment header. All sessions inserting into the segment compete for the same segment header block.</p>
+          <div class="space-y-2 text-sm">
+            <div class="flex gap-2"><i class="fas fa-times text-red-400 text-xs mt-1 shrink-0"></i><span class="text-slate-400">Freelist contention — heavy INSERT workloads create hot segment headers</span></div>
+            <div class="flex gap-2"><i class="fas fa-times text-red-400 text-xs mt-1 shrink-0"></i><span class="text-slate-400">FREELISTS and FREELIST GROUPS parameters need tuning</span></div>
+            <div class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i><span class="text-slate-400">Required for SYSTEM tablespace (SYSTEM is MANUAL by default)</span></div>
+            <div class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i><span class="text-slate-400">Required for IOTs (Index-Organized Tables) in some configurations</span></div>
+            <div class="flex gap-2"><i class="fas fa-times text-red-400 text-xs mt-1 shrink-0"></i><span class="text-slate-400">Deprecated — only use when Oracle requires it (SYSTEM tablespace)</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Check segment space management type</span></div>
+        <pre class="p-4 text-xs font-mono leading-7"><code><span class="kw">SELECT</span> tablespace_name, segment_space_management
+<span class="kw">FROM</span>   <span class="fn">DBA_TABLESPACES</span>
+<span class="kw">ORDER BY</span> tablespace_name;
+<span class="cm">-- SEGMENT_SPACE_MANAGEMENT: AUTO or MANUAL</span>
+
+<span class="cm">-- SYSTEM is always MANUAL; all others should be AUTO</span>
+<span class="cm">-- Note: You cannot change ASSM setting after tablespace creation.</span>
+<span class="cm">-- To switch: export data → drop tablespace → recreate with new setting → import</span></code></pre>
+      </div>
+    </div>
+
+    <!-- Tab: Undo Management -->
+    <div id="sm-undo" class="tab-content">
+      <div class="glass rounded-2xl p-6 border border-sky-500/20 mb-6">
+        <h3 class="font-bold text-white mb-3 flex items-center gap-2"><i class="fas fa-rotate-left text-sky-400"></i> What Undo Does (3 Critical Functions)</h3>
+        <div class="grid md:grid-cols-3 gap-4">
+          <div class="bg-sky-500/5 rounded-xl p-4 border border-sky-500/15">
+            <div class="text-sky-300 font-bold text-sm mb-2"><i class="fas fa-arrow-rotate-left mr-2"></i>ROLLBACK</div>
+            <p class="text-slate-400 text-xs">When a transaction is rolled back, Oracle uses the before-image from undo to restore rows to their original state.</p>
+          </div>
+          <div class="bg-sky-500/5 rounded-xl p-4 border border-sky-500/15">
+            <div class="text-sky-300 font-bold text-sm mb-2"><i class="fas fa-eye mr-2"></i>Read Consistency</div>
+            <p class="text-slate-400 text-xs">If your query started at 3:00PM, you see the database AS IT WAS at 3:00PM — even if other sessions changed data since. Oracle rebuilds old images from undo.</p>
+          </div>
+          <div class="bg-sky-500/5 rounded-xl p-4 border border-sky-500/15">
+            <div class="text-sky-300 font-bold text-sm mb-2"><i class="fas fa-clock mr-2"></i>Flashback</div>
+            <p class="text-slate-400 text-xs">Flashback Query, Flashback Table, Flashback Database all depend on undo data being available for the lookback period.</p>
+          </div>
+        </div>
+      </div>
+      <div class="terminal mb-6">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Undo management commands</span></div>
+        <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Check current undo tablespace and retention</span>
+<span class="kw">SHOW PARAMETER</span> undo_tablespace;
+<span class="kw">SHOW PARAMETER</span> undo_retention;     <span class="cm">-- seconds (default: 900 = 15 minutes)</span>
+
+<span class="cm">-- How much undo space do you actually need?</span>
+<span class="cm">-- Formula: Undo_space_bytes = undo_retention * undo_blocks_per_sec * block_size</span>
+<span class="kw">SELECT</span> (undoblks / ((end_time - begin_time) * <span class="num">86400</span>)) * <span class="num">900</span> * <span class="num">8192</span> / <span class="num">1024</span> / <span class="num">1024</span>
+         <span class="kw">AS</span> recommended_mb
+<span class="kw">FROM</span>   <span class="fn">V$UNDOSTAT</span>
+<span class="kw">ORDER BY</span> begin_time <span class="flag">DESC</span>
+<span class="flag">FETCH FIRST</span> <span class="num">1</span> <span class="flag">ROW ONLY</span>;
+
+<span class="cm">-- Switch to a new undo tablespace (online, without restart)</span>
+<span class="kw">ALTER SYSTEM SET</span> <span class="key">UNDO_TABLESPACE</span> = <span class="str">'UNDOTBS2'</span>;
+
+<span class="cm">-- Monitor undo space usage and tuning</span>
+<span class="kw">SELECT</span> begin_time, end_time, undoblks, txncount, maxquerylen, ssolderrcnt,
+       nospaceerrcnt, activeblks, unexpiredblks, expiredblks
+<span class="kw">FROM</span>   <span class="fn">V$UNDOSTAT</span>
+<span class="kw">ORDER BY</span> begin_time <span class="flag">DESC</span>;
+<span class="cm">-- SSOLDERRCNT: ORA-01555 errors (snapshot too old) -- increase UNDO_RETENTION</span>
+<span class="cm">-- NOSPACEERRCNT: ORA-30036 errors (undo full) -- increase undo tablespace size</span>
+
+<span class="cm">-- Enable RETENTION GUARANTEE (prevent undo overwrite even if undo fills)</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">undotbs1</span> <span class="flag">RETENTION GUARANTEE</span>;
+<span class="cm">-- WARNING: This can cause ORA-30036 if undo fills. Use only when Flashback critical.</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">undotbs1</span> <span class="flag">RETENTION NOGUARANTEE</span>; <span class="cm">-- back to default</span></code></pre>
+      </div>
+      <div class="glass rounded-xl p-5 border border-amber-500/20">
+        <p class="text-amber-300 font-semibold mb-2"><i class="fas fa-graduation-cap mr-2"></i>Interview: "What is ORA-01555 Snapshot Too Old?"</p>
+        <p class="text-slate-400 text-sm"><strong class="text-white">Answer:</strong> ORA-01555 occurs when a query reads a data block and needs the old "before image" from undo to get read-consistent data, but that undo has already been overwritten by newer transactions. The fix is to either increase UNDO_RETENTION (keep undo longer), increase the undo tablespace size, or optimize the query to run faster so it needs less undo history.</p>
+      </div>
+    </div>
+
+    <!-- Tab: Temp Tablespace -->
+    <div id="sm-temp" class="tab-content">
+      <p class="text-slate-400 text-sm mb-6">Temporary tablespaces store sort data for SQL operations that cannot fit in the PGA (sort_area_size or pga_aggregate_target). Every user must have a default temporary tablespace.</p>
+      <div class="grid md:grid-cols-2 gap-6 mb-6">
+        <div class="glass rounded-xl p-5 border border-teal-500/20">
+          <h4 class="font-bold text-white mb-3"><i class="fas fa-sort text-teal-400 mr-2"></i>What Uses Temp Space?</h4>
+          <ul class="text-slate-400 text-sm space-y-2">
+            <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>ORDER BY (when result set too large for PGA)</li>
+            <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>GROUP BY, DISTINCT, UNION</li>
+            <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>Hash joins and sort-merge joins</li>
+            <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>CREATE INDEX (build phase)</li>
+            <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>Analytic functions with large windows</li>
+            <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>Global Temporary Tables</li>
+          </ul>
+        </div>
+        <div class="glass rounded-xl p-5 border border-teal-500/20">
+          <h4 class="font-bold text-white mb-3"><i class="fas fa-shield-check text-teal-400 mr-2"></i>Temp Tablespace Facts</h4>
+          <ul class="text-slate-400 text-sm space-y-2">
+            <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>Uses <strong class="text-white">TEMPFILE</strong>, not DATAFILE</li>
+            <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>Not backed up (data is temporary — always recreatable)</li>
+            <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>Not protected by redo logs (no LOGGING option)</li>
+            <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>Temp segments auto-released when statement completes</li>
+            <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>Default allocation: UNIFORM SIZE 1M</li>
+          </ul>
+        </div>
+      </div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Temp tablespace management</span></div>
+        <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Who is using temp space right now?</span>
+<span class="kw">SELECT</span> s.username, s.sid, s.serial#, s.sql_id,
+       t.blocks * <span class="num">8192</span> / <span class="num">1024</span> / <span class="num">1024</span> <span class="kw">AS</span> mb_used,
+       t.tablespace
+<span class="kw">FROM</span>   <span class="fn">V$SESSION</span> s <span class="kw">JOIN</span> <span class="fn">V$SORT_USAGE</span> t <span class="kw">ON</span> s.saddr = t.session_addr
+<span class="kw">ORDER BY</span> mb_used <span class="flag">DESC</span>;
+
+<span class="cm">-- Total temp tablespace usage vs free</span>
+<span class="kw">SELECT</span> tablespace_name,
+       <span class="fn">ROUND</span>(tablespace_size * <span class="num">8192</span> / <span class="num">1024</span> / <span class="num">1024</span>, <span class="num">0</span>) <span class="kw">AS</span> total_mb,
+       <span class="fn">ROUND</span>(free_space      * <span class="num">8192</span> / <span class="num">1024</span> / <span class="num">1024</span>, <span class="num">0</span>) <span class="kw">AS</span> free_mb,
+       <span class="fn">ROUND</span>((tablespace_size - free_space) * <span class="num">8192</span> / <span class="num">1024</span> / <span class="num">1024</span>, <span class="num">0</span>) <span class="kw">AS</span> used_mb
+<span class="kw">FROM</span>   <span class="fn">V$TEMP_SPACE_HEADER</span>;
+
+<span class="cm">-- Assign a default temp tablespace to a user</span>
+<span class="kw">ALTER USER</span> <span class="var">heavy_report_user</span> <span class="flag">TEMPORARY TABLESPACE</span> <span class="var">temp_big</span>;
+
+<span class="cm">-- Temp tablespace groups (12c+) — multiple temp tablespaces in a group</span>
+<span class="kw">CREATE TEMPORARY TABLESPACE</span> <span class="var">temp2</span>
+  <span class="flag">TEMPFILE</span> <span class="str">'/oradata/ORCL/temp02.dbf'</span> <span class="kw">SIZE</span> <span class="num">4G</span>
+  <span class="flag">TABLESPACE GROUP</span> <span class="var">temp_grp</span>;
+<span class="kw">ALTER DATABASE</span> <span class="flag">DEFAULT TEMPORARY TABLESPACE</span> <span class="var">temp_grp</span>;</code></pre>
+      </div>
+    </div>
+
+    <!-- Tab: HWM and Shrink -->
+    <div id="sm-hwm" class="tab-content">
+      <div class="glass rounded-2xl p-6 border border-orange-500/20 mb-6">
+        <h3 class="font-bold text-white mb-3 flex items-center gap-2"><i class="fas fa-water-arrow-up text-orange-400"></i> High Water Mark (HWM)</h3>
+        <p class="text-slate-400 text-sm mb-4">The High Water Mark is the highest block ever used in a segment. Oracle's full table scans read <strong class="text-white">all blocks up to the HWM</strong> — even empty ones! If you delete 90% of rows from a table, the HWM doesn't move down. Full scans still read all the original blocks, making them slow.</p>
+        <div class="grid md:grid-cols-3 gap-4">
+          <div class="bg-orange-500/5 rounded-xl p-4 border border-orange-500/15">
+            <p class="text-orange-300 font-bold text-sm mb-2">Before Deletes</p>
+            <div class="flex gap-1 flex-wrap">
+              <div class="w-6 h-6 bg-orange-500/40 rounded text-xs flex items-center justify-center">●</div>
+              <div class="w-6 h-6 bg-orange-500/40 rounded text-xs flex items-center justify-center">●</div>
+              <div class="w-6 h-6 bg-orange-500/40 rounded text-xs flex items-center justify-center">●</div>
+              <div class="w-6 h-6 bg-orange-500/40 rounded text-xs flex items-center justify-center">●</div>
+              <div class="w-6 h-6 bg-orange-500/40 rounded text-xs flex items-center justify-center">●</div>
+              <div class="w-6 h-6 bg-orange-500/40 rounded text-xs flex items-center justify-center">●</div>
+            </div>
+            <p class="text-slate-500 text-xs mt-2">6 blocks used, HWM = block 6</p>
+          </div>
+          <div class="bg-red-500/5 rounded-xl p-4 border border-red-500/15">
+            <p class="text-red-300 font-bold text-sm mb-2">After DELETE (HWM unchanged)</p>
+            <div class="flex gap-1 flex-wrap">
+              <div class="w-6 h-6 bg-red-500/20 rounded text-xs flex items-center justify-center text-slate-600">○</div>
+              <div class="w-6 h-6 bg-red-500/20 rounded text-xs flex items-center justify-center text-slate-600">○</div>
+              <div class="w-6 h-6 bg-orange-500/40 rounded text-xs flex items-center justify-center">●</div>
+              <div class="w-6 h-6 bg-red-500/20 rounded text-xs flex items-center justify-center text-slate-600">○</div>
+              <div class="w-6 h-6 bg-red-500/20 rounded text-xs flex items-center justify-center text-slate-600">○</div>
+              <div class="w-6 h-6 bg-orange-500/40 rounded text-xs flex items-center justify-center">●</div>
+            </div>
+            <p class="text-slate-500 text-xs mt-2">2 blocks used, but full scan still reads 6 blocks!</p>
+          </div>
+          <div class="bg-green-500/5 rounded-xl p-4 border border-green-500/15">
+            <p class="text-green-300 font-bold text-sm mb-2">After SHRINK / MOVE</p>
+            <div class="flex gap-1 flex-wrap">
+              <div class="w-6 h-6 bg-green-500/40 rounded text-xs flex items-center justify-center">●</div>
+              <div class="w-6 h-6 bg-green-500/40 rounded text-xs flex items-center justify-center">●</div>
+            </div>
+            <p class="text-slate-500 text-xs mt-2">HWM reset to 2 — full scan reads only 2 blocks</p>
+          </div>
+        </div>
+      </div>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">HWM detection and segment shrink commands</span></div>
+        <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Estimate how much space can be reclaimed by shrinking</span>
+<span class="kw">SELECT</span> segment_name, segment_type,
+       bytes/<span class="num">1048576</span>   <span class="kw">AS</span> allocated_mb,
+       <span class="fn">ROUND</span>((bytes - <span class="fn">DBMS_SPACE.SPACE_USAGE</span>(<span class="var">:owner</span>,<span class="var">:seg</span>,<span class="var">:type</span>)) / <span class="num">1048576</span>, <span class="num">2</span>) reclaimable_mb
+<span class="kw">FROM</span>   <span class="fn">DBA_SEGMENTS</span>
+<span class="kw">WHERE</span>  owner = <span class="str">'HR'</span>;
+
+<span class="cm">-- Method 1: SHRINK SPACE (ASSM only, keeps segment in place, resets HWM)</span>
+<span class="cm">-- Step 1: Enable row movement (allows Oracle to move rows to compact)</span>
+<span class="kw">ALTER TABLE</span> hr.employees <span class="flag">ENABLE ROW MOVEMENT</span>;
+<span class="cm">-- Step 2: Compact and lower HWM</span>
+<span class="kw">ALTER TABLE</span> hr.employees <span class="flag">SHRINK SPACE CASCADE</span>;  <span class="cm">-- CASCADE shrinks indexes too</span>
+<span class="cm">-- Step 3: Disable row movement</span>
+<span class="kw">ALTER TABLE</span> hr.employees <span class="flag">DISABLE ROW MOVEMENT</span>;
+
+<span class="cm">-- Method 2: MOVE (compacts but segment stays at same HWM until rebuild)</span>
+<span class="kw">ALTER TABLE</span> hr.employees <span class="flag">MOVE TABLESPACE</span> <span class="var">app_data</span>;  <span class="cm">-- also compacts</span>
+<span class="cm">-- Note: MOVE invalidates all indexes — must rebuild!</span>
+<span class="kw">ALTER INDEX</span> hr.emp_pk <span class="flag">REBUILD</span>;
+
+<span class="cm">-- Method 3: DBMS_SPACE.SPACE_USAGE (check block fill levels)</span>
+<span class="kw">SET SERVEROUTPUT ON</span>
+<span class="kw">DECLARE</span>
+  unformatted_blocks <span class="key">NUMBER</span>; unformatted_bytes <span class="key">NUMBER</span>;
+  fs1_blocks <span class="key">NUMBER</span>; fs1_bytes <span class="key">NUMBER</span>;
+  fs2_blocks <span class="key">NUMBER</span>; fs2_bytes <span class="key">NUMBER</span>;
+  fs3_blocks <span class="key">NUMBER</span>; fs3_bytes <span class="key">NUMBER</span>;
+  fs4_blocks <span class="key">NUMBER</span>; fs4_bytes <span class="key">NUMBER</span>;
+  full_blocks <span class="key">NUMBER</span>; full_bytes <span class="key">NUMBER</span>;
+<span class="kw">BEGIN</span>
+  <span class="fn">DBMS_SPACE.SPACE_USAGE</span>(<span class="str">'HR'</span>,<span class="str">'EMPLOYEES'</span>,<span class="str">'TABLE'</span>,
+    unformatted_blocks, unformatted_bytes,
+    fs1_blocks, fs1_bytes, fs2_blocks, fs2_bytes,
+    fs3_blocks, fs3_bytes, fs4_blocks, fs4_bytes,
+    full_blocks, full_bytes);
+  <span class="fn">DBMS_OUTPUT.PUT_LINE</span>(<span class="str">'Full blocks: '</span>    || full_blocks);
+  <span class="fn">DBMS_OUTPUT.PUT_LINE</span>(<span class="str">'75-100% full: '</span>  || fs4_blocks);
+  <span class="fn">DBMS_OUTPUT.PUT_LINE</span>(<span class="str">'50-75% full: '</span>   || fs3_blocks);
+  <span class="fn">DBMS_OUTPUT.PUT_LINE</span>(<span class="str">'Unformatted: '</span>   || unformatted_blocks);
+<span class="kw">END</span>;
+/</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 6 — ALTER TABLESPACE OPERATIONS
+     ═════════════════════════════════════════════════════ -->
+<section id="operations" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-orange mb-4"><i class="fas fa-sliders mr-1"></i> Section 6</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">Tablespace Operations</h2>
+    <p class="text-slate-400 max-w-3xl mb-10">Day-to-day DBA tasks — adding datafiles, resizing, monitoring, taking tablespaces offline, and dropping them. These commands are used constantly in production environments.</p>
+  </div>
+
+  <div class="reveal terminal mb-10">
+    <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">ALTER TABLESPACE — all essential operations</span></div>
+    <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">═══ ADDING SPACE ════════════════════════════════════════════════════</span>
+
+<span class="cm">-- Add a new datafile to an existing tablespace</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">app_data</span>
+  <span class="flag">ADD DATAFILE</span> <span class="str">'/oradata/ORCL/app_data02.dbf'</span> <span class="kw">SIZE</span> <span class="num">2G</span>
+  <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">512M</span> <span class="flag">MAXSIZE</span> <span class="num">20G</span>;
+
+<span class="cm">-- Resize an existing datafile (increase or decrease)</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="flag">DATAFILE</span> <span class="str">'/oradata/ORCL/app_data01.dbf'</span>
+  <span class="flag">RESIZE</span> <span class="num">4G</span>;
+<span class="cm">-- Note: Cannot RESIZE below the High Water Mark</span>
+
+<span class="cm">-- Change AUTOEXTEND settings on existing datafile</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="flag">DATAFILE</span> <span class="str">'/oradata/ORCL/app_data01.dbf'</span>
+  <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">1G</span> <span class="flag">MAXSIZE</span> <span class="num">30G</span>;
+
+<span class="cm">-- For BIGFILE tablespace (ALTER TABLESPACE instead of ALTER DATABASE DATAFILE)</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">dw_bigfile</span> <span class="flag">RESIZE</span> <span class="num">50G</span>;
+<span class="kw">ALTER TABLESPACE</span> <span class="var">dw_bigfile</span> <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">10G</span> <span class="flag">MAXSIZE</span> <span class="num">100G</span>;
+
+<span class="cm">═══ AVAILABILITY ════════════════════════════════════════════════════</span>
+
+<span class="cm">-- Take tablespace offline (maintenance, recovery)</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">app_data</span> <span class="flag">OFFLINE</span>;           <span class="cm">-- normal (checkpoint first)</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">app_data</span> <span class="flag">OFFLINE IMMEDIATE</span>; <span class="cm">-- no checkpoint (needs recovery)</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">app_data</span> <span class="flag">OFFLINE TEMPORARY</span>;<span class="cm">-- checkpoint each datafile separately</span>
+
+<span class="cm">-- Bring tablespace online</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">app_data</span> <span class="flag">ONLINE</span>;
+
+<span class="cm">-- Make tablespace READ ONLY (prevent writes, allow reads)</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">archive_data</span> <span class="flag">READ ONLY</span>;    <span class="cm">-- useful for read-only reference data</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">archive_data</span> <span class="flag">READ WRITE</span>;   <span class="cm">-- back to normal</span>
+
+<span class="cm">═══ RENAMING ════════════════════════════════════════════════════════</span>
+
+<span class="cm">-- Rename a tablespace (10g+)</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">old_name</span> <span class="flag">RENAME TO</span> <span class="var">new_name</span>;
+<span class="cm">-- Note: Cannot rename SYSTEM or SYSAUX</span>
+
+<span class="cm">-- Rename a datafile (when file has been moved at OS level)</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">app_data</span>
+  <span class="flag">RENAME DATAFILE</span> <span class="str">'/old/path/app_data01.dbf'</span>
+  <span class="flag">TO</span> <span class="str">'/new/path/app_data01.dbf'</span>;
+
+<span class="cm">═══ DROPPING ════════════════════════════════════════════════════════</span>
+
+<span class="cm">-- Drop an empty tablespace</span>
+<span class="kw">DROP TABLESPACE</span> <span class="var">old_app_ts</span>;
+
+<span class="cm">-- Drop tablespace with all objects AND datafiles</span>
+<span class="kw">DROP TABLESPACE</span> <span class="var">old_app_ts</span>
+  <span class="flag">INCLUDING CONTENTS AND DATAFILES</span>
+  <span class="flag">CASCADE CONSTRAINTS</span>;  <span class="cm">-- removes FK constraints pointing to objects in this TS</span></code></pre>
+  </div>
+
+  <!-- Monitoring space -->
+  <div class="reveal mb-8">
+    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><i class="fas fa-chart-bar text-orange-400"></i> Monitoring Tablespace Space</h3>
+    <div class="terminal">
+      <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Space monitoring queries</span></div>
+      <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- 1. Tablespace usage summary (most important query for DBAs)</span>
+<span class="kw">SELECT</span>
+  df.tablespace_name,
+  <span class="fn">ROUND</span>(df.total_mb, <span class="num">1</span>)                             <span class="kw">AS</span> total_mb,
+  <span class="fn">ROUND</span>(df.total_mb - <span class="fn">NVL</span>(fs.free_mb, <span class="num">0</span>), <span class="num">1</span>)        <span class="kw">AS</span> used_mb,
+  <span class="fn">ROUND</span>(<span class="fn">NVL</span>(fs.free_mb, <span class="num">0</span>), <span class="num">1</span>)                      <span class="kw">AS</span> free_mb,
+  <span class="fn">ROUND</span>((df.total_mb - <span class="fn">NVL</span>(fs.free_mb,<span class="num">0</span>)) / df.total_mb * <span class="num">100</span>, <span class="num">1</span>) <span class="kw">AS</span> pct_used
+<span class="kw">FROM</span>
+  (<span class="kw">SELECT</span> tablespace_name, <span class="fn">SUM</span>(bytes/<span class="num">1048576</span>) total_mb
+   <span class="kw">FROM</span> <span class="fn">DBA_DATA_FILES</span> <span class="kw">GROUP BY</span> tablespace_name) df
+  <span class="kw">LEFT JOIN</span>
+  (<span class="kw">SELECT</span> tablespace_name, <span class="fn">SUM</span>(bytes/<span class="num">1048576</span>) free_mb
+   <span class="kw">FROM</span> <span class="fn">DBA_FREE_SPACE</span>  <span class="kw">GROUP BY</span> tablespace_name) fs
+  <span class="kw">ON</span> df.tablespace_name = fs.tablespace_name
+<span class="kw">ORDER BY</span> pct_used <span class="flag">DESC</span>;
+
+<span class="cm">-- 2. Including AUTOEXTEND headroom (what's actually available)</span>
+<span class="kw">SELECT</span> tablespace_name,
+       <span class="fn">ROUND</span>(<span class="fn">SUM</span>(bytes)/1048576, <span class="num">1</span>)         <span class="kw">AS</span> current_mb,
+       <span class="fn">ROUND</span>(<span class="fn">SUM</span>(maxbytes)/1048576, <span class="num">1</span>)       <span class="kw">AS</span> max_mb,
+       <span class="fn">ROUND</span>(<span class="fn">SUM</span>(DECODE(autoextensible,'YES',maxbytes,bytes))/1048576,1) <span class="kw">AS</span> effective_max_mb
+<span class="kw">FROM</span>   <span class="fn">DBA_DATA_FILES</span>
+<span class="kw">GROUP BY</span> tablespace_name
+<span class="kw">ORDER BY</span> tablespace_name;
+
+<span class="cm">-- 3. All datafiles for a tablespace</span>
+<span class="kw">SELECT</span> file_name, bytes/<span class="num">1048576</span> mb, autoextensible, maxbytes/<span class="num">1048576</span> max_mb, status
+<span class="kw">FROM</span>   <span class="fn">DBA_DATA_FILES</span>
+<span class="kw">WHERE</span>  tablespace_name = <span class="str">'APP_DATA'</span>
+<span class="kw">ORDER BY</span> file_name;
+
+<span class="cm">-- 4. Temp tablespace usage</span>
+<span class="kw">SELECT</span> tablespace_name,
+       <span class="fn">ROUND</span>(tablespace_size * <span class="num">8192</span>/1048576, <span class="num">1</span>) <span class="kw">AS</span> total_mb,
+       <span class="fn">ROUND</span>(free_space      * <span class="num">8192</span>/1048576, <span class="num">1</span>) <span class="kw">AS</span> free_mb
+<span class="kw">FROM</span>   <span class="fn">V$TEMP_SPACE_HEADER</span>;</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 7 — REAL-TIME ISSUES & RESOLUTIONS
+     ═════════════════════════════════════════════════════ -->
+<section id="issues" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-red mb-4"><i class="fas fa-triangle-exclamation mr-1"></i> Section 7</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">Real-Time Issues &amp; Resolutions</h2>
+    <p class="text-slate-400 max-w-3xl mb-6">These are the exact ORA errors you will encounter in production Oracle environments. Every DBA must know these cold — they are also top interview questions. Each error includes the root cause, how to detect it, and the exact commands to fix it.</p>
+    <div class="glass rounded-xl p-4 border border-amber-500/20 mb-10">
+      <p class="text-amber-300 text-sm"><i class="fas fa-graduation-cap mr-2"></i><strong>Interview Tip:</strong> When asked about any ORA error, always answer in 3 parts: (1) what it means, (2) common causes, (3) resolution steps. This structure shows you know how to handle incidents, not just recognize error codes.</p>
+    </div>
+  </div>
+
+  <div class="reveal space-y-5">
+
+    <!-- ORA-01653 -->
+    <div class="glass rounded-xl border border-white/6 overflow-hidden">
+      <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0">
+            <i class="fas fa-table text-red-400 text-sm"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <code class="text-red-300 font-bold text-sm">ORA-01653</code>
+              <span class="badge badge-red">Most Common</span>
+            </div>
+            <p class="text-slate-400 text-xs mt-0.5">Unable to extend table — tablespace full</p>
+          </div>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+      </button>
+      <div class="acc-content px-6 pb-6">
+        <div class="glass rounded-xl p-4 border border-red-500/20 mb-4">
+          <p class="text-red-300 text-xs font-mono">ORA-01653: unable to extend table SCHEMA.TABLE_NAME by 128 in tablespace APP_DATA</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6 mb-5">
+          <div>
+            <h4 class="text-white font-semibold mb-3 text-sm"><i class="fas fa-magnifying-glass text-orange-400 mr-2"></i>What Happened &amp; Why</h4>
+            <ul class="text-slate-400 text-sm space-y-2">
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-red-400 text-xs mt-1 shrink-0"></i>An INSERT, UPDATE, or the database's space allocator tried to allocate a new extent for a table segment</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-red-400 text-xs mt-1 shrink-0"></i>No contiguous free space available in the tablespace large enough for the new extent</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-red-400 text-xs mt-1 shrink-0"></i>Could be: tablespace truly full, AUTOEXTEND hit MAXSIZE limit, or AUTOEXTEND is OFF</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-red-400 text-xs mt-1 shrink-0"></i>Application sees an error and the DML statement is rolled back</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-3 text-sm"><i class="fas fa-wrench text-green-400 mr-2"></i>Immediate Resolution Steps</h4>
+            <div class="space-y-2 text-sm">
+              <div class="flex gap-2 items-start"><span class="text-orange-400 font-bold shrink-0 text-xs mt-0.5">1.</span><span class="text-slate-400">Identify which tablespace is full and confirm the error</span></div>
+              <div class="flex gap-2 items-start"><span class="text-orange-400 font-bold shrink-0 text-xs mt-0.5">2.</span><span class="text-slate-400">Add a new datafile (fastest fix — doesn't require restart)</span></div>
+              <div class="flex gap-2 items-start"><span class="text-orange-400 font-bold shrink-0 text-xs mt-0.5">3.</span><span class="text-slate-400">OR resize existing datafile if filesystem has room</span></div>
+              <div class="flex gap-2 items-start"><span class="text-orange-400 font-bold shrink-0 text-xs mt-0.5">4.</span><span class="text-slate-400">OR enable/increase AUTOEXTEND MAXSIZE if it was the limit</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">ORA-01653 Resolution commands</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Step 1: Confirm which tablespace is full and by how much</span>
+<span class="kw">SELECT</span> df.tablespace_name,
+       <span class="fn">ROUND</span>(<span class="fn">SUM</span>(df.bytes)/1048576,1) total_mb,
+       <span class="fn">ROUND</span>(<span class="fn">NVL</span>(<span class="fn">SUM</span>(fs.bytes),0)/1048576,1) free_mb,
+       <span class="fn">ROUND</span>((<fn>SUM</fn>(df.bytes)-<span class="fn">NVL</span>(<fn>SUM</fn>(fs.bytes),0))/<fn>SUM</fn>(df.bytes)*100,1) pct_used
+<span class="kw">FROM</span>  <span class="fn">DBA_DATA_FILES</span> df
+      <span class="kw">LEFT JOIN</span> <span class="fn">DBA_FREE_SPACE</span> fs <span class="kw">ON</span> df.tablespace_name=fs.tablespace_name
+                                 <span class="kw">AND</span> df.file_id=fs.file_id
+<span class="kw">GROUP BY</span> df.tablespace_name
+<span class="kw">HAVING</span> <span class="fn">NVL</span>(<span class="fn">SUM</span>(fs.bytes),0)/<fn>SUM</fn>(df.bytes)*100 < <span class="num">10</span>  <span class="cm">-- less than 10% free</span>
+<span class="kw">ORDER BY</span> pct_used <span class="flag">DESC</span>;
+
+<span class="cm">-- Step 2a: Add a new datafile (RECOMMENDED - fastest fix)</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">app_data</span>
+  <span class="flag">ADD DATAFILE</span> <span class="str">'/oradata/ORCL/app_data02.dbf'</span> <span class="kw">SIZE</span> <span class="num">4G</span>
+  <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">1G</span> <span class="flag">MAXSIZE</span> <span class="num">20G</span>;
+
+<span class="cm">-- Step 2b: Resize an existing datafile (if filesystem has space)</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="flag">DATAFILE</span> <span class="str">'/oradata/ORCL/app_data01.dbf'</span>
+  <span class="flag">RESIZE</span> <span class="num">8G</span>;
+
+<span class="cm">-- Step 2c: Increase AUTOEXTEND MAXSIZE if that was the bottleneck</span>
+<span class="kw">ALTER DATABASE</span>
+  <span class="flag">DATAFILE</span> <span class="str">'/oradata/ORCL/app_data01.dbf'</span>
+  <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">512M</span> <span class="flag">MAXSIZE</span> <span class="num">30G</span>;
+
+<span class="cm">-- Long-term: Check AUTOEXTEND settings for all files in tablespace</span>
+<span class="kw">SELECT</span> file_name, bytes/<span class="num">1048576</span> mb, autoextensible, maxbytes/<span class="num">1048576</span> maxsize_mb
+<span class="kw">FROM</span>   <span class="fn">DBA_DATA_FILES</span>
+<span class="kw">WHERE</span>  tablespace_name = <span class="str">'APP_DATA'</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORA-01652 -->
+    <div class="glass rounded-xl border border-white/6 overflow-hidden">
+      <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-lg bg-teal-500/20 flex items-center justify-center shrink-0">
+            <i class="fas fa-sort text-teal-400 text-sm"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <code class="text-teal-300 font-bold text-sm">ORA-01652</code>
+              <span class="badge badge-teal">Temp Full</span>
+            </div>
+            <p class="text-slate-400 text-xs mt-0.5">Unable to extend temp segment — sort operation has no space</p>
+          </div>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+      </button>
+      <div class="acc-content px-6 pb-6">
+        <div class="glass rounded-xl p-4 border border-teal-500/20 mb-4">
+          <p class="text-teal-300 text-xs font-mono">ORA-01652: unable to extend temp segment by 128 in tablespace TEMP</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6 mb-5">
+          <div>
+            <h4 class="text-white font-semibold mb-3 text-sm"><i class="fas fa-magnifying-glass text-orange-400 mr-2"></i>Root Cause</h4>
+            <ul class="text-slate-400 text-sm space-y-2">
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>A sort, hash join, or GROUP BY operation used all available temp space</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>Often caused by large full-table scans being joined or sorted</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>Can occur when many users run reporting queries simultaneously</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-teal-400 text-xs mt-1 shrink-0"></i>The failing SQL is identified in the error message by SQL_ID</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-3 text-sm"><i class="fas fa-wrench text-green-400 mr-2"></i>Resolution Steps</h4>
+            <div class="space-y-2 text-sm">
+              <div class="flex gap-2 items-start"><span class="text-orange-400 font-bold shrink-0 text-xs mt-0.5">1.</span><span class="text-slate-400">Find who is using temp space and which SQL is causing it</span></div>
+              <div class="flex gap-2 items-start"><span class="text-orange-400 font-bold shrink-0 text-xs mt-0.5">2.</span><span class="text-slate-400">Add tempfile or resize existing one for immediate relief</span></div>
+              <div class="flex gap-2 items-start"><span class="text-orange-400 font-bold shrink-0 text-xs mt-0.5">3.</span><span class="text-slate-400">Long-term: optimize the SQL or increase PGA allocation</span></div>
+              <div class="flex gap-2 items-start"><span class="text-orange-400 font-bold shrink-0 text-xs mt-0.5">4.</span><span class="text-slate-400">Consider a separate temp tablespace for heavy reporting users</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">ORA-01652 Resolution commands</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Step 1: Find who is using temp space right now</span>
+<span class="kw">SELECT</span> s.username, s.sid, s.serial#, s.status, s.sql_id,
+       <span class="fn">ROUND</span>(su.blocks * <span class="num">8192</span> / <span class="num">1048576</span>, <span class="num">1</span>) <span class="kw">AS</span> temp_mb,
+       su.tablespace
+<span class="kw">FROM</span>   <span class="fn">V$SESSION</span> s <span class="kw">JOIN</span> <span class="fn">V$SORT_USAGE</span> su <span class="kw">ON</span> s.saddr = su.session_addr
+<span class="kw">ORDER BY</span> temp_mb <span class="flag">DESC</span>;
+
+<span class="cm">-- Step 2: How full is TEMP right now?</span>
+<span class="kw">SELECT</span> tablespace_name,
+       <span class="fn">ROUND</span>(tablespace_size * <span class="num">8192</span>/1048576,1) total_mb,
+       <span class="fn">ROUND</span>(free_space * <span class="num">8192</span>/1048576,1) free_mb,
+       <span class="fn">ROUND</span>((tablespace_size-free_space)*<span class="num">8192</span>/1048576,1) used_mb
+<span class="kw">FROM</span>   <span class="fn">V$TEMP_SPACE_HEADER</span>;
+
+<span class="cm">-- Step 3: Add a tempfile to TEMP tablespace (immediate fix)</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">temp</span>
+  <span class="flag">ADD TEMPFILE</span> <span class="str">'/oradata/ORCL/temp02.dbf'</span> <span class="kw">SIZE</span> <span class="num">4G</span>
+  <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">1G</span> <span class="flag">MAXSIZE</span> <span class="num">20G</span>;
+
+<span class="cm">-- Step 4: For specific heavy users — assign dedicated temp tablespace</span>
+<span class="kw">CREATE TEMPORARY TABLESPACE</span> <span class="var">temp_reporting</span>
+  <span class="flag">TEMPFILE</span> <span class="str">'/oradata/ORCL/temp_rpt01.dbf'</span> <span class="kw">SIZE</span> <span class="num">8G</span>
+  <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">2G</span> <span class="flag">MAXSIZE</span> <span class="num">40G</span>
+  <span class="flag">EXTENT MANAGEMENT LOCAL UNIFORM SIZE</span> <span class="num">1M</span>;
+<span class="kw">ALTER USER</span> <span class="var">report_user</span> <span class="flag">TEMPORARY TABLESPACE</span> <span class="var">temp_reporting</span>;
+
+<span class="cm">-- Step 5: Check if the SQL can be optimized (look for huge sorts)</span>
+<span class="kw">SELECT</span> sql_id, elapsed_time/1000000 secs, disk_reads,
+       direct_writes, buffer_gets, sql_text
+<span class="kw">FROM</span>   <span class="fn">V$SQL</span>
+<span class="kw">WHERE</span>  sql_id = <span class="str">'&sql_id'</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORA-01654 -->
+    <div class="glass rounded-xl border border-white/6 overflow-hidden">
+      <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
+            <i class="fas fa-key text-amber-400 text-sm"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <code class="text-amber-300 font-bold text-sm">ORA-01654</code>
+              <span class="badge badge-amber">Index Issue</span>
+            </div>
+            <p class="text-slate-400 text-xs mt-0.5">Unable to extend index — index tablespace full</p>
+          </div>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+      </button>
+      <div class="acc-content px-6 pb-6">
+        <div class="glass rounded-xl p-4 border border-amber-500/20 mb-4">
+          <p class="text-amber-300 text-xs font-mono">ORA-01654: unable to extend index HR.EMP_PK by 128 in tablespace APP_IDX</p>
+        </div>
+        <p class="text-slate-400 text-sm mb-4">This is the same root cause as ORA-01653 but for an index segment. Occurs during INSERT (index leaf block splits), during index creation, or REBUILD operations. Resolution is identical — add space to the index tablespace.</p>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">ORA-01654 Resolution</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Add space to the index tablespace</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">app_idx</span>
+  <span class="flag">ADD DATAFILE</span> <span class="str">'/oradata/ORCL/app_idx02.dbf'</span> <span class="kw">SIZE</span> <span class="num">2G</span>
+  <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">512M</span> <span class="flag">MAXSIZE</span> <span class="num">10G</span>;
+
+<span class="cm">-- Or: find and drop unused/duplicate indexes (review first!)</span>
+<span class="kw">SELECT</span> owner, index_name, table_name, last_analyzed,
+       monitoring, used, start_monitoring
+<span class="kw">FROM</span>   <span class="fn">DBA_OBJECT_USAGE</span>
+<span class="kw">WHERE</span>  used = <span class="str">'NO'</span>
+<span class="kw">AND</span>    owner = <span class="str">'HR'</span>;
+
+<span class="cm">-- Or: rebuild index in a tablespace with more space</span>
+<span class="kw">ALTER INDEX</span> <span class="var">hr.emp_pk</span> <span class="flag">REBUILD TABLESPACE</span> <span class="var">app_data</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORA-30036 -->
+    <div class="glass rounded-xl border border-white/6 overflow-hidden">
+      <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-lg bg-sky-500/20 flex items-center justify-center shrink-0">
+            <i class="fas fa-rotate-left text-sky-400 text-sm"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <code class="text-sky-300 font-bold text-sm">ORA-30036</code>
+              <span class="badge badge-sky">Undo Full</span>
+            </div>
+            <p class="text-slate-400 text-xs mt-0.5">Unable to extend undo segment — undo tablespace exhausted</p>
+          </div>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+      </button>
+      <div class="acc-content px-6 pb-6">
+        <div class="glass rounded-xl p-4 border border-sky-500/20 mb-4">
+          <p class="text-sky-300 text-xs font-mono">ORA-30036: unable to extend segment by 8 in undo tablespace 'UNDOTBS1'</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6 mb-5">
+          <div>
+            <h4 class="text-white font-semibold mb-3 text-sm"><i class="fas fa-magnifying-glass text-orange-400 mr-2"></i>Root Cause Analysis</h4>
+            <ul class="text-slate-400 text-sm space-y-2">
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Undo tablespace is full — no more room for transaction undo data</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Often caused by a very large or long-running transaction (mass UPDATE/DELETE)</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Can happen if RETENTION GUARANTEE is on — unexpired undo cannot be overwritten</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-sky-400 text-xs mt-1 shrink-0"></i>Check V$TRANSACTION for runaway transactions</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-3 text-sm"><i class="fas fa-triangle-exclamation text-amber-400 mr-2"></i>Key Difference from ORA-01653</h4>
+            <div class="glass rounded-lg p-4 border border-sky-500/15">
+              <p class="text-slate-400 text-sm">Unlike ORA-01653 which blocks only the failing session, ORA-30036 can affect ALL sessions trying to do DML on the database, since all transactions share the same undo tablespace. Treat this as a P1 incident.</p>
+            </div>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">ORA-30036 Resolution commands</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Step 1: Check undo tablespace size and usage</span>
+<span class="kw">SELECT</span> tablespace_name, <span class="fn">ROUND</span>(<fn>SUM</fn>(bytes)/1048576,1) total_mb,
+       <span class="fn">ROUND</span>(<fn>SUM</fn>(DECODE(autoextensible,'YES',maxbytes,bytes))/1048576,1) max_mb
+<span class="kw">FROM</span>   <span class="fn">DBA_DATA_FILES</span>
+<span class="kw">WHERE</span>  tablespace_name = <span class="str">'UNDOTBS1'</span>
+<span class="kw">GROUP BY</span> tablespace_name;
+
+<span class="cm">-- Step 2: Find the large/runaway transaction causing the issue</span>
+<span class="kw">SELECT</span> s.username, s.sid, s.serial#, s.status,
+       t.used_ublk * <span class="num">8192</span>/1048576 <span class="kw">AS</span> undo_mb_used,
+       t.start_time, t.used_urec undo_records
+<span class="kw">FROM</span>   <span class="fn">V$TRANSACTION</span> t <span class="kw">JOIN</span> <span class="fn">V$SESSION</span> s <span class="kw">ON</span> t.addr = s.taddr
+<span class="kw">ORDER BY</span> undo_mb_used <span class="flag">DESC</span>;
+
+<span class="cm">-- Step 3: Immediate fix — add datafile to undo tablespace</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">undotbs1</span>
+  <span class="flag">ADD DATAFILE</span> <span class="str">'/oradata/ORCL/undo02.dbf'</span> <span class="kw">SIZE</span> <span class="num">4G</span>
+  <span class="flag">AUTOEXTEND ON NEXT</span> <span class="num">1G</span> <span class="flag">MAXSIZE</span> <span class="num">30G</span>;
+
+<span class="cm">-- Step 4: If RETENTION GUARANTEE is blocking, disable it temporarily</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">undotbs1</span> <span class="flag">RETENTION NOGUARANTEE</span>;
+
+<span class="cm">-- Step 5: Check V$UNDOSTAT for history (NOSPACEERRCNT column)</span>
+<span class="kw">SELECT</span> begin_time, end_time, txncount, maxquerylen,
+       ssolderrcnt,    <span class="cm">-- ORA-01555 count (undo too small for long queries)</span>
+       nospaceerrcnt,  <span class="cm">-- ORA-30036 count (undo tablespace full)</span>
+       activeblks, unexpiredblks, expiredblks
+<span class="kw">FROM</span>   <span class="fn">V$UNDOSTAT</span>
+<span class="kw">WHERE</span>  nospaceerrcnt > <span class="num">0</span>
+<span class="kw">ORDER BY</span> begin_time <span class="flag">DESC</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORA-01555 -->
+    <div class="glass rounded-xl border border-white/6 overflow-hidden">
+      <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center shrink-0">
+            <i class="fas fa-camera-retro text-violet-400 text-sm"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <code class="text-violet-300 font-bold text-sm">ORA-01555</code>
+              <span class="badge badge-violet">Undo Expired</span>
+            </div>
+            <p class="text-slate-400 text-xs mt-0.5">Snapshot too old — long query lost read consistency</p>
+          </div>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+      </button>
+      <div class="acc-content px-6 pb-6">
+        <div class="glass rounded-xl p-4 border border-violet-500/20 mb-4">
+          <p class="text-violet-300 text-xs font-mono">ORA-01555: snapshot too old: rollback segment number 4 with name "_SYSSMU4_123456$" too small</p>
+        </div>
+        <p class="text-slate-400 text-sm mb-4">A long-running query started reading data at time T1. By the time it revisited a block, the undo records needed to reconstruct the old image (read-consistent view at T1) had been <strong class="text-white">overwritten</strong> by newer transactions. Oracle cannot reconstruct the consistent view and raises this error.</p>
+        <div class="grid md:grid-cols-2 gap-6 mb-5">
+          <div>
+            <h4 class="text-white font-semibold mb-3 text-sm"><i class="fas fa-stethoscope text-violet-400 mr-2"></i>Common Causes</h4>
+            <ul class="text-slate-400 text-sm space-y-2">
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-violet-400 text-xs mt-1 shrink-0"></i>UNDO_RETENTION too low for the duration of long queries</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-violet-400 text-xs mt-1 shrink-0"></i>Undo tablespace too small — unexpired undo being overwritten</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-violet-400 text-xs mt-1 shrink-0"></i>Very active transaction system with high DML rate</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-violet-400 text-xs mt-1 shrink-0"></i>Slow queries with table scans + heavy concurrent DML</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-3 text-sm"><i class="fas fa-wrench text-green-400 mr-2"></i>Resolution</h4>
+            <ul class="text-slate-400 text-sm space-y-2">
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-green-400 text-xs mt-1 shrink-0"></i>Increase UNDO_RETENTION (match to longest query duration)</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-green-400 text-xs mt-1 shrink-0"></i>Increase undo tablespace size so unexpired undo isn't overwritten</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-green-400 text-xs mt-1 shrink-0"></i>Enable RETENTION GUARANTEE (prevents overwrite, requires larger undo TS)</li>
+              <li class="flex gap-2"><i class="fas fa-circle-dot text-green-400 text-xs mt-1 shrink-0"></i>Optimize slow queries to finish faster (better execution plan)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">ORA-01555 Resolution</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Increase UNDO_RETENTION (unit: seconds)</span>
+<span class="kw">ALTER SYSTEM SET</span> <span class="key">UNDO_RETENTION</span> = <span class="num">3600</span>;  <span class="cm">-- 1 hour (was 900 = 15 min)</span>
+
+<span class="cm">-- Check max query length in last 30 intervals (~5 hours)</span>
+<span class="kw">SELECT</span> <fn>MAX</fn>(maxquerylen) max_query_secs,
+       <fn>MAX</fn>(ssolderrcnt) total_1555_errors
+<span class="kw">FROM</span>   <span class="fn">V$UNDOSTAT</span>
+<span class="kw">WHERE</span>  begin_time > <span class="fn">SYSDATE</span> - <span class="num">1</span>;
+<span class="cm">-- Set UNDO_RETENTION >= max_query_secs to prevent ORA-01555</span>
+
+<span class="cm">-- Guarantee undo is never overwritten (requires sized undo TS)</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">undotbs1</span> <span class="flag">RETENTION GUARANTEE</span>;
+
+<span class="cm">-- Calculate recommended undo size:</span>
+<span class="cm">-- Undo_MB = UNDO_RETENTION * undo_blocks_per_sec * block_size / 1048576</span>
+<span class="kw">SELECT</span> <fn>ROUND</fn>(
+         <fn>MAX</fn>(undoblks / ((end_time - begin_time) * <span class="num">86400</span>))  <span class="cm">-- undo blocks/sec</span>
+         * <span class="num">3600</span>    <span class="cm">-- target retention: 3600 seconds (1 hour)</span>
+         * <span class="num">8192</span>    <span class="cm">-- block_size</span>
+         / <span class="num">1048576</span> <span class="cm">-- to MB</span>
+       , <span class="num">0</span>) recommended_undo_mb
+<span class="kw">FROM</span> <span class="fn">V$UNDOSTAT</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORA-01658 -->
+    <div class="glass rounded-xl border border-white/6 overflow-hidden">
+      <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center shrink-0">
+            <i class="fas fa-puzzle-piece text-orange-400 text-sm"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <code class="text-orange-300 font-bold text-sm">ORA-01658</code>
+              <span class="badge badge-orange">No Initial Extent</span>
+            </div>
+            <p class="text-slate-400 text-xs mt-0.5">Unable to create INITIAL extent — no contiguous free space</p>
+          </div>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+      </button>
+      <div class="acc-content px-6 pb-6">
+        <div class="glass rounded-xl p-4 border border-orange-500/20 mb-4">
+          <p class="text-orange-300 text-xs font-mono">ORA-01658: unable to create INITIAL extent for segment in tablespace APP_DATA</p>
+        </div>
+        <p class="text-slate-400 text-sm mb-4">This happens when you CREATE TABLE or CREATE INDEX and the tablespace cannot find a single contiguous run of free blocks large enough for the INITIAL extent. The tablespace may have lots of total free space but it's all fragmented into small pieces. This can happen in heavily used DMT tablespaces (LMT is immune because AUTOALLOCATE handles fragmentation automatically).</p>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">ORA-01658 Resolution</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Step 1: Check largest contiguous free extent in the tablespace</span>
+<span class="kw">SELECT</span> tablespace_name,
+       <span class="fn">COUNT</span>(*) fragment_count,
+       <span class="fn">MAX</span>(bytes)/1048576 largest_free_mb,
+       <span class="fn">SUM</span>(bytes)/1048576 total_free_mb
+<span class="kw">FROM</span>   <span class="fn">DBA_FREE_SPACE</span>
+<span class="kw">WHERE</span>  tablespace_name = <span class="str">'APP_DATA'</span>
+<span class="kw">GROUP BY</span> tablespace_name;
+<span class="cm">-- If total_free_mb is large but largest_free_mb is small = fragmentation</span>
+
+<span class="cm">-- Step 2a: Add a new datafile (provides fresh contiguous space)</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">app_data</span>
+  <span class="flag">ADD DATAFILE</span> <span class="str">'/oradata/ORCL/app_data03.dbf'</span> <span class="kw">SIZE</span> <span class="num">2G</span>;
+
+<span class="cm">-- Step 2b: LMT coalesces free space automatically — verify it's LMT</span>
+<span class="kw">SELECT</span> tablespace_name, extent_management <span class="kw">FROM</span> <span class="fn">DBA_TABLESPACES</span>
+<span class="kw">WHERE</span>  tablespace_name = <span class="str">'APP_DATA'</span>;
+<span class="cm">-- If DICTIONARY (DMT), coalesce manually:</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">app_data</span> <span class="flag">COALESCE</span>; <span class="cm">-- merges adjacent free extents in DMT</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Datafile offline / missing -->
+    <div class="glass rounded-xl border border-white/6 overflow-hidden">
+      <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0">
+            <i class="fas fa-file-circle-xmark text-red-400 text-sm"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <code class="text-red-300 font-bold text-sm">ORA-01157 / ORA-01110</code>
+              <span class="badge badge-red">Critical</span>
+            </div>
+            <p class="text-slate-400 text-xs mt-0.5">Cannot identify/lock data file — datafile missing or inaccessible</p>
+          </div>
+        </div>
+        <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+      </button>
+      <div class="acc-content px-6 pb-6">
+        <div class="glass rounded-xl p-4 border border-red-500/20 mb-4">
+          <p class="text-red-300 text-xs font-mono">ORA-01157: cannot identify/lock data file 7 - see DBWR trace file<br/>ORA-01110: data file 7: '/oradata/ORCL/app_data01.dbf'</p>
+        </div>
+        <p class="text-slate-400 text-sm mb-4">The datafile physically disappeared from the OS (deleted, moved, or filesystem unmounted). Oracle's DBWR process cannot access it. If the tablespace is not SYSTEM/SYSAUX/UNDO, you can take it offline and keep the rest of the database up while you restore from backup.</p>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Datafile missing — emergency procedure</span></div>
+          <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">-- Step 1: Identify the missing file</span>
+<span class="kw">SELECT</span> file#, name, status <span class="kw">FROM</span> <span class="fn">V$DATAFILE</span> <span class="kw">WHERE</span> status != <span class="str">'ONLINE'</span>;
+
+<span class="cm">-- Step 2a: If file was just moved — rename in Oracle's control file</span>
+<span class="kw">ALTER TABLESPACE</span> <span class="var">app_data</span>
+  <span class="flag">RENAME DATAFILE</span> <span class="str">'/old/path/app_data01.dbf'</span>
+  <span class="flag">TO</span> <span class="str">'/new/path/app_data01.dbf'</span>;
+
+<span class="cm">-- Step 2b: If file is lost — take tablespace offline for recovery</span>
+<span class="kw">ALTER DATABASE</span> <span class="flag">DATAFILE</span> <span class="num">7</span> <span class="flag">OFFLINE</span>;   <span class="cm">-- datafile offline</span>
+
+<span class="cm">-- Step 3: Restore from RMAN backup</span>
+<span class="cm">-- RMAN> RESTORE DATAFILE 7;</span>
+<span class="cm">-- RMAN> RECOVER DATAFILE 7;</span>
+<span class="cm">-- RMAN> SQL 'ALTER DATABASE DATAFILE 7 ONLINE';</span>
+
+<span class="cm">-- Verify database is still up while recovery happens on that tablespace</span>
+<span class="kw">SELECT</span> status <span class="kw">FROM</span> <span class="fn">V$INSTANCE</span>; <span class="cm">-- Should show OPEN</span>
+
+<span class="cm">-- Check file status after fix</span>
+<span class="kw">SELECT</span> file#, name, status, enabled <span class="kw">FROM</span> <span class="fn">V$DATAFILE</span>
+<span class="kw">WHERE</span>  file# = <span class="num">7</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 8 — BEST PRACTICES
+     ═════════════════════════════════════════════════════ -->
+<section id="bestpractices" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-green mb-4"><i class="fas fa-star mr-1"></i> Section 8</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">Tablespace Best Practices</h2>
+    <p class="text-slate-400 max-w-3xl mb-10">These are Oracle-recommended best practices from official documentation — the guidelines followed by senior DBAs at enterprise companies. Apply these from day one to avoid space issues, performance problems, and management headaches.</p>
+  </div>
+
+  <div class="reveal grid md:grid-cols-2 gap-6 mb-10">
+    <div class="glass rounded-2xl p-6 border border-green-500/15">
+      <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center mb-4"><i class="fas fa-check-double text-green-400"></i></div>
+      <h3 class="font-bold text-white mb-4">Storage Design</h3>
+      <ul class="text-slate-400 text-sm space-y-3">
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Always use <strong class="text-white">Locally Managed Tablespaces (LMT)</strong> — default and required in 19c</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Use <strong class="text-white">SEGMENT SPACE MANAGEMENT AUTO (ASSM)</strong> for all user tablespaces — it's default and Oracle's explicit recommendation</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Use <strong class="text-white">AUTOALLOCATE</strong> for general purpose tablespaces; UNIFORM only for dedicated temp tablespaces</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Create fewer, <strong class="text-white">larger datafiles</strong> rather than many small ones — easier to manage</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Separate <strong class="text-white">data from indexes</strong> into different tablespaces for I/O distribution</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Never store application data in <strong class="text-white">SYSTEM or SYSAUX</strong> tablespaces</li>
+      </ul>
+    </div>
+    <div class="glass rounded-2xl p-6 border border-orange-500/15">
+      <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center mb-4"><i class="fas fa-expand text-orange-400"></i></div>
+      <h3 class="font-bold text-white mb-4">AUTOEXTEND Configuration</h3>
+      <ul class="text-slate-400 text-sm space-y-3">
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Enable <strong class="text-white">AUTOEXTEND ON</strong> for critical tablespaces (app data, undo, temp)</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Always set <strong class="text-white">MAXSIZE</strong> — never use UNLIMITED in production (can fill filesystem)</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Set NEXT to <strong class="text-white">10-20% of current size</strong> — avoid too-small increments that cause frequent extension</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Monitor AUTOEXTEND events — each extension is a warning that capacity planning is needed</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Alert when tablespace reaches <strong class="text-white">80% used</strong> — time to plan; alert at 90% for emergency action</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Keep at least <strong class="text-white">30 days of headroom</strong> based on growth rate</li>
+      </ul>
+    </div>
+    <div class="glass rounded-2xl p-6 border border-sky-500/15">
+      <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center mb-4"><i class="fas fa-rotate-left text-sky-400"></i></div>
+      <h3 class="font-bold text-white mb-4">Undo Tablespace</h3>
+      <ul class="text-slate-400 text-sm space-y-3">
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Use <strong class="text-white">Automatic Undo Management (AUM)</strong> — default in 19c, never use manual rollback segments</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Size undo tablespace based on <strong class="text-white">UNDO_RETENTION × undo blocks per second</strong> query from V$UNDOSTAT</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Enable AUTOEXTEND on undo to prevent ORA-30036 during peak activity</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Only use <strong class="text-white">RETENTION GUARANTEE</strong> when Flashback operations are critical — it can cause ORA-30036 if undo fills</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Set UNDO_RETENTION to cover your <strong class="text-white">longest running query duration</strong></li>
+      </ul>
+    </div>
+    <div class="glass rounded-2xl p-6 border border-teal-500/15">
+      <div class="w-10 h-10 rounded-xl bg-teal-500/20 flex items-center justify-center mb-4"><i class="fas fa-wind text-teal-400"></i></div>
+      <h3 class="font-bold text-white mb-4">Temp Tablespace</h3>
+      <ul class="text-slate-400 text-sm space-y-3">
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Create temp tablespace with <strong class="text-white">UNIFORM SIZE 1M</strong> (Oracle's recommendation for temp)</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Use multiple temp tablespace groups (12c+) for high-concurrency reporting databases</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Consider separate temp tablespace for <strong class="text-white">heavy reporting users</strong> vs OLTP users</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>Temp tablespace doesn't need to be backed up — but must exist at startup</li>
+        <li class="flex gap-2"><i class="fas fa-check text-green-400 text-xs mt-1 shrink-0"></i>If temp fills up frequently → tune the SQL first, then increase temp size</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Space reclamation practices -->
+  <div class="reveal glass rounded-2xl p-6 border border-orange-500/15 mb-6">
+    <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-recycle text-orange-400"></i> Space Reclamation Rules</h3>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="bg-orange-500/5 rounded-xl p-4 border border-orange-500/15">
+        <p class="text-orange-300 font-bold text-sm mb-2">After Bulk DELETEs</p>
+        <p class="text-slate-400 text-xs">Run <code class="text-orange-300">SHRINK SPACE CASCADE</code> on the table (ASSM required) to reclaim space and reset the HWM. This improves full-table scan performance significantly.</p>
+      </div>
+      <div class="bg-orange-500/5 rounded-xl p-4 border border-orange-500/15">
+        <p class="text-orange-300 font-bold text-sm mb-2">After TRUNCATE</p>
+        <p class="text-slate-400 text-xs">TRUNCATE automatically resets the HWM and releases all extents back to the tablespace — no SHRINK needed. Preferred over DELETE for total data removal.</p>
+      </div>
+      <div class="bg-orange-500/5 rounded-xl p-4 border border-orange-500/15">
+        <p class="text-orange-300 font-bold text-sm mb-2">Table Reorganization</p>
+        <p class="text-slate-400 text-xs">Use <code class="text-orange-300">ALTER TABLE MOVE</code> for tables you cannot shrink online (LONG columns, clustered). Remember to rebuild all indexes after MOVE — they become UNUSABLE.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 9 — DBA CHEATSHEET
+     ═════════════════════════════════════════════════════ -->
+<section id="cheatsheet" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+  <div class="reveal">
+    <span class="badge badge-orange mb-4"><i class="fas fa-book-open mr-1"></i> Section 9</span>
+    <h2 class="text-3xl font-bold font-display gradient-text mb-3">DBA Quick Reference</h2>
+    <p class="text-slate-400 max-w-3xl mb-10">All the key data dictionary views and monitoring queries you need daily for tablespace management — copy-paste ready.</p>
+  </div>
+
+  <!-- Data Dictionary Views grid -->
+  <div class="reveal grid md:grid-cols-2 gap-6 mb-10">
+    <div class="glass rounded-2xl p-6 border border-white/6">
+      <h4 class="font-bold text-orange-300 mb-4 flex items-center gap-2"><i class="fas fa-database text-orange-400"></i> Tablespace &amp; Datafile Views</h4>
+      <div class="space-y-3">
+        <div class="border-b border-white/5 pb-3">
+          <code class="text-orange-300 text-xs font-bold">DBA_TABLESPACES</code>
+          <p class="text-slate-400 text-xs mt-1">All tablespaces: CONTENTS (PERMANENT/TEMPORARY/UNDO), STATUS (ONLINE/OFFLINE/READ ONLY), EXTENT_MANAGEMENT (LOCAL/DICTIONARY), SEGMENT_SPACE_MANAGEMENT (AUTO/MANUAL), BLOCK_SIZE</p>
+        </div>
+        <div class="border-b border-white/5 pb-3">
+          <code class="text-orange-300 text-xs font-bold">DBA_DATA_FILES</code>
+          <p class="text-slate-400 text-xs mt-1">Permanent tablespace datafiles: FILE_NAME, BYTES, STATUS, AUTOEXTENSIBLE (YES/NO), MAXBYTES, INCREMENT_BY (NEXT blocks)</p>
+        </div>
+        <div class="border-b border-white/5 pb-3">
+          <code class="text-orange-300 text-xs font-bold">DBA_TEMP_FILES</code>
+          <p class="text-slate-400 text-xs mt-1">Temporary tablespace tempfiles: same columns as DBA_DATA_FILES but for tempfiles</p>
+        </div>
+        <div class="pb-1">
+          <code class="text-orange-300 text-xs font-bold">DBA_FREE_SPACE</code>
+          <p class="text-slate-400 text-xs mt-1">Free extents in permanent tablespaces: TABLESPACE_NAME, FILE_ID, BLOCK_ID, BYTES (free extent size), BLOCKS. Used to calculate total free space and detect fragmentation (high row count = many small free fragments).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6 border border-white/6">
+      <h4 class="font-bold text-orange-300 mb-4 flex items-center gap-2"><i class="fas fa-cubes text-orange-400"></i> Segment &amp; Extent Views</h4>
+      <div class="space-y-3">
+        <div class="border-b border-white/5 pb-3">
+          <code class="text-orange-300 text-xs font-bold">DBA_SEGMENTS</code>
+          <p class="text-slate-400 text-xs mt-1">All segments: OWNER, SEGMENT_NAME, SEGMENT_TYPE (TABLE/INDEX/UNDO/TEMP/LOB/CLUSTER/etc.), TABLESPACE_NAME, BYTES (total allocated), BLOCKS, EXTENTS. Use to find space hogs.</p>
+        </div>
+        <div class="border-b border-white/5 pb-3">
+          <code class="text-orange-300 text-xs font-bold">DBA_EXTENTS</code>
+          <p class="text-slate-400 text-xs mt-1">All extents: OWNER, SEGMENT_NAME, SEGMENT_TYPE, TABLESPACE_NAME, EXTENT_ID (sequence within segment), FILE_ID, BLOCK_ID (starting block), BYTES, BLOCKS</p>
+        </div>
+        <div class="pb-1">
+          <code class="text-orange-300 text-xs font-bold">V$DATAFILE &amp; V$TABLESPACE</code>
+          <p class="text-slate-400 text-xs mt-1">Dynamic views from control file. V$DATAFILE: FILE#, NAME, STATUS (OK/OFFLINE/ONLINE/RECOVER), BYTES, CHECKPOINT_CHANGE#. V$TABLESPACE: TS#, NAME, INCLUDED_IN_DATABASE_BACKUP</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6 border border-white/6">
+      <h4 class="font-bold text-orange-300 mb-4 flex items-center gap-2"><i class="fas fa-rotate-left text-orange-400"></i> Undo Monitoring Views</h4>
+      <div class="space-y-3">
+        <div class="border-b border-white/5 pb-3">
+          <code class="text-orange-300 text-xs font-bold">V$UNDOSTAT</code>
+          <p class="text-slate-400 text-xs mt-1">10-minute interval undo statistics: TXNCOUNT, MAXQUERYLEN (longest query seconds), UNDOBLKS (undo blocks used), SSOLDERRCNT (ORA-01555 count), NOSPACEERRCNT (ORA-30036 count), ACTIVEBLKS, UNEXPIREDBLKS, EXPIREDBLKS</p>
+        </div>
+        <div class="pb-1">
+          <code class="text-orange-300 text-xs font-bold">V$TRANSACTION</code>
+          <p class="text-slate-400 text-xs mt-1">Active transactions: ADDR (join to V$SESSION.TADDR), START_TIME, USED_UBLK (undo blocks), USED_UREC (undo records). Find runaway transactions that are filling undo.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6 border border-white/6">
+      <h4 class="font-bold text-orange-300 mb-4 flex items-center gap-2"><i class="fas fa-wind text-orange-400"></i> Temp Space Monitoring</h4>
+      <div class="space-y-3">
+        <div class="border-b border-white/5 pb-3">
+          <code class="text-orange-300 text-xs font-bold">V$TEMP_SPACE_HEADER</code>
+          <p class="text-slate-400 text-xs mt-1">Temp tablespace space summary: TABLESPACE_NAME, TABLESPACE_SIZE (blocks), FREE_SPACE (blocks), RELATIVE_FNO. Multiply blocks × DB_BLOCK_SIZE for bytes.</p>
+        </div>
+        <div class="pb-1">
+          <code class="text-orange-300 text-xs font-bold">V$SORT_USAGE</code>
+          <p class="text-slate-400 text-xs mt-1">Active sort operations: USER, SESSION_ADDR (join to V$SESSION.SADDR), TABLESPACE, CONTENTS (SORT/LOB/etc.), BLOCKS (blocks used). Shows who is using temp space right now.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interview Q&A panel -->
+  <div class="reveal mb-10">
+    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><i class="fas fa-graduation-cap text-orange-400"></i> Top Interview Questions &amp; Model Answers</h3>
+    <div class="space-y-4">
+      <div class="glass rounded-xl border border-white/6 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors text-left">
+          <span class="text-amber-300 font-semibold text-sm">"Explain Oracle's storage hierarchy from database to data block."</span>
+          <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-slate-300 text-sm leading-relaxed">Oracle organizes storage in 5 levels. At the top is the <strong class="text-orange-300">Database</strong> — the entire Oracle instance. Inside the database are <strong class="text-orange-300">Tablespaces</strong> — logical containers that group related objects. Tablespaces are physically made up of <strong class="text-orange-300">Datafiles</strong> on disk. Inside each tablespace are <strong class="text-orange-300">Segments</strong> — one per database object (one table = one segment, one index = one segment). Each segment is made up of <strong class="text-orange-300">Extents</strong> — contiguous sets of data blocks allocated together. And finally, <strong class="text-orange-300">Data Blocks</strong> are the smallest unit Oracle reads and writes — typically 8KB, set by DB_BLOCK_SIZE at database creation.</p>
+        </div>
+      </div>
+      <div class="glass rounded-xl border border-white/6 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors text-left">
+          <span class="text-amber-300 font-semibold text-sm">"What is the High Water Mark and why does it matter for performance?"</span>
+          <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-slate-300 text-sm leading-relaxed">The High Water Mark is the highest block number ever used in a segment. Oracle's full table scans read ALL blocks up to the HWM, even empty ones. If you DELETE 90% of rows from a large table, the HWM stays at the original high point — full scans still read all those empty blocks, wasting I/O and memory in the buffer cache. To fix this: use <code class="text-orange-300">ALTER TABLE ... SHRINK SPACE CASCADE</code> (ASSM tablespaces only, requires ENABLE ROW MOVEMENT) to compact rows and reset the HWM, or use <code class="text-orange-300">ALTER TABLE ... MOVE</code> which also resets HWM but invalidates all indexes.</p>
+        </div>
+      </div>
+      <div class="glass rounded-xl border border-white/6 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors text-left">
+          <span class="text-amber-300 font-semibold text-sm">"What is LMT? What is ASSM? How are they different?"</span>
+          <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-slate-300 text-sm leading-relaxed">They operate at different levels. <strong class="text-orange-300">LMT (Locally Managed Tablespace)</strong> controls how <em>extents</em> are tracked at the tablespace level — using a bitmap stored in the tablespace header, so no data dictionary updates are needed for space allocation. The opposite is DMT (Dictionary Managed), now deprecated. <strong class="text-orange-300">ASSM (Automatic Segment Space Management)</strong> controls how <em>free blocks within a segment</em> are tracked — using bitmaps in the segment header blocks instead of the old freelist linked-list approach. ASSM eliminates freelist contention under concurrent inserts. Both are the default in Oracle 19c. You specify: <code class="text-orange-300">EXTENT MANAGEMENT LOCAL</code> for LMT and <code class="text-orange-300">SEGMENT SPACE MANAGEMENT AUTO</code> for ASSM.</p>
+        </div>
+      </div>
+      <div class="glass rounded-xl border border-white/6 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors text-left">
+          <span class="text-amber-300 font-semibold text-sm">"How do you add space to a full tablespace without downtime?"</span>
+          <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-slate-300 text-sm leading-relaxed">Three options, all online with no downtime. <strong class="text-orange-300">Option 1 (preferred):</strong> Add a new datafile — <code class="text-orange-300">ALTER TABLESPACE app_data ADD DATAFILE '/path/new.dbf' SIZE 4G AUTOEXTEND ON NEXT 1G MAXSIZE 30G;</code>. This is immediate and the safest. <strong class="text-orange-300">Option 2:</strong> Resize an existing datafile (if the filesystem has space) — <code class="text-orange-300">ALTER DATABASE DATAFILE '/path/existing.dbf' RESIZE 8G;</code>. <strong class="text-orange-300">Option 3:</strong> Enable or increase AUTOEXTEND MAXSIZE — <code class="text-orange-300">ALTER DATABASE DATAFILE '/path/file.dbf' AUTOEXTEND ON NEXT 512M MAXSIZE 30G;</code>. All three are fully online with no impact on users.</p>
+        </div>
+      </div>
+      <div class="glass rounded-xl border border-white/6 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors text-left">
+          <span class="text-amber-300 font-semibold text-sm">"What is undo? What are its three purposes?"</span>
+          <i class="fas fa-chevron-down acc-icon text-slate-500 text-xs shrink-0 ml-4"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-slate-300 text-sm leading-relaxed">Undo stores "before images" — the previous values of data rows before they were changed. It serves three purposes: <strong class="text-orange-300">1. ROLLBACK</strong> — if a transaction is rolled back, Oracle uses undo to restore rows to their pre-change state. <strong class="text-orange-300">2. Read Consistency</strong> — if your query started at 3PM, you see the database exactly as it was at 3PM, even if other sessions changed data since then. Oracle uses undo to reconstruct the old images. <strong class="text-orange-300">3. Flashback</strong> — Flashback Query, Flashback Table, and related features use undo to show historical data. The undo retention period (UNDO_RETENTION parameter, default 900 seconds) controls how long undo is kept before it can be overwritten.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Master query terminal -->
+  <div class="reveal terminal">
+    <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-xs text-slate-500 ml-2">Master DBA queries — copy-paste ready for production</span></div>
+    <pre class="p-4 text-xs font-mono leading-7"><code><span class="cm">══════ DAILY HEALTH CHECK QUERIES ══════════════════════════════════</span>
+
+<span class="cm">-- 1. Tablespace usage (% used — alert at 80%)</span>
+<span class="kw">SELECT</span>
+  df.tablespace_name,
+  <span class="fn">ROUND</span>(<fn>SUM</fn>(df.bytes)/1048576,1)                           total_mb,
+  <span class="fn">ROUND</span>(<fn>SUM</fn>(df.bytes)-<fn>NVL</fn>(<fn>SUM</fn>(fs.bytes),0),0)/1048576    used_mb,
+  <span class="fn">ROUND</span>(<fn>NVL</fn>(<fn>SUM</fn>(fs.bytes),0)/1048576,1)                    free_mb,
+  <span class="fn">ROUND</span>((<fn>SUM</fn>(df.bytes)-<fn>NVL</fn>(<fn>SUM</fn>(fs.bytes),0))/<fn>SUM</fn>(df.bytes)*100,1) pct_used,
+  <span class="fn">ROUND</span>(<fn>SUM</fn>(<fn>DECODE</fn>(df.autoextensible,'YES',df.maxbytes,df.bytes))/1048576,1) max_mb
+<span class="kw">FROM</span>
+  (<span class="kw">SELECT</span> tablespace_name, file_id, bytes, autoextensible, maxbytes <span class="kw">FROM</span> <span class="fn">DBA_DATA_FILES</span>) df
+  <span class="kw">LEFT JOIN</span>
+  (<span class="kw">SELECT</span> tablespace_name, file_id, <fn>SUM</fn>(bytes) bytes <span class="kw">FROM</span> <span class="fn">DBA_FREE_SPACE</span> <span class="kw">GROUP BY</span> tablespace_name, file_id) fs
+  <span class="kw">ON</span> df.tablespace_name=fs.tablespace_name <span class="kw">AND</span> df.file_id=fs.file_id
+<span class="kw">GROUP BY</span> df.tablespace_name
+<span class="kw">ORDER BY</span> pct_used <span class="flag">DESC</span>;
+
+<span class="cm">-- 2. Top 10 largest segments in the database</span>
+<span class="kw">SELECT</span> owner, segment_name, segment_type, tablespace_name,
+       <fn>ROUND</fn>(bytes/1048576,1) mb, extents
+<span class="kw">FROM</span>   <span class="fn">DBA_SEGMENTS</span>
+<span class="kw">ORDER BY</span> bytes <span class="flag">DESC</span>
+<span class="flag">FETCH FIRST</span> <span class="num">10</span> <span class="flag">ROWS ONLY</span>;
+
+<span class="cm">-- 3. Datafiles approaching MAXSIZE</span>
+<span class="kw">SELECT</span> tablespace_name, file_name,
+       <fn>ROUND</fn>(bytes/1048576,1)    current_mb,
+       <fn>ROUND</fn>(maxbytes/1048576,1) max_mb,
+       <fn>ROUND</fn>(bytes/maxbytes*100,1) pct_of_max
+<span class="kw">FROM</span>   <span class="fn">DBA_DATA_FILES</span>
+<span class="kw">WHERE</span>  autoextensible = <span class="str">'YES'</span>
+<span class="kw">AND</span>    maxbytes > <span class="num">0</span>
+<span class="kw">AND</span>    bytes/maxbytes > <span class="num">0.75</span>  <span class="cm">-- 75%+ of MAXSIZE used</span>
+<span class="kw">ORDER BY</span> pct_of_max <span class="flag">DESC</span>;
+
+<span class="cm">-- 4. Undo tuning health check</span>
+<span class="kw">SELECT</span>
+  <fn>MAX</fn>(maxquerylen)    max_query_secs,
+  (SELECT value FROM v$parameter WHERE name='undo_retention') undo_retention_secs,
+  <fn>SUM</fn>(nospaceerrcnt)  total_30036_errors,
+  <fn>SUM</fn>(ssolderrcnt)   total_01555_errors
+<span class="kw">FROM</span>   <span class="fn">V$UNDOSTAT</span>
+<span class="kw">WHERE</span>  begin_time > <span class="fn">SYSDATE</span> - <span class="num">7</span>; <span class="cm">-- last 7 days</span>
+
+<span class="cm">-- 5. Fragmentation check (high fragment_count = fragmented)</span>
+<span class="kw">SELECT</span> tablespace_name,
+       <fn>COUNT</fn>(*) fragment_count,
+       <fn>ROUND</fn>(<fn>MAX</fn>(bytes)/1048576,2) largest_free_mb,
+       <fn>ROUND</fn>(<fn>SUM</fn>(bytes)/1048576,2) total_free_mb
+<span class="kw">FROM</span>   <span class="fn">DBA_FREE_SPACE</span>
+<span class="kw">GROUP BY</span> tablespace_name
+<span class="kw">HAVING</span> <fn>COUNT</fn>(*) > <span class="num">100</span>    <span class="cm">-- flag tablespaces with many free fragments</span>
+<span class="kw">ORDER BY</span> fragment_count <span class="flag">DESC</span>;</code></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     FOOTER
+     ═════════════════════════════════════════════════════ -->
+<footer class="border-t border-white/5 py-12 px-6 mt-12">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid md:grid-cols-3 gap-8 mb-10">
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center"><i class="fas fa-database text-orange-400 text-sm"></i></div>
+          <span class="font-bold text-white font-display">Tablespace Management</span>
+        </div>
+        <p class="text-slate-500 text-sm leading-relaxed">A job-training reference for Oracle DBAs. All syntax and commands sourced from Oracle 19c official documentation. Interview-ready definitions and real-world scenarios.</p>
+      </div>
+      <div>
+        <h5 class="font-semibold text-white mb-4 text-sm">Official Oracle Documentation</h5>
+        <ul class="space-y-2">
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-tablespaces.html" class="text-slate-500 hover:text-orange-400 text-xs transition-colors" target="_blank" rel="noopener"><i class="fas fa-external-link-alt mr-2 text-xs"></i>Managing Tablespaces — Admin Guide 19c</a></li>
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/logical-storage-structures.html" class="text-slate-500 hover:text-orange-400 text-xs transition-colors" target="_blank" rel="noopener"><i class="fas fa-external-link-alt mr-2 text-xs"></i>Logical Storage Structures — Concepts Guide</a></li>
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-TABLESPACE.html" class="text-slate-500 hover:text-orange-400 text-xs transition-colors" target="_blank" rel="noopener"><i class="fas fa-external-link-alt mr-2 text-xs"></i>CREATE TABLESPACE SQL Reference</a></li>
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-undo.html" class="text-slate-500 hover:text-orange-400 text-xs transition-colors" target="_blank" rel="noopener"><i class="fas fa-external-link-alt mr-2 text-xs"></i>Managing Undo — Admin Guide 19c</a></li>
+          <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-space-for-schema-objects.html" class="text-slate-500 hover:text-orange-400 text-xs transition-colors" target="_blank" rel="noopener"><i class="fas fa-external-link-alt mr-2 text-xs"></i>Managing Space for Schema Objects</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5 class="font-semibold text-white mb-4 text-sm">Explore More</h5>
+        <ul class="space-y-2">
+          <li><a href="index.html" class="text-slate-500 hover:text-orange-400 text-xs transition-colors"><i class="fas fa-home mr-2 text-xs"></i>Back to Home</a></li>
+          <li><a href="user-management.html" class="text-slate-500 hover:text-orange-400 text-xs transition-colors"><i class="fas fa-user-shield mr-2 text-xs"></i>User Management Guide</a></li>
+          <li><a href="aws-rds-oracle.html" class="text-slate-500 hover:text-orange-400 text-xs transition-colors"><i class="fas fa-cloud mr-2 text-xs"></i>AWS RDS Oracle Guide</a></li>
+          <li><a href="oracle-architecture.html" class="text-slate-500 hover:text-orange-400 text-xs transition-colors"><i class="fas fa-server mr-2 text-xs"></i>Oracle Architecture</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/5 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <p class="text-slate-600 text-xs">Oracle Tablespace Management Guide — Oracle DBA Simplified. Built for job training purposes.</p>
+      <div class="flex gap-4">
+        <span class="badge badge-orange text-xs">Oracle 19c</span>
+        <span class="badge badge-sky text-xs">LMT + ASSM</span>
+        <span class="badge badge-green text-xs">Interview Ready</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Back to top -->
+<button id="back-top" class="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-orange-600 text-white flex items-center justify-center shadow-lg opacity-0 transition-all duration-300 hover:bg-orange-500 z-40">
+  <i class="fas fa-chevron-up text-xs"></i>
+</button>
+
+<!-- Mobile menu -->
+<div id="mob-menu" class="md:hidden glass-strong border-t border-white/5 fixed top-16 left-0 right-0 z-40 px-6 py-4">
+  <div class="flex flex-col gap-3">
+    <a href="#overview"     class="nav-link py-1">Overview</a>
+    <a href="#hierarchy"    class="nav-link py-1">Storage Layers</a>
+    <a href="#types"        class="nav-link py-1">TS Types</a>
+    <a href="#create"       class="nav-link py-1">CREATE</a>
+    <a href="#space-mgmt"   class="nav-link py-1">Space Mgmt</a>
+    <a href="#operations"   class="nav-link py-1">Operations</a>
+    <a href="#issues"       class="nav-link py-1">Issues</a>
+    <a href="#bestpractices" class="nav-link py-1">Best Practices</a>
+    <a href="#cheatsheet"   class="nav-link py-1">Cheatsheet</a>
+  </div>
+</div>
+
+<!-- JAVASCRIPT -->
+<script>
+// Tabs
+function initTabs(groupName) {
+  const btns = document.querySelectorAll(`[data-tab][data-group="${groupName}"]`);
+  function activate(val) {
+    btns.forEach(b => b.classList.toggle('active', b.dataset.tab === val));
+    btns.forEach(b => {
+      const pane = document.getElementById(b.dataset.tab);
+      if (pane) pane.classList.toggle('active', b.dataset.tab === val);
+    });
+  }
+  btns.forEach(b => b.addEventListener('click', () => activate(b.dataset.tab)));
+  if (btns.length) activate(btns[0].dataset.tab);
+}
+initTabs('spacemgmt');
+
+// Accordion
+document.querySelectorAll('.acc-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const content = btn.nextElementSibling;
+    btn.classList.toggle('open');
+    content.classList.toggle('open');
+  });
+});
+
+// Scroll reveal
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+// Back to top
+const backBtn = document.getElementById('back-top');
+window.addEventListener('scroll', () => {
+  backBtn.style.opacity = window.scrollY > 400 ? '1' : '0';
+  backBtn.style.pointerEvents = window.scrollY > 400 ? 'auto' : 'none';
+});
+backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+// Active nav
+const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+const sections = document.querySelectorAll('section[id]');
+const navObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    }
+  });
+}, { rootMargin: '-40% 0px -55% 0px' });
+sections.forEach(s => navObs.observe(s));
+
+// Mobile menu
+const menuBtn = document.getElementById('menu-btn');
+const mobMenu = document.getElementById('mob-menu');
+if (menuBtn) {
+  menuBtn.addEventListener('click', () => mobMenu.classList.toggle('open'));
+  document.querySelectorAll('#mob-menu .nav-link').forEach(a => {
+    a.addEventListener('click', () => mobMenu.classList.remove('open'));
+  });
+}
+</script>
+</body>
+</html>
