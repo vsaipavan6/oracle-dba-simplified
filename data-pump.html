@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Oracle Data Pump (expdp / impdp) | Oracle DBA Simplified</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--color-primary:#0ea5e9;--color-secondary:#38bdf8;--color-accent:#7dd3fc;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0b1120;color:#e2e8f0;font-family:'DM Sans',sans-serif;line-height:1.7}
+    h1,h2,h3,h4{font-family:'Sora',sans-serif}
+    .glass{background:rgba(255,255,255,.04);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.07);border-radius:16px}
+    .badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.5px}
+    .badge-sky{background:rgba(14,165,233,.18);color:#38bdf8}
+    .badge-green{background:rgba(52,211,153,.18);color:#34d399}
+    .badge-yellow{background:rgba(251,191,36,.18);color:#fbbf24}
+    .badge-red{background:rgba(248,113,113,.18);color:#f87171}
+    .badge-slate{background:rgba(148,163,184,.12);color:#94a3b8}
+    .badge-purple{background:rgba(167,139,250,.18);color:#a78bfa}
+    .terminal{background:#0a0f1e;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+    .terminal-bar{background:#1e293b;padding:8px 12px;display:flex;gap:6px;align-items:center}
+    .t-dot{width:10px;height:10px;border-radius:50%}
+    pre{overflow-x:auto}
+    code .kw{color:#7dd3fc}
+    code .fn{color:#fbbf24}
+    code .str{color:#86efac}
+    code .cm{color:#475569}
+    code .num{color:#f9a8d4}
+    code .op{color:#fb923c}
+    code .kv{color:#c084fc}
+    .tab-btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;color:#64748b;background:transparent;border:none;white-space:nowrap}
+    .tab-btn.active,.tab-btn:hover{background:rgba(14,165,233,.15);color:#38bdf8}
+    .tab-pane{display:none}.tab-pane.active{display:block}
+    .acc-btn{width:100%;text-align:left;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s;color:#e2e8f0;font-family:'Sora',sans-serif;font-weight:600;font-size:15px}
+    .acc-btn:hover{border-color:rgba(14,165,233,.4);background:rgba(14,165,233,.06)}
+    .acc-btn.open{border-color:rgba(14,165,233,.4);background:rgba(14,165,233,.06);border-radius:10px 10px 0 0}
+    .acc-body{display:none;padding:20px;border:1px solid rgba(14,165,233,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)}
+    .acc-body.open{display:block}
+    .stat-card{background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.22);border-radius:14px;padding:22px 24px}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .55s ease,transform .55s ease}
+    .reveal.visible{opacity:1;transform:none}
+    .section{padding:80px 0}
+    .section-alt{background:rgba(255,255,255,.015)}
+    nav{position:sticky;top:0;z-index:50;background:rgba(11,17,32,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07)}
+    .nav-link{color:#94a3b8;font-size:13px;font-weight:500;padding:6px 10px;border-radius:6px;transition:all .2s;text-decoration:none;white-space:nowrap}
+    .nav-link:hover,.nav-link.active{color:#38bdf8;background:rgba(14,165,233,.1)}
+    #btt{position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:#0ea5e9;color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:18px;z-index:99;box-shadow:0 4px 20px rgba(14,165,233,.4)}
+    #btt.show{display:flex}
+    .issue-card{border-left:3px solid #ef4444;background:rgba(239,68,68,.06);border-radius:0 10px 10px 0;padding:18px 20px}
+    .arch-card{background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.18);border-radius:12px;padding:18px}
+    .step-num{width:34px;height:34px;border-radius:50%;background:rgba(14,165,233,.2);border:1px solid rgba(14,165,233,.4);display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:#38bdf8;flex-shrink:0}
+    table{width:100%;border-collapse:collapse}
+    th{background:rgba(14,165,233,.12);color:#38bdf8;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;padding:11px 14px;text-align:left;text-transform:uppercase;letter-spacing:.5px}
+    td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:#cbd5e1;vertical-align:top}
+    tr:last-child td{border-bottom:none}
+    tr:nth-child(even) td{background:rgba(255,255,255,.018)}
+    .yes{color:#34d399}.no{color:#f87171}
+    #mobile-menu{display:none}
+    #mobile-menu.open{display:block}
+    .param-card{background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.15);border-radius:10px;padding:16px 18px}
+    .remap-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px}
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-14">
+        <a href="index.html" class="flex items-center gap-2 text-white font-bold font-sans text-sm" style="font-family:'Sora',sans-serif;text-decoration:none">
+          <i class="fas fa-database text-sky-400"></i>
+          Oracle DBA Simplified
+        </a>
+        <div class="hidden lg:flex items-center gap-1">
+          <a href="#overview" class="nav-link">What Is Data Pump</a>
+          <a href="#comparison" class="nav-link">vs exp/imp</a>
+          <a href="#directory" class="nav-link">Directory Setup</a>
+          <a href="#export" class="nav-link">Export (expdp)</a>
+          <a href="#import" class="nav-link">Import (impdp)</a>
+          <a href="#parameters" class="nav-link">Parameters</a>
+          <a href="#errors" class="nav-link">ORA Errors</a>
+          <a href="#reference" class="nav-link">Quick Reference</a>
+        </div>
+        <button id="menu-btn" class="lg:hidden text-slate-400 hover:text-white p-2 bg-transparent border-none cursor-pointer">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      <div id="mobile-menu" class="pb-3 lg:hidden">
+        <div class="flex flex-col gap-1">
+          <a href="#overview" class="nav-link">What Is Data Pump</a>
+          <a href="#comparison" class="nav-link">vs exp/imp</a>
+          <a href="#directory" class="nav-link">Directory Setup</a>
+          <a href="#export" class="nav-link">Export (expdp)</a>
+          <a href="#import" class="nav-link">Import (impdp)</a>
+          <a href="#parameters" class="nav-link">Parameters</a>
+          <a href="#errors" class="nav-link">ORA Errors</a>
+          <a href="#reference" class="nav-link">Quick Reference</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden" style="background:linear-gradient(135deg,#0b1120 0%,#0c1a2e 55%,#0b1120 100%);padding:80px 0 64px">
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 65% 50% at 50% 0%,rgba(14,165,233,.13),transparent)"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 relative">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style="background:rgba(14,165,233,.12);border:1px solid rgba(14,165,233,.28)">
+          <i class="fas fa-file-export text-sky-400 text-sm"></i>
+          <span class="text-sky-300 text-sm font-semibold" style="font-family:'Sora',sans-serif">Oracle 19c · Data Pump</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-3">Oracle Data Pump</h1>
+        <p class="text-2xl font-bold mb-4" style="color:#38bdf8;font-family:'Sora',sans-serif">expdp &nbsp;/&nbsp; impdp</p>
+        <p class="text-slate-400 max-w-2xl mx-auto text-base">High-speed, parallel, server-centric export and import — the modern replacement for legacy exp/imp. Move all or part of any Oracle database with encryption, compression, and zero-downtime network mode.</p>
+      </div>
+      <!-- Stat cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#38bdf8;font-family:'Sora',sans-serif">5</div>
+          <div class="text-slate-300 text-sm font-semibold">Export Modes</div>
+          <div class="text-slate-500 text-xs mt-1">FULL · SCHEMAS · TABLES<br>TABLESPACES · TRANSPORTABLE</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#38bdf8;font-family:'Sora',sans-serif">10–100×</div>
+          <div class="text-slate-300 text-sm font-semibold">Faster than exp/imp</div>
+          <div class="text-slate-500 text-xs mt-1">Direct Path API + parallel workers</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#38bdf8;font-family:'Sora',sans-serif">AES-256</div>
+          <div class="text-slate-300 text-sm font-semibold">Encryption Support</div>
+          <div class="text-slate-500 text-xs mt-1">ENCRYPTION_ALGORITHM=AES256</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#38bdf8;font-family:'Sora',sans-serif">0</div>
+          <div class="text-slate-300 text-sm font-semibold">Dump Files Needed</div>
+          <div class="text-slate-500 text-xs mt-1">NETWORK_LINK — direct DB-to-DB</div>
+        </div>
+      </div>
+      <!-- Quick terminal -->
+      <div class="max-w-3xl mx-auto">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+            <span class="text-slate-500 text-xs ml-2">Quick Start — Schema Export then Import</span>
+          </div>
+          <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Setup (one-time): create directory on OS, register in DB</span>
+<span class="kw">CREATE OR REPLACE DIRECTORY</span> dpump_dir <span class="kw">AS</span> <span class="str">'/u01/datapump'</span>;
+<span class="kw">GRANT</span> READ, WRITE <span class="kw">ON DIRECTORY</span> dpump_dir <span class="kw">TO</span> myuser;
+
+<span class="cm">-- Export: parallel schema export with multiple dump files (%U = 01,02,03...)</span>
+expdp myuser/<span class="str">password</span>@ORCL \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=myschema_%U.dmp \
+  <span class="kv">LOGFILE</span>=exp_myschema.log <span class="kv">SCHEMAS</span>=myschema <span class="kv">PARALLEL</span>=<span class="num">4</span>
+
+<span class="cm">-- Import: remap schema + tablespace, replace if exists</span>
+impdp admin/<span class="str">password</span>@DEVDB \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=myschema_%U.dmp \
+  <span class="kv">LOGFILE</span>=imp_myschema.log <span class="kv">REMAP_SCHEMA</span>=myschema:myschema_dev \
+  <span class="kv">REMAP_TABLESPACE</span>=prod_data:dev_data <span class="kv">TABLE_EXISTS_ACTION</span>=REPLACE \
+  <span class="kv">EXCLUDE</span>=STATISTICS <span class="kv">PARALLEL</span>=<span class="num">4</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: What Is Data Pump -->
+  <section id="overview" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-sky mb-4">Section 1</span>
+        <h2 class="text-3xl font-bold text-white mb-3">What Is Oracle Data Pump?</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Data Pump is a <strong class="text-white">server-centric</strong> framework for high-speed export and import of Oracle database objects. Unlike the legacy exp/imp utilities, all processing happens <em>inside the database server</em> using the DBMS_DATAPUMP PL/SQL API.</p>
+      </div>
+
+      <!-- Architecture diagram -->
+      <div class="reveal mb-10">
+        <h3 class="text-xl font-bold text-white mb-6 text-center">Architecture: How a Data Pump Job Runs</h3>
+        <div class="glass p-6 mb-8">
+          <div class="flex flex-col lg:flex-row items-stretch gap-4">
+            <!-- Client -->
+            <div class="arch-card flex flex-col items-center justify-center text-center" style="min-width:130px">
+              <i class="fas fa-terminal text-2xl mb-2" style="color:#38bdf8"></i>
+              <div class="font-bold text-white text-sm mb-1">Client Terminal</div>
+              <div class="text-slate-500 text-xs">expdp / impdp<br>thin control shell</div>
+            </div>
+            <!-- Arrow -->
+            <div class="hidden lg:flex items-center justify-center text-2xl" style="color:#0ea5e9;min-width:30px">&#8594;</div>
+            <div class="lg:hidden flex justify-center text-2xl" style="color:#0ea5e9">&#8595;</div>
+            <!-- Server box -->
+            <div class="flex-1 rounded-xl p-4" style="border:1px solid rgba(14,165,233,.25);background:rgba(14,165,233,.04)">
+              <div class="text-xs font-bold mb-4 text-center uppercase tracking-wider" style="color:#0ea5e9">Oracle Database Server — All Processing Happens Here</div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                <div class="arch-card text-center">
+                  <i class="fas fa-ghost text-lg mb-2" style="color:#7dd3fc"></i>
+                  <div class="font-bold text-white text-xs mb-1">Shadow Process</div>
+                  <div class="text-slate-500 text-xs">Foreground process. Creates job infrastructure, AQ queues &amp; Master Table. Relays commands between client and MCP.</div>
+                </div>
+                <div class="arch-card text-center" style="border-color:rgba(14,165,233,.4);background:rgba(14,165,233,.12)">
+                  <i class="fas fa-microchip text-lg mb-2" style="color:#38bdf8"></i>
+                  <div class="font-bold mb-1" style="color:#38bdf8;font-size:12px">Master Control Process (MCP)</div>
+                  <div class="text-slate-500 text-xs">One per job. Sequences metadata + data phases. Distributes work to Worker Processes. Updates Master Table.</div>
+                </div>
+                <div class="arch-card text-center">
+                  <i class="fas fa-users-gear text-lg mb-2" style="color:#7dd3fc"></i>
+                  <div class="font-bold text-white text-xs mb-1">Worker Processes (×N)</div>
+                  <div class="text-slate-500 text-xs">N workers = PARALLEL setting. Each loads/unloads via Direct Path API. Can spawn PQ slaves for partitioned tables.</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 rounded-lg" style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.18)">
+                <i class="fas fa-table text-yellow-400 mt-0.5"></i>
+                <div>
+                  <span class="font-bold text-xs" style="color:#fbbf24">Master Table</span>
+                  <span class="text-slate-400 text-xs ml-2">— A real user table created in the operator's schema. Tracks every object's state, dump file offset, job parameters. Enables restart. Dropped automatically on success unless <code style="color:#fbbf24">KEEP_MASTER=YES</code>.</span>
+                </div>
+              </div>
+            </div>
+            <!-- Arrow -->
+            <div class="hidden lg:flex items-center justify-center text-2xl" style="color:#0ea5e9;min-width:30px">&#8594;</div>
+            <div class="lg:hidden flex justify-center text-2xl" style="color:#0ea5e9">&#8595;</div>
+            <!-- Output -->
+            <div class="arch-card flex flex-col items-center justify-center text-center" style="min-width:130px">
+              <i class="fas fa-file-zipper text-2xl mb-2" style="color:#38bdf8"></i>
+              <div class="font-bold text-white text-sm mb-1">Dump File Set</div>
+              <div class="text-slate-500 text-xs">Binary format<br>file%U.dmp<br>+ logfile.log</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 concept cards -->
+      <div class="reveal grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div class="glass p-6">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(14,165,233,.15)">
+              <i class="fas fa-server" style="color:#38bdf8"></i>
+            </div>
+            <h3 class="font-bold text-white">Server-Centric — Files Live on the Server</h3>
+          </div>
+          <p class="text-slate-400 text-sm">All Data Pump processing occurs <em>inside</em> the Oracle server. The expdp/impdp client is a thin shell that submits requests to DBMS_DATAPUMP. Dump files are written to the <strong class="text-white">server's filesystem</strong>, not the client machine — which is why a <strong class="text-white">Directory Object</strong> is mandatory.</p>
+        </div>
+        <div class="glass p-6">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(14,165,233,.15)">
+              <i class="fas fa-bolt" style="color:#38bdf8"></i>
+            </div>
+            <h3 class="font-bold text-white">Direct Path API — Why It's 10–100× Faster</h3>
+          </div>
+          <p class="text-slate-400 text-sm">Data Pump uses the <strong class="text-white">Direct Path API</strong> to read/write data in native Oracle block format — bypassing SQL parsing, undo generation, and redo generation. Legacy exp read data with a conventional SQL SELECT row by row. Data Pump reads entire blocks. Combined with PARALLEL workers, the throughput difference is dramatic.</p>
+        </div>
+        <div class="glass p-6">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(14,165,233,.15)">
+              <i class="fas fa-rotate-right" style="color:#38bdf8"></i>
+            </div>
+            <h3 class="font-bold text-white">Job Restartability via Master Table</h3>
+          </div>
+          <p class="text-slate-400 text-sm">The Master Table tracks every object's export/import status. If a job fails at 80% — due to a crash, ORA error, or manual stop — you can <strong class="text-white">resume from where it stopped</strong>. Attach with <code class="text-xs" style="color:#7dd3fc">expdp ATTACH=job_name</code> and issue <code class="text-xs" style="color:#7dd3fc">START_JOB</code>. Legacy exp had no equivalent: a failure meant starting from scratch.</p>
+        </div>
+        <div class="glass p-6">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(14,165,233,.15)">
+              <i class="fas fa-code" style="color:#38bdf8"></i>
+            </div>
+            <h3 class="font-bold text-white">DBMS_DATAPUMP — Full PL/SQL API</h3>
+          </div>
+          <p class="text-slate-400 text-sm">Everything expdp/impdp does, you can control programmatically via the <code class="text-xs" style="color:#7dd3fc">DBMS_DATAPUMP</code> PL/SQL package. Schedule exports in DBMS_SCHEDULER, add conditional logic, handle errors, loop over schemas — all without shell scripting. The expdp/impdp binaries are thin wrappers around this API.</p>
+        </div>
+      </div>
+
+      <!-- Monitoring terminal -->
+      <div class="reveal">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+            <span class="text-slate-500 text-xs ml-2">Monitor running Data Pump jobs</span>
+          </div>
+          <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- All active jobs</span>
+<span class="kw">SELECT</span> job_name, operation, job_mode, state, degree attached_sessions
+<span class="kw">FROM</span>   dba_datapump_jobs
+<span class="kw">WHERE</span>  state != <span class="str">'NOT RUNNING'</span>
+<span class="kw">ORDER BY</span> job_name;
+
+<span class="cm">-- Real-time progress (tables transferred)</span>
+<span class="kw">SELECT</span> opname, target_desc, sofar, totalwork,
+       <span class="fn">ROUND</span>(<span class="num">100</span>*sofar/<span class="fn">DECODE</span>(totalwork,<span class="num">0</span>,<span class="num">1</span>,totalwork),<span class="num">2</span>) pct_done,
+       time_remaining
+<span class="kw">FROM</span>   v$session_longops
+<span class="kw">WHERE</span>  opname <span class="kw">LIKE</span> <span class="str">'Data Pump%'</span>
+  <span class="kw">AND</span>  totalwork > <span class="num">0</span>
+<span class="kw">ORDER BY</span> start_time <span class="kw">DESC</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: vs exp/imp -->
+  <section id="comparison" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-10">
+        <span class="badge badge-sky mb-4">Section 2</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Data Pump vs Legacy exp / imp</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Oracle deprecated the original exp/imp utilities starting with 10g. Here is why Data Pump is superior in every dimension — know this table for your interview.</p>
+      </div>
+      <div class="reveal glass overflow-hidden mb-6">
+        <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th style="min-width:180px">Feature</th>
+                <th style="min-width:260px">Data Pump (expdp / impdp)</th>
+                <th style="min-width:220px">Legacy (exp / imp)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong class="text-white">Architecture</strong></td><td><span class="yes">Server-centric — all operations on the DB server</span></td><td><span class="no">Client-centric — runs on client machine</span></td></tr>
+              <tr><td><strong class="text-white">Transfer Mode</strong></td><td><span class="yes">Direct Path API — block-mode (native Oracle blocks)</span></td><td><span class="no">Byte-mode — row-by-row via conventional SELECT</span></td></tr>
+              <tr><td><strong class="text-white">Speed</strong></td><td><span class="yes">10–100× faster for large databases</span></td><td><span class="no">Slow; severely limited by SQL parse overhead</span></td></tr>
+              <tr><td><strong class="text-white">Parallelism</strong></td><td><span class="yes">PARALLEL=N (Enterprise Edition)</span></td><td><span class="no">Single-threaded only</span></td></tr>
+              <tr><td><strong class="text-white">Dump File Set</strong></td><td><span class="yes">Multiple files using %U substitution variable</span></td><td><span class="no">Single file only</span></td></tr>
+              <tr><td><strong class="text-white">Network Mode</strong></td><td><span class="yes">NETWORK_LINK — direct DB-to-DB, no dump files</span></td><td><span class="no">Not supported</span></td></tr>
+              <tr><td><strong class="text-white">Compression</strong></td><td><span class="yes">COMPRESSION= ALL / DATA_ONLY / METADATA_ONLY</span></td><td><span class="no">Not supported</span></td></tr>
+              <tr><td><strong class="text-white">Encryption</strong></td><td><span class="yes">AES128 / AES192 / AES256 with password</span></td><td><span class="no">Not supported</span></td></tr>
+              <tr><td><strong class="text-white">Job Restartability</strong></td><td><span class="yes">Yes — Master Table tracks state; resume anytime</span></td><td><span class="no">No — failed jobs must restart from beginning</span></td></tr>
+              <tr><td><strong class="text-white">Metadata Filters</strong></td><td><span class="yes">INCLUDE= / EXCLUDE= per object type with name clause</span></td><td>Very limited filtering</td></tr>
+              <tr><td><strong class="text-white">Consistent Export</strong></td><td><span class="yes">FLASHBACK_SCN / FLASHBACK_TIME</span></td><td>Limited consistency control</td></tr>
+              <tr><td><strong class="text-white">PL/SQL API</strong></td><td><span class="yes">DBMS_DATAPUMP — full programmatic control</span></td><td><span class="no">No API equivalent</span></td></tr>
+              <tr><td><strong class="text-white">Interactive Control</strong></td><td><span class="yes">Ctrl+C → interactive mode; ADD_FILE, PARALLEL, STOP_JOB</span></td><td><span class="no">Not supported</span></td></tr>
+              <tr><td><strong class="text-white">Transportable TS</strong></td><td><span class="yes">TRANSPORT_TABLESPACES mode (very fast for large TS)</span></td><td><span class="no">Not supported</span></td></tr>
+              <tr><td><strong class="text-white">Status</strong></td><td><span class="yes">Active — supported in all current Oracle versions</span></td><td><span class="no">Deprecated since Oracle 10g</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="reveal p-5 rounded-xl flex items-start gap-4" style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.22)">
+        <i class="fas fa-lightbulb text-yellow-400 text-lg mt-0.5"></i>
+        <div>
+          <p class="font-bold text-sm mb-1" style="color:#fbbf24">Interview Question: Why is Data Pump faster than exp/imp?</p>
+          <p class="text-slate-400 text-sm"><strong class="text-white">Answer:</strong> Data Pump uses the <strong class="text-white">Direct Path API</strong> which reads and writes data in native Oracle block format — bypassing SQL layer parsing, undo generation, and redo logging for the data movement itself. Legacy exp used conventional SQL SELECT to fetch rows one by one. Additionally, Data Pump supports <strong class="text-white">PARALLEL</strong> execution with multiple Worker Processes simultaneously processing different objects, whereas exp/imp was single-threaded. For large databases, this makes Data Pump 10–100× faster.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Directory Objects -->
+  <section id="directory" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-10">
+        <span class="badge badge-sky mb-4">Section 3</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Directory Objects — Required One-Time Setup</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Data Pump requires a <strong class="text-white">Directory Object</strong> — a database object mapping a logical name to a physical OS path on the server. All dump files and log files are read/written through directory objects.</p>
+      </div>
+
+      <!-- Critical warning -->
+      <div class="reveal mb-8 p-5 rounded-xl flex items-start gap-4" style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.25)">
+        <i class="fas fa-triangle-exclamation text-red-400 text-lg mt-0.5"></i>
+        <div>
+          <p class="font-bold text-sm mb-1 text-red-300">Critical: OS Directory Must Exist BEFORE CREATE DIRECTORY</p>
+          <p class="text-slate-400 text-sm"><code class="text-xs" style="color:#f87171">CREATE DIRECTORY</code> only registers the logical name in the Oracle data dictionary — it does <strong class="text-white">NOT</strong> create any folder on the OS. You must create the physical directory on the server first and ensure the oracle OS user has read/write permissions. If the folder doesn't exist, Data Pump will fail with ORA-39070.</p>
+        </div>
+      </div>
+
+      <!-- 4 setup steps -->
+      <div class="reveal grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="glass p-6">
+          <div class="flex items-start gap-4">
+            <div class="step-num">1</div>
+            <div class="flex-1">
+              <h3 class="font-bold text-white mb-2">Create the OS directory</h3>
+              <p class="text-slate-400 text-sm mb-3">On the server as root or oracle OS user:</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code>mkdir -p /u01/datapump
+chown oracle:oinstall /u01/datapump
+chmod 750 /u01/datapump</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="glass p-6">
+          <div class="flex items-start gap-4">
+            <div class="step-num">2</div>
+            <div class="flex-1">
+              <h3 class="font-bold text-white mb-2">Create the Directory Object in DB</h3>
+              <p class="text-slate-400 text-sm mb-3">Requires CREATE ANY DIRECTORY system privilege:</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">CREATE OR REPLACE DIRECTORY</span> dpump_dir
+  <span class="kw">AS</span> <span class="str">'/u01/datapump'</span>;</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="glass p-6">
+          <div class="flex items-start gap-4">
+            <div class="step-num">3</div>
+            <div class="flex-1">
+              <h3 class="font-bold text-white mb-2">Grant READ and WRITE privileges</h3>
+              <p class="text-slate-400 text-sm mb-3">Grant to users who will run expdp / impdp:</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">GRANT</span> READ, WRITE <span class="kw">ON DIRECTORY</span> dpump_dir
+  <span class="kw">TO</span> myuser;
+
+<span class="cm">-- For full export/import, also grant roles:</span>
+<span class="kw">GRANT</span> datapump_exp_full_database <span class="kw">TO</span> myuser;
+<span class="kw">GRANT</span> datapump_imp_full_database <span class="kw">TO</span> myuser;</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="glass p-6">
+          <div class="flex items-start gap-4">
+            <div class="step-num">4</div>
+            <div class="flex-1">
+              <h3 class="font-bold text-white mb-2">Verify with DBA_DIRECTORIES</h3>
+              <p class="text-slate-400 text-sm mb-3">Confirm the directory is registered:</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> directory_name, directory_path
+<span class="kw">FROM</span>   dba_directories
+<span class="kw">WHERE</span>  directory_name = <span class="str">'DPUMP_DIR'</span>;
+
+<span class="cm">-- Check privileges on the directory</span>
+<span class="kw">SELECT</span> grantee, privilege
+<span class="kw">FROM</span>   dba_tab_privs
+<span class="kw">WHERE</span>  table_name = <span class="str">'DPUMP_DIR'</span>;</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DATA_PUMP_DIR info -->
+      <div class="reveal glass p-6">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(14,165,233,.15)">
+            <i class="fas fa-folder-open" style="color:#38bdf8"></i>
+          </div>
+          <div class="flex-1">
+            <h3 class="font-bold text-white mb-2">DATA_PUMP_DIR — The Default Directory Object</h3>
+            <p class="text-slate-400 text-sm mb-4">Oracle automatically creates a directory object named <code class="text-xs" style="color:#7dd3fc">DATA_PUMP_DIR</code> during database creation. Privileged users (SYSDBA/DBA role) can use it without specifying DIRECTORY — it's the default when none is specified. Its physical location:</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <div class="p-3 rounded-lg" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)">
+                <div class="text-xs text-slate-500 mb-1">Unix / Linux</div>
+                <code class="text-xs" style="color:#7dd3fc">$ORACLE_BASE/admin/$ORACLE_SID/dpdump/</code>
+              </div>
+              <div class="p-3 rounded-lg" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)">
+                <div class="text-xs text-slate-500 mb-1">Windows</div>
+                <code class="text-xs" style="color:#7dd3fc">%ORACLE_BASE%\admin\%ORACLE_SID%\dpdump\</code>
+              </div>
+            </div>
+            <div class="p-3 rounded-lg" style="background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.18)">
+              <p class="text-xs" style="color:#fbbf24"><i class="fas fa-exclamation-circle mr-1"></i><strong>Best practice:</strong> Never use DATA_PUMP_DIR for production jobs — the default location is usually on the OS drive with limited space. Create a dedicated directory on a separate disk or NFS mount. Also create separate directories per job type: DPUMP_FULL, DPUMP_SCHEMA, DPUMP_TABLE.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Export with expdp -->
+  <section id="export" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-10">
+        <span class="badge badge-sky mb-4">Section 4</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Export with expdp — 5 Modes</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Data Pump export supports 5 different modes depending on <em>scope</em> — from a full database down to selected tables. Choose the mode that matches what you need to move.</p>
+      </div>
+
+      <!-- Mode tabs -->
+      <div class="reveal glass p-6 mb-8">
+        <div class="flex flex-wrap gap-2 mb-6 border-b border-white/5 pb-4" id="expmodes-tabs">
+          <button class="tab-btn active" data-tab="exp-full">FULL</button>
+          <button class="tab-btn" data-tab="exp-schemas">SCHEMAS</button>
+          <button class="tab-btn" data-tab="exp-tables">TABLES</button>
+          <button class="tab-btn" data-tab="exp-tablespaces">TABLESPACES</button>
+          <button class="tab-btn" data-tab="exp-transportable">TRANSPORTABLE</button>
+        </div>
+        <div class="tab-pane active" data-pane="exp-full">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="badge badge-sky">FULL=Y</span>
+            <h3 class="font-bold text-white text-lg">Full Database Export</h3>
+          </div>
+          <p class="text-slate-400 text-sm mb-4">Exports the <strong class="text-white">entire database</strong> — all schemas, all objects, all data. Requires the <code class="text-xs" style="color:#7dd3fc">DATAPUMP_EXP_FULL_DATABASE</code> role. Used for full database migration or point-in-time backup.</p>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <div>
+              <p class="text-xs text-slate-500 mb-2 font-semibold uppercase tracking-wider">Includes</p>
+              <ul class="text-sm text-slate-400 space-y-1">
+                <li><i class="fas fa-check text-green-400 mr-2 text-xs"></i>All schemas and their objects</li>
+                <li><i class="fas fa-check text-green-400 mr-2 text-xs"></i>System grants and roles</li>
+                <li><i class="fas fa-check text-green-400 mr-2 text-xs"></i>User definitions and profiles</li>
+                <li><i class="fas fa-check text-green-400 mr-2 text-xs"></i>All table data</li>
+                <li><i class="fas fa-check text-green-400 mr-2 text-xs"></i>Database links and synonyms</li>
+              </ul>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500 mb-2 font-semibold uppercase tracking-wider">Excludes (by default)</p>
+              <ul class="text-sm text-slate-400 space-y-1">
+                <li><i class="fas fa-times text-red-400 mr-2 text-xs"></i>SYS / SYSTEM schema objects</li>
+                <li><i class="fas fa-times text-red-400 mr-2 text-xs"></i>Passwords (stored separately)</li>
+                <li><i class="fas fa-times text-red-400 mr-2 text-xs"></i>BFILE actual files on disk</li>
+              </ul>
+            </div>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-slate-500 text-xs ml-2">Full database export</span></div>
+            <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code>expdp system/<span class="str">password</span>@ORCL \
+  <span class="kv">DIRECTORY</span>=dpump_dir \
+  <span class="kv">DUMPFILE</span>=fulldb_%U.dmp \
+  <span class="kv">LOGFILE</span>=full_exp.log \
+  <span class="kv">FULL</span>=Y \
+  <span class="kv">PARALLEL</span>=<span class="num">8</span> \
+  <span class="kv">COMPRESSION</span>=ALL \
+  <span class="kv">FILESIZE</span>=<span class="num">10</span>G
+
+<span class="cm">-- With consistent point-in-time export:</span>
+expdp system/<span class="str">password</span>@ORCL <span class="kv">FULL</span>=Y \
+  <span class="kv">FLASHBACK_TIME</span>=<span class="str">"TO_TIMESTAMP('2025-05-01 02:00:00','YYYY-MM-DD HH24:MI:SS')"</span> \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=full_pit.dmp <span class="kv">LOGFILE</span>=full_pit.log</code></pre>
+          </div>
+        </div>
+        <div class="tab-pane" data-pane="exp-schemas">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="badge badge-sky">SCHEMAS=</span>
+            <h3 class="font-bold text-white text-lg">Schema Export (Default Mode)</h3>
+          </div>
+          <p class="text-slate-400 text-sm mb-4">Exports one or more complete schemas. This is the <strong class="text-white">default mode</strong> when no mode parameter is specified. Includes all objects owned by the schema: tables, indexes, triggers, sequences, packages, views, constraints, grants.</p>
+          <div class="p-3 mb-4 rounded-lg" style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.18)">
+            <p class="text-xs" style="color:#fbbf24"><i class="fas fa-lightbulb mr-1"></i><strong>Most common mode for DEV/TEST refresh</strong> — export PROD schema, import with REMAP_SCHEMA to DEV. No full database access required.</p>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-slate-500 text-xs ml-2">Schema export examples</span></div>
+            <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Single schema export</span>
+expdp hr/<span class="str">password</span>@ORCL \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=hr_%U.dmp \
+  <span class="kv">LOGFILE</span>=hr_exp.log <span class="kv">SCHEMAS</span>=HR \
+  <span class="kv">PARALLEL</span>=<span class="num">4</span>
+
+<span class="cm">-- Multiple schemas in one dump</span>
+expdp system/<span class="str">password</span>@ORCL \
+  <span class="kv">SCHEMAS</span>=HR,SALES,FINANCE \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=app_schemas_%U.dmp \
+  <span class="kv">LOGFILE</span>=app_exp.log <span class="kv">PARALLEL</span>=<span class="num">4</span>
+
+<span class="cm">-- Schema export excluding indexes + stats (faster; rebuild on import)</span>
+expdp hr/<span class="str">password</span>@ORCL <span class="kv">SCHEMAS</span>=HR \
+  <span class="kv">EXCLUDE</span>=INDEX,STATISTICS \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=hr_noindex.dmp <span class="kv">LOGFILE</span>=hr_noindex.log</code></pre>
+          </div>
+        </div>
+        <div class="tab-pane" data-pane="exp-tables">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="badge badge-sky">TABLES=</span>
+            <h3 class="font-bold text-white text-lg">Table-Level Export</h3>
+          </div>
+          <p class="text-slate-400 text-sm mb-4">Exports specific tables and their dependent objects (indexes, constraints, triggers, grants on those tables). Use the <code class="text-xs" style="color:#7dd3fc">QUERY</code> parameter to filter rows from specific tables.</p>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-slate-500 text-xs ml-2">Table-level export examples</span></div>
+            <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Export specific tables</span>
+expdp hr/<span class="str">password</span>@ORCL \
+  <span class="kv">TABLES</span>=HR.EMPLOYEES,HR.DEPARTMENTS,HR.JOBS \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=hr_tables.dmp <span class="kv">LOGFILE</span>=hr_tables.log
+
+<span class="cm">-- Export with row filter (QUERY) — subset of data</span>
+expdp hr/<span class="str">password</span>@ORCL \
+  <span class="kv">TABLES</span>=HR.EMPLOYEES \
+  <span class="kv">QUERY</span>=HR.EMPLOYEES:<span class="str">"WHERE department_id IN (10,20,30)"</span> \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=emp_subset.dmp <span class="kv">LOGFILE</span>=emp_subset.log
+
+<span class="cm">-- Estimate size before export (dry run)</span>
+expdp hr/<span class="str">password</span>@ORCL <span class="kv">TABLES</span>=HR.ORDER_ITEMS \
+  <span class="kv">ESTIMATE_ONLY</span>=Y <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">LOGFILE</span>=estimate.log</code></pre>
+          </div>
+        </div>
+        <div class="tab-pane" data-pane="exp-tablespaces">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="badge badge-sky">TABLESPACES=</span>
+            <h3 class="font-bold text-white text-lg">Tablespace-Level Export</h3>
+          </div>
+          <p class="text-slate-400 text-sm mb-4">Exports all tables (and their dependent objects) whose data segments reside in the specified tablespaces. If a table is included, all its indexes and constraints are also included — even if those segments are in other tablespaces.</p>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-slate-500 text-xs ml-2">Tablespace export</span></div>
+            <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Export all objects in APP_DATA and APP_IDX tablespaces</span>
+expdp system/<span class="str">password</span>@ORCL \
+  <span class="kv">TABLESPACES</span>=APP_DATA,APP_IDX \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=app_tbs.dmp \
+  <span class="kv">LOGFILE</span>=app_tbs.log <span class="kv">PARALLEL</span>=<span class="num">4</span>
+
+<span class="cm">-- Note: data AND metadata are exported (unlike TRANSPORT_TABLESPACES)</span>
+<span class="cm">-- Use this when you want table data in the dump file</span></code></pre>
+          </div>
+        </div>
+        <div class="tab-pane" data-pane="exp-transportable">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="badge badge-sky">TRANSPORT_TABLESPACES=</span>
+            <h3 class="font-bold text-white text-lg">Transportable Tablespace Export</h3>
+          </div>
+          <p class="text-slate-400 text-sm mb-4">Exports <strong class="text-white">metadata only</strong> — the actual data blocks are moved by copying the datafiles directly. This is the <strong class="text-white">fastest method for large tablespaces</strong> because Oracle doesn't read and write individual rows; it just copies raw datafiles. The tablespace must be placed READ ONLY before export (or use TTS_CLOSURE_CHECK=TEST_MODE in 19c+).</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div class="p-3 rounded-lg" style="background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.18)">
+              <p class="text-xs font-bold text-green-400 mb-1">Advantages</p>
+              <ul class="text-xs text-slate-400 space-y-1">
+                <li>&#x2714; Fastest for large tablespaces (TB-scale in minutes)</li>
+                <li>&#x2714; Only metadata in dump file (tiny dump)</li>
+                <li>&#x2714; Works across platforms (with CONVERT step for endianness)</li>
+              </ul>
+            </div>
+            <div class="p-3 rounded-lg" style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18)">
+              <p class="text-xs font-bold text-red-400 mb-1">Requirements</p>
+              <ul class="text-xs text-slate-400 space-y-1">
+                <li>&#x26A0; Tablespace must be READ ONLY (or TEST_MODE in 19c)</li>
+                <li>&#x26A0; Must pass TRANSPORT_FULL_CHECK self-containment</li>
+                <li>&#x26A0; Manual datafile copy step required</li>
+              </ul>
+            </div>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-slate-500 text-xs ml-2">Transportable Tablespace workflow</span></div>
+            <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Step 1: Make tablespace READ ONLY on source</span>
+<span class="kw">ALTER TABLESPACE</span> app_data <span class="kw">READ ONLY</span>;
+
+<span class="cm">-- Step 2: Export metadata only</span>
+expdp system/<span class="str">password</span>@SOURCE \
+  <span class="kv">TRANSPORT_TABLESPACES</span>=app_data \
+  <span class="kv">TRANSPORT_FULL_CHECK</span>=Y \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=tts_meta.dmp <span class="kv">LOGFILE</span>=tts_exp.log
+
+<span class="cm">-- Step 3: Copy datafiles to target server (OS level)</span>
+scp /u01/oradata/ORCL/app_data01.dbf oracle@target:/u01/oradata/ORCL/
+
+<span class="cm">-- Step 4: Import metadata on target (plugs in the datafiles)</span>
+impdp system/<span class="str">password</span>@TARGET \
+  <span class="kv">TRANSPORT_TABLESPACES</span>=app_data \
+  <span class="kv">DATAFILES</span>=<span class="str">'/u01/oradata/ORCL/app_data01.dbf'</span> \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=tts_meta.dmp <span class="kv">LOGFILE</span>=tts_imp.log
+
+<span class="cm">-- Step 5: Return source tablespace to READ WRITE</span>
+<span class="kw">ALTER TABLESPACE</span> app_data <span class="kw">READ WRITE</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Key export tips -->
+      <div class="reveal grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="param-card">
+          <div class="font-bold text-xs mb-2" style="color:#38bdf8">%U Substitution</div>
+          <p class="text-slate-400 text-xs">Use <code style="color:#7dd3fc">DUMPFILE=file_%U.dmp</code> to split across multiple files. Oracle replaces %U with 01, 02, 03, etc. Required when PARALLEL &gt; 1 — each worker needs its own file to write to simultaneously.</p>
+        </div>
+        <div class="param-card">
+          <div class="font-bold text-xs mb-2" style="color:#38bdf8">ESTIMATE_ONLY=Y</div>
+          <p class="text-slate-400 text-xs">Run a dry-run to estimate dump file size without actually exporting. Useful for disk space planning before a large export. Does NOT account for COMPRESSION — run the estimate then apply a compression ratio factor.</p>
+        </div>
+        <div class="param-card">
+          <div class="font-bold text-xs mb-2" style="color:#38bdf8">CONTENT= Filter</div>
+          <p class="text-slate-400 text-xs"><code style="color:#7dd3fc">CONTENT=ALL</code> (default), <code style="color:#7dd3fc">METADATA_ONLY</code> (schema only, no rows), <code style="color:#7dd3fc">DATA_ONLY</code> (rows only, no DDL). METADATA_ONLY is ideal for documenting schema design or cloning a schema structure.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Import with impdp -->
+  <section id="import" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-10">
+        <span class="badge badge-sky mb-4">Section 5</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Import with impdp — Key Parameters</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">impdp is the import counterpart to expdp. It reads a dump file set and recreates objects and data. The most powerful features are the <strong class="text-white">REMAP</strong> parameters and <strong class="text-white">TABLE_EXISTS_ACTION</strong>.</p>
+      </div>
+
+      <!-- TABLE_EXISTS_ACTION -->
+      <div class="reveal glass p-6 mb-8">
+        <h3 class="font-bold text-white mb-4 text-lg">TABLE_EXISTS_ACTION — What to do if the table already exists</h3>
+        <p class="text-slate-400 text-sm mb-4">This is one of the most critical import parameters. It controls behavior when impdp finds a table in the target database that already exists:</p>
+        <div class="overflow-x-auto mb-4">
+          <table>
+            <thead>
+              <tr>
+                <th>Value</th>
+                <th>Action</th>
+                <th>DDL Loaded?</th>
+                <th>Data Loaded?</th>
+                <th>When to Use</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code style="color:#7dd3fc">SKIP</code></td>
+                <td>Skip the table entirely — do nothing</td>
+                <td><span class="no">No</span></td>
+                <td><span class="no">No</span></td>
+                <td>Only import objects that don't already exist</td>
+              </tr>
+              <tr>
+                <td><code style="color:#7dd3fc">APPEND</code></td>
+                <td>Insert new rows; keep existing rows</td>
+                <td><span class="no">No</span></td>
+                <td><span class="yes">Yes (adds)</span></td>
+                <td>Merge data without deleting existing records</td>
+              </tr>
+              <tr>
+                <td><code style="color:#7dd3fc">TRUNCATE</code></td>
+                <td>DELETE existing rows, then insert dump rows</td>
+                <td><span class="no">No</span></td>
+                <td><span class="yes">Yes (replaces data)</span></td>
+                <td>Refresh data but keep existing table structure</td>
+              </tr>
+              <tr>
+                <td><code style="color:#7dd3fc">REPLACE</code></td>
+                <td>DROP and recreate table, then insert all rows</td>
+                <td><span class="yes">Yes</span></td>
+                <td><span class="yes">Yes (full refresh)</span></td>
+                <td>Complete table rebuild — DEV/TEST refresh</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+          <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- DEV refresh: drop-and-replace everything</span>
+impdp system/<span class="str">password</span>@DEVDB <span class="kv">DUMPFILE</span>=prod_hr.dmp <span class="kv">DIRECTORY</span>=dpump_dir \
+  <span class="kv">REMAP_SCHEMA</span>=HR:HR_DEV <span class="kv">TABLE_EXISTS_ACTION</span>=REPLACE
+
+<span class="cm">-- Append mode: add missing rows without touching existing data</span>
+impdp system/<span class="str">password</span>@DEVDB <span class="kv">DUMPFILE</span>=delta.dmp <span class="kv">DIRECTORY</span>=dpump_dir \
+  <span class="kv">TABLE_EXISTS_ACTION</span>=APPEND</code></pre>
+        </div>
+      </div>
+
+      <!-- REMAP params -->
+      <div class="reveal mb-8">
+        <h3 class="font-bold text-white mb-4 text-lg">REMAP Parameters — Transform on Import</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div class="remap-card">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="badge badge-sky text-xs">REMAP_SCHEMA</span>
+            </div>
+            <p class="text-slate-400 text-sm mb-3">Redirects all objects from source schema into a different target schema. Target schema does not need to pre-exist — impdp creates it.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Import PROD schema into DEV schema</span>
+impdp ... <span class="kv">REMAP_SCHEMA</span>=PROD_HR:DEV_HR
+
+<span class="cm">-- Multiple remaps in one job</span>
+impdp ... <span class="kv">REMAP_SCHEMA</span>=SALES:SALES_TEST \
+         <span class="kv">REMAP_SCHEMA</span>=FINANCE:FINANCE_TEST</code></pre>
+            </div>
+          </div>
+          <div class="remap-card">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="badge badge-sky text-xs">REMAP_TABLESPACE</span>
+            </div>
+            <p class="text-slate-400 text-sm mb-3">Remaps all objects from source tablespace to target tablespace during import. Essential when target database has different tablespace names or when consolidating storage.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Remap PROD_DATA → DEV_DATA, PROD_IDX → DEV_IDX</span>
+impdp ... <span class="kv">REMAP_TABLESPACE</span>=PROD_DATA:DEV_DATA \
+         <span class="kv">REMAP_TABLESPACE</span>=PROD_IDX:DEV_IDX
+
+<span class="cm">-- Consolidate multiple tablespaces into one</span>
+impdp ... <span class="kv">REMAP_TABLESPACE</span>=TS1:USERS \
+         <span class="kv">REMAP_TABLESPACE</span>=TS2:USERS</code></pre>
+            </div>
+          </div>
+          <div class="remap-card">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="badge badge-sky text-xs">REMAP_DATAFILE</span>
+            </div>
+            <p class="text-slate-400 text-sm mb-3">Redefines datafile path references in all DDL statements. Used during transportable tablespace imports when the physical file locations differ between source and target servers.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Remap datafile path for transportable import</span>
+impdp ... \
+  <span class="kv">REMAP_DATAFILE</span>=<span class="str">'/old/path/app_data01.dbf'</span>:<span class="str">'/new/path/app_data01.dbf'</span></code></pre>
+            </div>
+          </div>
+          <div class="remap-card">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="badge badge-sky text-xs">TRANSFORM</span>
+            </div>
+            <p class="text-slate-400 text-sm mb-3">Applies transformations to DDL statements. The most useful is <code class="text-xs" style="color:#7dd3fc">DISABLE_ARCHIVE_LOGGING:Y</code> which sets NOLOGGING before import and LOGGING after — dramatically reduces redo generation for large data loads.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Reduce redo during bulk import</span>
+impdp ... <span class="kv">TRANSFORM</span>=DISABLE_ARCHIVE_LOGGING:Y
+
+<span class="cm">-- Apply only to tables (not indexes)</span>
+impdp ... <span class="kv">TRANSFORM</span>=DISABLE_ARCHIVE_LOGGING:Y:TABLE</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NETWORK_LINK import -->
+      <div class="reveal glass p-6">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(14,165,233,.15)">
+            <i class="fas fa-network-wired" style="color:#38bdf8"></i>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <h3 class="font-bold text-white">NETWORK_LINK — Import Without Dump Files</h3>
+              <span class="badge badge-green">No Disk Space Needed</span>
+            </div>
+            <p class="text-slate-400 text-sm mb-4">The <code class="text-xs" style="color:#7dd3fc">NETWORK_LINK</code> parameter performs a direct database-to-database import over a database link — no dump files required. Data flows directly from source to target. A directory object is still required for the log file.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Step 1: Create DB link from target pointing to source</span>
+<span class="kw">CREATE DATABASE LINK</span> source_prod
+  <span class="kw">CONNECT TO</span> system <span class="kw">IDENTIFIED BY</span> <span class="str">password</span>
+  <span class="kw">USING</span> <span class="str">'PROD_TNS_ALIAS'</span>;
+
+<span class="cm">-- Step 2: Import directly from source into target (no dump file)</span>
+impdp system/<span class="str">password</span>@DEVDB \
+  <span class="kv">NETWORK_LINK</span>=source_prod \
+  <span class="kv">SCHEMAS</span>=HR \
+  <span class="kv">REMAP_SCHEMA</span>=HR:HR_DEV \
+  <span class="kv">REMAP_TABLESPACE</span>=PROD_DATA:DEV_DATA \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">LOGFILE</span>=net_imp.log \
+  <span class="kv">TABLE_EXISTS_ACTION</span>=REPLACE <span class="kv">PARALLEL</span>=<span class="num">4</span></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Key Parameters -->
+  <section id="parameters" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-10">
+        <span class="badge badge-sky mb-4">Section 6</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Key Parameters Reference</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Master these parameters to control performance, security, filtering, and consistency for both expdp and impdp jobs.</p>
+      </div>
+
+      <!-- Parameter tabs -->
+      <div class="reveal glass p-6 mb-8">
+        <div class="flex flex-wrap gap-2 mb-6 border-b border-white/5 pb-4" id="params-tabs">
+          <button class="tab-btn active" data-tab="p-performance">Performance</button>
+          <button class="tab-btn" data-tab="p-security">Security</button>
+          <button class="tab-btn" data-tab="p-filtering">Filtering</button>
+          <button class="tab-btn" data-tab="p-consistency">Consistency</button>
+          <button class="tab-btn" data-tab="p-control">Job Control</button>
+        </div>
+
+        <div class="tab-pane active" data-pane="p-performance">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">PARALLEL=N</span>
+                <span class="badge badge-yellow text-xs">Enterprise Ed. only</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Number of Worker Processes. Default is 1 (no parallelism). Requires Oracle Enterprise Edition for N &gt; 1. Recommended: set to 1.5× to 2× the number of CPUs. Must use <code class="text-xs" style="color:#7dd3fc">DUMPFILE=file%U.dmp</code> when PARALLEL &gt; 1 so each worker has its own file.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- 8-core system: use 12 workers</span>
+expdp ... <span class="kv">PARALLEL</span>=<span class="num">12</span> <span class="kv">DUMPFILE</span>=exp_%U.dmp
+
+<span class="cm">-- Change PARALLEL dynamically in interactive mode</span>
+Export> PARALLEL=<span class="num">16</span></code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">COMPRESSION=</span>
+                <span class="badge badge-yellow text-xs">Advanced Compression option</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Compresses dump file contents. Requires the Advanced Compression option license. Values: <code class="text-xs" style="color:#7dd3fc">NONE</code> (default), <code class="text-xs" style="color:#7dd3fc">METADATA_ONLY</code>, <code class="text-xs" style="color:#7dd3fc">DATA_ONLY</code>, <code class="text-xs" style="color:#7dd3fc">ALL</code>. METADATA_ONLY is free for Standard Edition. DATA_ONLY and ALL require the license.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Maximum compression (smallest dump)</span>
+expdp ... <span class="kv">COMPRESSION</span>=ALL
+
+<span class="cm">-- Free: only compress metadata</span>
+expdp ... <span class="kv">COMPRESSION</span>=METADATA_ONLY
+
+<span class="cm">-- Set compression algorithm (12.1+)</span>
+expdp ... <span class="kv">COMPRESSION</span>=ALL \
+         <span class="kv">COMPRESSION_ALGORITHM</span>=HIGH</code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">FILESIZE=</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Maximum size of each dump file. When a file reaches this size, Oracle automatically starts the next file (using %U substitution). Useful for keeping files below filesystem or storage limits.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Split into 10GB files</span>
+expdp ... <span class="kv">FILESIZE</span>=10G <span class="kv">DUMPFILE</span>=full_%U.dmp</code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">EXCLUDE=STATISTICS</span>
+                <span class="badge badge-green text-xs">Always use on import</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Skips loading optimizer statistics during import. Dramatically speeds up imports. Statistics can be gathered post-import with <code class="text-xs" style="color:#7dd3fc">DBMS_STATS.GATHER_SCHEMA_STATS</code>. A best practice for all DEV/TEST imports.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code>impdp ... <span class="kv">EXCLUDE</span>=STATISTICS
+
+<span class="cm">-- Gather stats after import</span>
+<span class="kw">EXEC</span> <span class="fn">DBMS_STATS.GATHER_SCHEMA_STATS</span>(<span class="str">'HR_DEV'</span>);</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane" data-pane="p-security">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">ENCRYPTION=</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">What to encrypt in the dump file. Values: <code class="text-xs" style="color:#7dd3fc">NONE</code>, <code class="text-xs" style="color:#7dd3fc">METADATA_ONLY</code>, <code class="text-xs" style="color:#7dd3fc">DATA_ONLY</code>, <code class="text-xs" style="color:#7dd3fc">ENCRYPTED_COLUMNS_ONLY</code>, <code class="text-xs" style="color:#7dd3fc">ALL</code>. Use ALL for compliance scenarios (HIPAA, PCI-DSS, SOX).</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Full encryption with AES-256</span>
+expdp ... \
+  <span class="kv">ENCRYPTION</span>=ALL \
+  <span class="kv">ENCRYPTION_ALGORITHM</span>=AES256 \
+  <span class="kv">ENCRYPTION_PASSWORD</span>=<span class="str">SecurePass123!</span> \
+  <span class="kv">ENCRYPTION_MODE</span>=PASSWORD
+
+<span class="cm">-- Import encrypted dump</span>
+impdp ... \
+  <span class="kv">ENCRYPTION_PASSWORD</span>=<span class="str">SecurePass123!</span></code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">ENCRYPTION_ALGORITHM=</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Encryption algorithm. Valid values: <strong class="text-white">AES128</strong> (default), <strong class="text-white">AES192</strong>, <strong class="text-white">AES256</strong>. AES256 provides the strongest encryption — required for most compliance frameworks. Higher bit count = slightly more CPU overhead.</p>
+              <div class="p-3 mt-2 rounded-lg" style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.18)">
+                <p class="text-xs" style="color:#fbbf24"><strong>ENCRYPTION_MODE values:</strong><br/>
+                <code style="color:#7dd3fc">PASSWORD</code> — only accessible with password<br/>
+                <code style="color:#7dd3fc">DUAL</code> — accessible with password OR Oracle Encryption Wallet<br/>
+                <code style="color:#7dd3fc">TRANSPARENT</code> — uses wallet only (no password needed at export)</p>
+              </div>
+            </div>
+            <div class="param-card md:col-span-2">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">Security Roles Required</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="p-3 rounded-lg" style="background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.18)">
+                  <p class="text-xs font-bold text-green-400 mb-1">DATAPUMP_EXP_FULL_DATABASE</p>
+                  <p class="text-xs text-slate-400">Required for privileged exports: FULL=Y, other schemas, SYS-owned objects. Also required as source user for NETWORK_LINK exports. Supersedes the deprecated EXP_FULL_DATABASE role.</p>
+                </div>
+                <div class="p-3 rounded-lg" style="background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.18)">
+                  <p class="text-xs font-bold text-green-400 mb-1">DATAPUMP_IMP_FULL_DATABASE</p>
+                  <p class="text-xs text-slate-400">Required for privileged imports: FULL=Y, REMAP_SCHEMA to different schema, NETWORK_LINK imports. Supersedes the deprecated IMP_FULL_DATABASE role.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane" data-pane="p-filtering">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">INCLUDE=</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Include only specified object types. When INCLUDE is specified, nothing else is included. Syntax: <code class="text-xs" style="color:#7dd3fc">INCLUDE=object_type[:name_clause]</code>. INCLUDE and EXCLUDE are mutually exclusive (before 21c).</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Include only tables and their indexes</span>
+expdp ... <span class="kv">INCLUDE</span>=TABLE,INDEX
+
+<span class="cm">-- Include only tables matching a pattern</span>
+expdp ... <span class="kv">INCLUDE</span>=TABLE:<span class="str">"LIKE 'ORDER%'"</span>
+
+<span class="cm">-- Include specific procedures</span>
+expdp ... <span class="kv">INCLUDE</span>=PROCEDURE:<span class="str">"IN ('CALC_SALARY','SEND_MAIL')"</span></code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">EXCLUDE=</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Exclude specified object types from the export/import. When an object type is excluded, all its dependents are also excluded (e.g., excluding TABLE also excludes its indexes and triggers).</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Skip indexes and triggers (rebuild on target)</span>
+expdp ... <span class="kv">EXCLUDE</span>=INDEX,TRIGGER
+
+<span class="cm">-- Skip specific table by name</span>
+expdp ... <span class="kv">EXCLUDE</span>=TABLE:<span class="str">"= 'AUDIT_LOG'"</span>
+
+<span class="cm">-- Skip stats + grants on import</span>
+impdp ... <span class="kv">EXCLUDE</span>=STATISTICS,GRANT</code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">CONTENT=</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Controls what is included: <code class="text-xs" style="color:#7dd3fc">ALL</code> (default — metadata + data), <code class="text-xs" style="color:#7dd3fc">METADATA_ONLY</code> (DDL only, no rows — great for schema cloning), <code class="text-xs" style="color:#7dd3fc">DATA_ONLY</code> (rows only, schema must already exist on target).</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Schema definition only (no data)</span>
+expdp ... <span class="kv">CONTENT</span>=METADATA_ONLY
+
+<span class="cm">-- Data only (schema already on target)</span>
+expdp ... <span class="kv">CONTENT</span>=DATA_ONLY</code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">QUERY=</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Filters rows from a specific table using a WHERE clause during export. Only that table gets filtered — other tables in the same job export fully. Cannot be combined with ESTIMATE_ONLY.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Export only active employees</span>
+expdp ... <span class="kv">TABLES</span>=EMPLOYEES \
+  <span class="kv">QUERY</span>=EMPLOYEES:<span class="str">"WHERE status = 'ACTIVE'"</span>
+
+<span class="cm">-- Multiple tables, different filters each</span>
+expdp ... <span class="kv">TABLES</span>=ORDERS,CUSTOMERS \
+  <span class="kv">QUERY</span>=ORDERS:<span class="str">"WHERE order_date > DATE '2024-01-01'"</span></code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane" data-pane="p-consistency">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">FLASHBACK_SCN=</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Exports data as it existed at the specified System Change Number. Guarantees all tables in the export are consistent as of that SCN — crucial for large exports that span multiple tablespaces. Get current SCN with <code class="text-xs" style="color:#7dd3fc">SELECT CURRENT_SCN FROM V$DATABASE</code>.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Get SCN first</span>
+<span class="kw">SELECT</span> current_scn <span class="kw">FROM</span> v$database;
+<span class="cm">-- Output: 12345678</span>
+
+<span class="cm">-- Export consistent as of that SCN</span>
+expdp ... <span class="kv">FLASHBACK_SCN</span>=<span class="num">12345678</span></code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">FLASHBACK_TIME=</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Exports data as it existed at the specified timestamp. Oracle resolves the timestamp to the nearest SCN. Mutually exclusive with FLASHBACK_SCN. Useful when you know a specific point-in-time but not the exact SCN.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Consistent export as of 2am today</span>
+expdp ... \
+  <span class="kv">FLASHBACK_TIME</span>=<span class="str">"TO_TIMESTAMP('2025-05-17 02:00:00',</span>
+    <span class="str">'YYYY-MM-DD HH24:MI:SS')"</span></code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">VERSION=</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Generates a dump file compatible with an older Oracle version. Use this when exporting from Oracle 19c to import into 12c. Oracle removes features not supported in the target version. Example: <code class="text-xs" style="color:#7dd3fc">VERSION=12.1</code> on a 19c source.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Downgrade export: 19c → 12.1 compatible</span>
+expdp ... <span class="kv">VERSION</span>=<span class="num">12.1</span></code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">CLUSTER=</span>
+                <span class="badge badge-slate text-xs">RAC only</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">For RAC environments. <code class="text-xs" style="color:#7dd3fc">CLUSTER=Y</code> (default) distributes Worker Processes across all RAC instances for maximum parallelism. <code class="text-xs" style="color:#7dd3fc">CLUSTER=N</code> forces all workers to run on the instance where the job was submitted — useful for debugging or I/O-constrained environments.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Force single-node in RAC (for debugging)</span>
+expdp ... <span class="kv">CLUSTER</span>=N</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane" data-pane="p-control">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">JOB_NAME=</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Assigns a custom name to the Data Pump job. This name is used with ATTACH to reconnect, appears in DBA_DATAPUMP_JOBS, and is the Master Table name. If omitted, Oracle auto-generates a name like EXPORT_1. Choose meaningful names for easy monitoring.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code>expdp ... <span class="kv">JOB_NAME</span>=PROD_HR_EXPORT_20250517
+
+<span class="cm">-- Later: reattach to this job</span>
+expdp system/<span class="str">password</span>@ORCL \
+  <span class="kv">ATTACH</span>=PROD_HR_EXPORT_20250517</code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">STATUS=N</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Sets the frequency (in seconds) of status messages shown to the client. Default is 0 (only major milestones). Set to 60 to get a progress update every minute — useful for monitoring long-running jobs without entering interactive mode.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Report progress every 30 seconds</span>
+expdp ... <span class="kv">STATUS</span>=<span class="num">30</span></code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">KEEP_MASTER=</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">By default <code class="text-xs" style="color:#7dd3fc">KEEP_MASTER=NO</code> — the Master Table is dropped after a successful job. Set to YES to retain it for debugging or if you need to re-run the job. The Master Table is always retained for failed or stopped jobs.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Retain master table after success</span>
+expdp ... <span class="kv">KEEP_MASTER</span>=YES
+
+<span class="cm">-- Drop orphaned master tables</span>
+<span class="kw">DROP TABLE</span> system.SYS_EXPORT_SCHEMA_01;</code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge badge-sky text-xs">ATTACH= / Interactive Mode</span>
+              </div>
+              <p class="text-slate-400 text-sm mb-3">Reconnect to a running or stopped job. After attaching, you enter interactive mode. Also triggered automatically by pressing Ctrl+C during a running job. In interactive mode you can monitor, control parallelism, add files, stop, or kill the job.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Attach to running job</span>
+expdp system/<span class="str">password</span>@ORCL <span class="kv">ATTACH</span>=MYJOB
+
+<span class="cm">-- Interactive prompt appears:</span>
+Export> STATUS
+Export> PARALLEL=<span class="num">8</span>
+Export> STOP_JOB
+Export> START_JOB
+Export> KILL_JOB</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 7: Interactive Mode -->
+  <section class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-10">
+        <span class="badge badge-sky mb-4">Section 7</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Interactive Mode &amp; DBMS_DATAPUMP API</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Press Ctrl+C during any running expdp/impdp job to enter interactive mode. The job keeps running in the background — you get a prompt to monitor or control it.</p>
+      </div>
+
+      <!-- Interactive commands table -->
+      <div class="reveal glass overflow-hidden mb-8">
+        <div class="p-4 border-b border-white/5">
+          <h3 class="font-bold text-white">Interactive Mode Commands</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th style="min-width:200px">Command</th>
+                <th>Description</th>
+                <th style="min-width:80px">Recoverable?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code style="color:#7dd3fc">STATUS [=seconds]</code></td>
+                <td>Display current job status, tables processed, rows transferred, worker states, estimated completion</td>
+                <td><span class="yes">—</span></td>
+              </tr>
+              <tr>
+                <td><code style="color:#7dd3fc">CONTINUE_CLIENT</code></td>
+                <td>Exit interactive mode; return to logging output. If the job was stopped, this also restarts it</td>
+                <td><span class="yes">—</span></td>
+              </tr>
+              <tr>
+                <td><code style="color:#7dd3fc">PARALLEL=N</code></td>
+                <td>Dynamically change the number of Worker Processes. Increase to speed up, decrease to reduce load. Requires Enterprise Edition</td>
+                <td><span class="yes">—</span></td>
+              </tr>
+              <tr>
+                <td><code style="color:#7dd3fc">ADD_FILE=file.dmp</code></td>
+                <td>Add a new dump file to the job's dump file set. Use when a file fills up and FILESIZE was not pre-set</td>
+                <td><span class="yes">—</span></td>
+              </tr>
+              <tr>
+                <td><code style="color:#7dd3fc">STOP_JOB [=IMMEDIATE]</code></td>
+                <td>Gracefully stop the job (finish current object). STOP_JOB=IMMEDIATE stops all workers immediately. Master Table is preserved — job can be restarted</td>
+                <td><span class="yes">Yes — restartable</span></td>
+              </tr>
+              <tr>
+                <td><code style="color:#7dd3fc">START_JOB [=SKIP_CURRENT]</code></td>
+                <td>Restart a stopped job from where it left off. SKIP_CURRENT skips the object that was in progress when the job stopped</td>
+                <td><span class="yes">—</span></td>
+              </tr>
+              <tr>
+                <td><code style="color:#7dd3fc">KILL_JOB</code></td>
+                <td><strong class="text-red-400">DESTRUCTIVE</strong> — terminates the job immediately and drops the Master Table. The job CANNOT be restarted. Any partial dump files may be incomplete</td>
+                <td><span class="no">NOT restartable</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DBMS_DATAPUMP -->
+      <div class="reveal glass p-6">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(14,165,233,.15)">
+            <i class="fas fa-code" style="color:#38bdf8"></i>
+          </div>
+          <div class="flex-1">
+            <h3 class="font-bold text-white mb-2">DBMS_DATAPUMP — The PL/SQL API</h3>
+            <p class="text-slate-400 text-sm mb-4">The expdp/impdp utilities are thin wrappers. Everything they do is available through the <code class="text-xs" style="color:#7dd3fc">DBMS_DATAPUMP</code> PL/SQL package — enabling scheduled, conditional, or integrated export/import from within stored procedures or DBMS_SCHEDULER jobs.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div><span class="text-slate-500 text-xs ml-2">DBMS_DATAPUMP — schema export via PL/SQL</span></div>
+              <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="kw">DECLARE</span>
+  h1  <span class="fn">NUMBER</span>;
+<span class="kw">BEGIN</span>
+  <span class="cm">-- Open export job</span>
+  h1 := <span class="fn">DBMS_DATAPUMP.OPEN</span>(
+          operation => <span class="str">'EXPORT'</span>,
+          job_mode  => <span class="str">'SCHEMA'</span>,
+          job_name  => <span class="str">'MY_API_EXPORT'</span>);
+
+  <span class="cm">-- Add dump file and log file</span>
+  <span class="fn">DBMS_DATAPUMP.ADD_FILE</span>(h1, <span class="str">'api_exp.dmp'</span>, <span class="str">'DPUMP_DIR'</span>);
+  <span class="fn">DBMS_DATAPUMP.ADD_FILE</span>(h1, <span class="str">'api_exp.log'</span>, <span class="str">'DPUMP_DIR'</span>,
+                          filetype => <span class="fn">DBMS_DATAPUMP.KU$_FILE_TYPE_LOG_FILE</span>);
+
+  <span class="cm">-- Filter: schema HR only</span>
+  <span class="fn">DBMS_DATAPUMP.METADATA_FILTER</span>(h1, <span class="str">'SCHEMA_EXPR'</span>,
+                                  <span class="str">'IN (''HR'')'</span>);
+
+  <span class="cm">-- Start and wait for completion</span>
+  <span class="fn">DBMS_DATAPUMP.START_JOB</span>(h1);
+  <span class="fn">DBMS_DATAPUMP.WAIT_FOR_JOB</span>(h1, job_state => :job_state);
+  <span class="fn">DBMS_DATAPUMP.DETACH</span>(h1);
+<span class="kw">END</span>;
+/</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 8: Real-world Scenarios -->
+  <section class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-10">
+        <span class="badge badge-sky mb-4">Section 8</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Real-World DBA Scenarios</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">These are the most common production tasks Oracle DBAs perform with Data Pump — know these cold for interviews and day-to-day work.</p>
+      </div>
+      <div class="reveal space-y-3">
+
+        <!-- Scenario 1 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-sync-alt mr-3" style="color:#38bdf8"></i>Refresh DEV / TEST from PROD (Schema Level)</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm mb-4">The most common Data Pump use case. Export PROD schema, import into DEV with different schema and tablespace names. Use TABLE_EXISTS_ACTION=REPLACE to fully refresh the DEV schema.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Step 1: Export from PROD (run on PROD server)</span>
+expdp system/<span class="str">password</span>@PROD \
+  <span class="kv">SCHEMAS</span>=HR \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=hr_prod_%U.dmp \
+  <span class="kv">LOGFILE</span>=hr_prod_exp.log <span class="kv">PARALLEL</span>=<span class="num">4</span> \
+  <span class="kv">COMPRESSION</span>=ALL
+
+<span class="cm">-- Step 2: Copy dump files to DEV server (OS level)</span>
+scp /u01/datapump/hr_prod_*.dmp oracle@devserver:/u01/datapump/
+
+<span class="cm">-- Step 3: Import into DEV (run on DEV server)</span>
+impdp system/<span class="str">password</span>@DEV \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=hr_prod_%U.dmp \
+  <span class="kv">LOGFILE</span>=hr_dev_imp.log \
+  <span class="kv">REMAP_SCHEMA</span>=HR:HR_DEV \
+  <span class="kv">REMAP_TABLESPACE</span>=PROD_DATA:DEV_DATA \
+  <span class="kv">REMAP_TABLESPACE</span>=PROD_IDX:DEV_IDX \
+  <span class="kv">TABLE_EXISTS_ACTION</span>=REPLACE \
+  <span class="kv">EXCLUDE</span>=STATISTICS \
+  <span class="kv">PARALLEL</span>=<span class="num">4</span>
+
+<span class="cm">-- Step 4: Gather stats on DEV after import</span>
+<span class="kw">EXEC</span> <span class="fn">DBMS_STATS.GATHER_SCHEMA_STATS</span>(<span class="str">'HR_DEV'</span>, cascade => TRUE);</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scenario 2 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-server mr-3" style="color:#38bdf8"></i>Migrate Entire Database to New Server</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm mb-4">For full database migration, use Full Transportable Export/Import (Oracle 12c+) for maximum speed, or fall back to FULL=Y if transportable isn't feasible. Full transportable moves most data as datafiles, drastically reducing export/import time.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- OPTION A: Full database export (conventional)</span>
+expdp system/<span class="str">password</span>@SOURCE \
+  <span class="kv">FULL</span>=Y <span class="kv">PARALLEL</span>=<span class="num">8</span> \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=fulldb_%U.dmp \
+  <span class="kv">LOGFILE</span>=fulldb_exp.log <span class="kv">COMPRESSION</span>=ALL \
+  <span class="kv">FLASHBACK_TIME</span>=<span class="str">"SYSDATE-1/24"</span>  <span class="cm">-- consistent as of 1 hour ago</span>
+
+<span class="cm">-- OPTION B: Full Transportable (12c+) — much faster for large DBs</span>
+expdp system/<span class="str">password</span>@SOURCE \
+  <span class="kv">FULL</span>=Y <span class="kv">TRANSPORTABLE</span>=ALWAYS \
+  <span class="kv">VERSION</span>=<span class="num">12.2</span> \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=fulltts.dmp \
+  <span class="kv">LOGFILE</span>=fulltts_exp.log
+
+<span class="cm">-- Copy datafiles from source to target (OS)</span>
+<span class="cm">-- Then import metadata on target:</span>
+impdp system/<span class="str">password</span>@TARGET \
+  <span class="kv">FULL</span>=Y <span class="kv">TRANSPORT_DATAFILES</span>=<span class="str">'/path/to/datafiles'</span> \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=fulltts.dmp \
+  <span class="kv">LOGFILE</span>=fulltts_imp.log</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scenario 3 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-filter mr-3" style="color:#38bdf8"></i>Export Specific Tables with Row Filters</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm mb-4">Use the QUERY parameter to export a subset of rows from specific tables. Perfect for compliance (exclude sensitive data), testing (use only a sample), or extracting recent records. Different tables can have different QUERY filters in the same job.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Export only orders from last 30 days, all customers</span>
+expdp hr/<span class="str">password</span>@ORCL \
+  <span class="kv">TABLES</span>=ORDERS,CUSTOMERS,ORDER_ITEMS \
+  <span class="kv">QUERY</span>=ORDERS:<span class="str">"WHERE order_date >= SYSDATE - 30"</span> \
+  <span class="kv">QUERY</span>=ORDER_ITEMS:<span class="str">"WHERE order_id IN (SELECT order_id FROM orders WHERE order_date >= SYSDATE-30)"</span> \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=recent_orders.dmp \
+  <span class="kv">LOGFILE</span>=recent_orders.log
+
+<span class="cm">-- Export schema EXCLUDING sensitive columns (use VIEWS instead)</span>
+<span class="cm">-- Create a view that masks sensitive data, then export the view</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scenario 4 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-lock mr-3" style="color:#38bdf8"></i>Encrypted Export for Compliance (HIPAA / PCI-DSS)</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm mb-4">When exporting databases containing PII, health records, or payment card data, encrypt the dump file. Without encryption, the dump file is readable by anyone with OS access to the server — a major security risk.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Export with AES-256 encryption (HIPAA/PCI compliant)</span>
+expdp system/<span class="str">password</span>@ORCL \
+  <span class="kv">SCHEMAS</span>=PATIENT_DATA \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=patient_%U.dmp \
+  <span class="kv">LOGFILE</span>=patient_exp.log \
+  <span class="kv">ENCRYPTION</span>=ALL \
+  <span class="kv">ENCRYPTION_ALGORITHM</span>=AES256 \
+  <span class="kv">ENCRYPTION_PASSWORD</span>=<span class="str">'V3ryStr0ng#Pass!'</span> \
+  <span class="kv">ENCRYPTION_MODE</span>=PASSWORD \
+  <span class="kv">PARALLEL</span>=<span class="num">4</span>
+
+<span class="cm">-- Import (password required — anyone without it gets ORA-39215)</span>
+impdp system/<span class="str">password</span>@TARGET \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=patient_%U.dmp \
+  <span class="kv">LOGFILE</span>=patient_imp.log \
+  <span class="kv">ENCRYPTION_PASSWORD</span>=<span class="str">'V3ryStr0ng#Pass!'</span> \
+  <span class="kv">REMAP_SCHEMA</span>=PATIENT_DATA:PATIENT_DATA_UAT</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scenario 5 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-link mr-3" style="color:#38bdf8"></i>Zero-Disk Import via NETWORK_LINK (Direct DB-to-DB)</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm mb-4">When disk space is constrained, use NETWORK_LINK to import directly from the source database over a database link — no dump files. This is ideal for frequent schema refreshes between environments on the same network.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- On TARGET: create DB link pointing to SOURCE</span>
+<span class="kw">CREATE DATABASE LINK</span> prod_link
+  <span class="kw">CONNECT TO</span> system <span class="kw">IDENTIFIED BY</span> <span class="str">password</span>
+  <span class="kw">USING</span> <span class="str">'(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=prodserver)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=ORCL)))'</span>;
+
+<span class="cm">-- Test the link</span>
+<span class="kw">SELECT</span> name <span class="kw">FROM</span> v$database@prod_link;
+
+<span class="cm">-- Import directly from SOURCE without any dump files</span>
+impdp system/<span class="str">password</span>@TARGET \
+  <span class="kv">NETWORK_LINK</span>=prod_link \
+  <span class="kv">SCHEMAS</span>=HR \
+  <span class="kv">REMAP_SCHEMA</span>=HR:HR_DEV \
+  <span class="kv">REMAP_TABLESPACE</span>=PROD_DATA:DEV_DATA \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">LOGFILE</span>=netlink_imp.log \
+  <span class="kv">TABLE_EXISTS_ACTION</span>=REPLACE <span class="kv">EXCLUDE</span>=STATISTICS \
+  <span class="kv">PARALLEL</span>=<span class="num">4</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scenario 6 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-object-group mr-3" style="color:#38bdf8"></i>Schema-Only Export (Metadata) for Documentation / DDL Baseline</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm mb-4">Use CONTENT=METADATA_ONLY to export just the schema structure — no data rows. The dump file is tiny and the import is fast. Perfect for: creating a DDL baseline before upgrades, documenting the schema, creating an empty dev environment, or comparing schema versions.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Export schema structure only (no data rows)</span>
+expdp hr/<span class="str">password</span>@ORCL \
+  <span class="kv">SCHEMAS</span>=HR \
+  <span class="kv">CONTENT</span>=METADATA_ONLY \
+  <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">DUMPFILE</span>=hr_ddl.dmp \
+  <span class="kv">LOGFILE</span>=hr_ddl.log
+
+<span class="cm">-- Create empty copy of schema on same or different DB</span>
+impdp system/<span class="str">password</span>@TESTDB \
+  <span class="kv">DUMPFILE</span>=hr_ddl.dmp <span class="kv">DIRECTORY</span>=dpump_dir \
+  <span class="kv">CONTENT</span>=METADATA_ONLY \
+  <span class="kv">REMAP_SCHEMA</span>=HR:HR_EMPTY \
+  <span class="kv">TABLE_EXISTS_ACTION</span>=REPLACE \
+  <span class="kv">LOGFILE</span>=hr_empty.log</code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 9: ORA Errors -->
+  <section id="errors" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-10">
+        <span class="badge badge-sky mb-4">Section 9</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Real-Time Issues &amp; ORA Errors</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">These are the most common Data Pump errors in production. Know the root cause and resolution for each — guaranteed interview and day-to-day relevance.</p>
+      </div>
+      <div class="reveal space-y-3">
+
+        <!-- ORA-39070 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-folder-xmark mr-3 text-red-400"></i>ORA-39070: Unable to open the log file</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <div class="issue-card mb-4">
+              <p class="text-red-300 text-xs font-bold mb-1">Root Cause</p>
+              <p class="text-slate-400 text-sm">The directory object does not exist, the user does not have READ/WRITE privilege on it, or the physical OS directory doesn't exist or isn't writable by the oracle OS user.</p>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Diagnose: check if directory exists in DB</span>
+<span class="kw">SELECT</span> directory_name, directory_path <span class="kw">FROM</span> dba_directories;
+
+<span class="cm">-- Check OS directory exists and permissions</span>
+ls -la /u01/datapump/
+
+<span class="cm">-- Fix: create directory object</span>
+<span class="kw">CREATE OR REPLACE DIRECTORY</span> dpump_dir <span class="kw">AS</span> <span class="str">'/u01/datapump'</span>;
+<span class="kw">GRANT</span> READ, WRITE <span class="kw">ON DIRECTORY</span> dpump_dir <span class="kw">TO</span> myuser;
+
+<span class="cm">-- Fix: OS permissions (as root)</span>
+chown oracle:oinstall /u01/datapump
+chmod 750 /u01/datapump</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- ORA-39002 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-circle-xmark mr-3 text-red-400"></i>ORA-39002: Invalid operation</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <div class="issue-card mb-4">
+              <p class="text-red-300 text-xs font-bold mb-1">Root Cause</p>
+              <p class="text-slate-400 text-sm">Invalid parameter combination: using mutually exclusive parameters (INCLUDE + EXCLUDE before 21c), invalid mode combination, missing required parameters, or an invalid parameter value that makes the operation impossible.</p>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Common triggers:</span>
+<span class="cm">-- Using INCLUDE= and EXCLUDE= together (before Oracle 21c)</span>
+<span class="cm">-- Using QUERY= with ESTIMATE_ONLY=Y</span>
+<span class="cm">-- Using TABLE_EXISTS_ACTION=SKIP with CONTENT=DATA_ONLY</span>
+<span class="cm">-- TRANSPORT_TABLESPACES without tablespace in READ ONLY mode</span>
+
+<span class="cm">-- Fix: check the log file for the specific cause</span>
+<span class="cm">-- Review parameter combinations carefully</span>
+<span class="cm">-- Separate INCLUDE and EXCLUDE into different jobs</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- ORA-39083 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-circle-xmark mr-3 text-red-400"></i>ORA-39083: Object type failed to create with error ORA-XXXXX</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <div class="issue-card mb-4">
+              <p class="text-red-300 text-xs font-bold mb-1">Root Cause</p>
+              <p class="text-slate-400 text-sm">An object (usually a table, index, constraint, sequence, or user) failed to create during import. Common causes: missing tablespace, missing user, privilege issues, character set mismatch, missing dependency, or constraint violation during data load.</p>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Always check the LOGFILE — ORA-39083 is followed by the actual error</span>
+<span class="cm">-- Example log:</span>
+<span class="cm">-- ORA-39083: Object type TABLE:"HR"."EMPLOYEES" failed to create</span>
+<span class="cm">-- ORA-00959: tablespace 'PROD_DATA' does not exist</span>
+
+<span class="cm">-- Fix: create the missing tablespace OR add REMAP_TABLESPACE</span>
+<span class="kw">CREATE TABLESPACE</span> prod_data <span class="kw">DATAFILE</span> <span class="str">'/u01/data/prod_data01.dbf'</span>
+  <span class="kw">SIZE</span> <span class="num">100</span>M <span class="kw">AUTOEXTEND ON</span>;
+
+<span class="cm">-- Or remap to an existing tablespace on import</span>
+impdp ... <span class="kv">REMAP_TABLESPACE</span>=PROD_DATA:USERS
+
+<span class="cm">-- Skip problematic objects and continue (accept errors)</span>
+impdp ... <span class="kv">TABLE_EXISTS_ACTION</span>=SKIP</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- ORA-31634 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-circle-xmark mr-3 text-red-400"></i>ORA-31634: Job already exists</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <div class="issue-card mb-4">
+              <p class="text-red-300 text-xs font-bold mb-1">Root Cause</p>
+              <p class="text-slate-400 text-sm">A Data Pump job with that name already exists in DBA_DATAPUMP_JOBS — it's either running, stopped, or its Master Table was retained after a previous run (KEEP_MASTER=YES or the job failed). Oracle re-uses job names if a Master Table from a previous run exists.</p>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Find existing jobs (including stopped/failed ones)</span>
+<span class="kw">SELECT</span> job_name, state, operation, owner_name
+<span class="kw">FROM</span>   dba_datapump_jobs
+<span class="kw">WHERE</span>  state != <span class="str">'COMPLETING'</span>
+<span class="kw">ORDER BY</span> job_name;
+
+<span class="cm">-- Attach and kill a stopped job</span>
+expdp system/<span class="str">password</span>@ORCL <span class="kv">ATTACH</span>=MYJOB
+Export> KILL_JOB
+
+<span class="cm">-- Or drop the orphaned master table directly</span>
+<span class="kw">DROP TABLE</span> system.SYS_EXPORT_SCHEMA_01 <span class="kw">PURGE</span>;
+
+<span class="cm">-- Use unique JOB_NAME to avoid collisions</span>
+expdp ... <span class="kv">JOB_NAME</span>=HR_EXP_<span class="num">20250517</span>_001</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- ORA-31626 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-circle-xmark mr-3 text-red-400"></i>ORA-31626: Job does not exist</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <div class="issue-card mb-4">
+              <p class="text-red-300 text-xs font-bold mb-1">Root Cause</p>
+              <p class="text-slate-400 text-sm">Attempting to ATTACH to a job that doesn't exist in DBA_DATAPUMP_JOBS. Can happen if: the job name is misspelled, the job completed and the master table was dropped, or the SYSTEM tablespace has issues preventing the job table from being read.</p>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Check what jobs actually exist</span>
+<span class="kw">SELECT</span> owner_name, job_name, operation, state
+<span class="kw">FROM</span>   dba_datapump_jobs;
+
+<span class="cm">-- Also check USER_DATAPUMP_JOBS (your own jobs)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> user_datapump_jobs;
+
+<span class="cm">-- If job completed: the master table was dropped — job is done</span>
+<span class="cm">-- Check the log file for results</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- ORA-39126 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-circle-xmark mr-3 text-red-400"></i>ORA-39126: Worker unexpected fatal error</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <div class="issue-card mb-4">
+              <p class="text-red-300 text-xs font-bold mb-1">Root Cause</p>
+              <p class="text-slate-400 text-sm">A Worker Process crashed unexpectedly. Common causes: corrupted internal views (e.g., SYS.KU$_CLUSTER_VIEW), invalid objects in the schema being exported, insufficient temporary tablespace for worker operations, or Oracle bug requiring a patch.</p>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Check for invalid objects before export</span>
+<span class="kw">SELECT</span> owner, object_name, object_type, status
+<span class="kw">FROM</span>   dba_objects
+<span class="kw">WHERE</span>  status = <span class="str">'INVALID'</span>
+  <span class="kw">AND</span>  owner = <span class="str">'HR'</span>;
+
+<span class="cm">-- Recompile invalid objects</span>
+<span class="kw">EXEC</span> <span class="fn">UTL_RECOMP.RECOMP_SCHEMA</span>(<span class="str">'HR'</span>);
+
+<span class="cm">-- Check and add temporary tablespace if insufficient</span>
+<span class="kw">SELECT</span> tablespace_name, bytes_used, bytes_free
+<span class="kw">FROM</span>   v$temp_space_header;
+
+<span class="cm">-- Workaround: exclude statistics (common trigger)</span>
+expdp ... <span class="kv">EXCLUDE</span>=STATISTICS
+
+<span class="cm">-- Reduce PARALLEL if workers keep crashing</span>
+expdp ... <span class="kv">PARALLEL</span>=<span class="num">1</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- ORA-39001 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-circle-xmark mr-3 text-red-400"></i>ORA-39001: Invalid argument value</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <div class="issue-card mb-4">
+              <p class="text-red-300 text-xs font-bold mb-1">Root Cause</p>
+              <p class="text-slate-400 text-sm">An invalid value was passed to a Data Pump parameter. Common causes: negative PARALLEL value, invalid COMPRESSION value, invalid CONTENT value, or an invalid object type in INCLUDE/EXCLUDE.</p>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Check the error message in the log for the specific invalid argument</span>
+<span class="cm">-- Valid COMPRESSION values: NONE, METADATA_ONLY, DATA_ONLY, ALL</span>
+<span class="cm">-- Valid CONTENT values: ALL, DATA_ONLY, METADATA_ONLY</span>
+<span class="cm">-- Valid PARALLEL: positive integer (1 or more)</span>
+<span class="cm">-- Valid ENCRYPTION: NONE, METADATA_ONLY, DATA_ONLY, ENCRYPTED_COLUMNS_ONLY, ALL</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- ORA-39006 -->
+        <div>
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><i class="fas fa-circle-xmark mr-3 text-red-400"></i>ORA-39006: Internal error</span>
+            <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+          </button>
+          <div class="acc-body">
+            <div class="issue-card mb-4">
+              <p class="text-red-300 text-xs font-bold mb-1">Root Cause</p>
+              <p class="text-slate-400 text-sm">Internal Data Pump API error. Often caused by: missing or corrupted XSL stylesheets used by the Metadata API, missing SYS.METASTYLESHEET table, or a known bug requiring an Oracle patch.</p>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-3 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Fix: reload the metadata stylesheets as SYSDBA</span>
+<span class="kw">EXEC</span> <span class="fn">DBMS_METADATA_UTIL.LOAD_STYLESHEETS</span>();
+
+<span class="cm">-- Verify SYS.METASTYLESHEET exists</span>
+<span class="kw">SELECT</span> <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> sys.metastylesheet;
+
+<span class="cm">-- Check for Oracle patches on My Oracle Support</span>
+<span class="cm">-- Search: "ORA-39006 expdp" for applicable patches</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 10: Quick Reference -->
+  <section id="reference" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-10">
+        <span class="badge badge-sky mb-4">Section 10</span>
+        <h2 class="text-3xl font-bold text-white mb-3">DBA Quick Reference</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Essential views, top interview questions, and the master monitoring query. Bookmark this section.</p>
+      </div>
+
+      <!-- Views grid -->
+      <div class="reveal mb-10">
+        <h3 class="font-bold text-white mb-4 text-lg">Data Pump Monitoring Views</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="glass p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="fas fa-table text-sm" style="color:#38bdf8"></i>
+              <span class="font-bold text-white text-sm">DBA_DATAPUMP_JOBS</span>
+            </div>
+            <p class="text-slate-400 text-xs mb-2">Lists all Data Pump jobs regardless of state. Key columns: JOB_NAME, OPERATION, JOB_MODE, STATE, DEGREE (worker count), ATTACHED_SESSIONS.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-2 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> job_name, state, degree
+<span class="kw">FROM</span> dba_datapump_jobs
+<span class="kw">WHERE</span> state != <span class="str">'NOT RUNNING'</span>;</code></pre>
+            </div>
+          </div>
+          <div class="glass p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="fas fa-table text-sm" style="color:#38bdf8"></i>
+              <span class="font-bold text-white text-sm">DBA_DATAPUMP_SESSIONS</span>
+            </div>
+            <p class="text-slate-400 text-xs mb-2">Shows user sessions attached to Data Pump jobs. Key columns: JOB_NAME, SESSION_TYPE (DBMS_DATAPUMP, MASTER, WORKER), SADDR. Useful for identifying why a job shows as running but isn't progressing.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-2 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> job_name, session_type
+<span class="kw">FROM</span> dba_datapump_sessions
+<span class="kw">WHERE</span> job_name = <span class="str">'MYJOB'</span>;</code></pre>
+            </div>
+          </div>
+          <div class="glass p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="fas fa-table text-sm" style="color:#38bdf8"></i>
+              <span class="font-bold text-white text-sm">V$SESSION_LONGOPS</span>
+            </div>
+            <p class="text-slate-400 text-xs mb-2">Shows real-time progress of Data Pump data transfer operations. Key columns: OPNAME, TARGET_DESC, SOFAR, TOTALWORK, TIME_REMAINING, ELAPSED_SECONDS. Updated periodically during data movement.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+              <pre class="p-2 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> target_desc, sofar, totalwork,
+       time_remaining
+<span class="kw">FROM</span> v$session_longops
+<span class="kw">WHERE</span> opname <span class="kw">LIKE</span> <span class="str">'Data Pump%'</span>;</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interview Q&A -->
+      <div class="reveal mb-10">
+        <h3 class="font-bold text-white mb-4 text-lg">Top Interview Questions</h3>
+        <div class="space-y-3">
+
+          <div>
+            <button class="acc-btn" onclick="toggleAcc(this)">
+              <span><i class="fas fa-circle-question mr-3" style="color:#38bdf8"></i>Q1: What are the key differences between EXPDP and legacy EXP?</span>
+              <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+            </button>
+            <div class="acc-body">
+              <p class="text-slate-300 text-sm"><strong class="text-sky-300">Answer:</strong> Data Pump (expdp) is <strong class="text-white">server-centric</strong> — all processing happens on the Oracle server using the DBMS_DATAPUMP API. Legacy exp is client-centric. Key advantages of Data Pump: (1) <strong class="text-white">10–100× faster</strong> via Direct Path API (block-mode vs. byte-mode), (2) <strong class="text-white">PARALLEL=N</strong> for multi-worker execution (legacy exp is single-threaded), (3) <strong class="text-white">job restartability</strong> via Master Table, (4) <strong class="text-white">COMPRESSION and ENCRYPTION</strong> support, (5) <strong class="text-white">NETWORK_LINK mode</strong> for dump-file-free transfers, (6) <strong class="text-white">INCLUDE/EXCLUDE filters</strong> for granular object selection. Legacy exp/imp are deprecated since Oracle 10g.</p>
+            </div>
+          </div>
+
+          <div>
+            <button class="acc-btn" onclick="toggleAcc(this)">
+              <span><i class="fas fa-circle-question mr-3" style="color:#38bdf8"></i>Q2: How do you estimate dump file size without actually exporting?</span>
+              <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+            </button>
+            <div class="acc-body">
+              <p class="text-slate-300 text-sm"><strong class="text-sky-300">Answer:</strong> Use the <code class="text-xs" style="color:#7dd3fc">ESTIMATE_ONLY=Y</code> parameter. This performs a dry run — Oracle scans the objects and reports the estimated dump file size without creating any files. The estimate uses the BLOCKS method (block counts × block size). Important caveat: ESTIMATE_ONLY does NOT account for COMPRESSION — if you plan to use COMPRESSION=ALL, you must apply a separate compression ratio factor. Cannot be combined with QUERY parameter.</p>
+              <div class="terminal mt-3">
+                <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div></div>
+                <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code>expdp system/<span class="str">password</span>@ORCL <span class="kv">SCHEMAS</span>=HR \
+  <span class="kv">ESTIMATE_ONLY</span>=Y <span class="kv">DIRECTORY</span>=dpump_dir <span class="kv">LOGFILE</span>=estimate.log
+<span class="cm">-- Output: Estimated total job size is 2.45 GB</span></code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <button class="acc-btn" onclick="toggleAcc(this)">
+              <span><i class="fas fa-circle-question mr-3" style="color:#38bdf8"></i>Q3: A Data Pump export job failed at 60%. How do you restart it?</span>
+              <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+            </button>
+            <div class="acc-body">
+              <p class="text-slate-300 text-sm"><strong class="text-sky-300">Answer:</strong> When a job fails or is stopped, the <strong class="text-white">Master Table is preserved</strong> — it records which objects were already exported. Steps to restart: (1) Check <code class="text-xs" style="color:#7dd3fc">DBA_DATAPUMP_JOBS</code> to find the job name. (2) Attach to the job with <code class="text-xs" style="color:#7dd3fc">expdp ... ATTACH=job_name</code>. (3) In interactive mode, issue <code class="text-xs" style="color:#7dd3fc">START_JOB</code> to resume. Data Pump resumes from where it stopped — objects already exported are not re-exported. If the current object was partially written, use <code class="text-xs" style="color:#7dd3fc">START_JOB=SKIP_CURRENT</code>.</p>
+            </div>
+          </div>
+
+          <div>
+            <button class="acc-btn" onclick="toggleAcc(this)">
+              <span><i class="fas fa-circle-question mr-3" style="color:#38bdf8"></i>Q4: What is REMAP_SCHEMA and when do you use it?</span>
+              <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+            </button>
+            <div class="acc-body">
+              <p class="text-slate-300 text-sm"><strong class="text-sky-300">Answer:</strong> <code class="text-xs" style="color:#7dd3fc">REMAP_SCHEMA=source:target</code> redirects all objects from the source schema into a different target schema during import. The target schema doesn't need to pre-exist — impdp creates it. Most common use case: <strong class="text-white">DEV/TEST refresh from PROD</strong> — export PROD schema (HR), import with REMAP_SCHEMA=HR:HR_DEV so everything goes into HR_DEV on the dev database. Can specify multiple remaps: <code class="text-xs" style="color:#7dd3fc">REMAP_SCHEMA=SALES:SALES_TEST</code> plus <code class="text-xs" style="color:#7dd3fc">REMAP_SCHEMA=FINANCE:FINANCE_TEST</code>.</p>
+            </div>
+          </div>
+
+          <div>
+            <button class="acc-btn" onclick="toggleAcc(this)">
+              <span><i class="fas fa-circle-question mr-3" style="color:#38bdf8"></i>Q5: How do you import without dump files when disk space is limited?</span>
+              <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+            </button>
+            <div class="acc-body">
+              <p class="text-slate-300 text-sm"><strong class="text-sky-300">Answer:</strong> Use <code class="text-xs" style="color:#7dd3fc">NETWORK_LINK</code> parameter on the target to import directly from the source database over a database link. No dump files are written — data flows directly from source to target. Requirements: (1) Create a database link from target to source, (2) User on target needs DATAPUMP_IMP_FULL_DATABASE role, (3) User on source needs DATAPUMP_EXP_FULL_DATABASE role, (4) A DIRECTORY is still required for the log file. Performance depends on network bandwidth between the databases.</p>
+            </div>
+          </div>
+
+          <div>
+            <button class="acc-btn" onclick="toggleAcc(this)">
+              <span><i class="fas fa-circle-question mr-3" style="color:#38bdf8"></i>Q6: What roles are required for full database export/import?</span>
+              <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+            </button>
+            <div class="acc-body">
+              <p class="text-slate-300 text-sm"><strong class="text-sky-300">Answer:</strong> For privileged export (FULL=Y or exporting other users' schemas): <code class="text-xs" style="color:#7dd3fc">DATAPUMP_EXP_FULL_DATABASE</code> role. For privileged import (FULL=Y, REMAP_SCHEMA to different user, or NETWORK_LINK import): <code class="text-xs" style="color:#7dd3fc">DATAPUMP_IMP_FULL_DATABASE</code> role. These roles were introduced in Oracle 12c and supersede the older (deprecated) EXP_FULL_DATABASE and IMP_FULL_DATABASE roles. For schema-level operations on your own schema, no special Data Pump role is needed — just CREATE SESSION and READ/WRITE on the directory.</p>
+            </div>
+          </div>
+
+          <div>
+            <button class="acc-btn" onclick="toggleAcc(this)">
+              <span><i class="fas fa-circle-question mr-3" style="color:#38bdf8"></i>Q7: How do you monitor a running Data Pump job?</span>
+              <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+            </button>
+            <div class="acc-body">
+              <p class="text-slate-300 text-sm"><strong class="text-sky-300">Answer:</strong> Four methods: (1) <strong class="text-white">STATUS= parameter</strong> — set STATUS=60 so the running job prints progress every 60 seconds, (2) <strong class="text-white">Interactive mode</strong> — press Ctrl+C then type STATUS to see current worker states, tables processed, and estimated completion, (3) <strong class="text-white">DBA_DATAPUMP_JOBS</strong> — query STATE, DEGREE, ATTACHED_SESSIONS columns, (4) <strong class="text-white">V$SESSION_LONGOPS</strong> — shows table-level progress with SOFAR, TOTALWORK, and TIME_REMAINING. Combine all three for full visibility into large jobs.</p>
+            </div>
+          </div>
+
+          <div>
+            <button class="acc-btn" onclick="toggleAcc(this)">
+              <span><i class="fas fa-circle-question mr-3" style="color:#38bdf8"></i>Q8: How do you improve Data Pump import performance?</span>
+              <i class="fas fa-chevron-down text-slate-500 text-sm transition-transform"></i>
+            </button>
+            <div class="acc-body">
+              <p class="text-slate-300 text-sm"><strong class="text-sky-300">Answer:</strong> (1) <strong class="text-white">PARALLEL=N</strong> — set to 1.5–2× CPU count (Enterprise Edition), (2) <strong class="text-white">EXCLUDE=STATISTICS</strong> — skip stat import; run DBMS_STATS.GATHER_SCHEMA_STATS after, (3) <strong class="text-white">TRANSFORM=DISABLE_ARCHIVE_LOGGING:Y</strong> — sets NOLOGGING to reduce redo, (4) <strong class="text-white">Ensure target tablespaces have sufficient free space</strong> — space allocation is a common bottleneck, (5) <strong class="text-white">Place dump files on high-speed storage</strong> (NVMe or SSD RAID), (6) <strong class="text-white">Increase DB_FILE_MULTIBLOCK_READ_COUNT</strong> for better I/O during sequential scans, (7) <strong class="text-white">Adequate TEMP tablespace</strong> — worker processes need temp space for sort operations.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Master monitoring query -->
+      <div class="reveal">
+        <h3 class="font-bold text-white mb-4 text-lg">Master Monitoring Query</h3>
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+            <span class="text-slate-500 text-xs ml-2">Comprehensive Data Pump job monitoring</span>
+          </div>
+          <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- All active/stopped jobs with attached sessions</span>
+<span class="kw">SELECT</span> j.owner_name, j.job_name, j.operation, j.job_mode,
+       j.state, j.degree,
+       j.attached_sessions
+<span class="kw">FROM</span>   dba_datapump_jobs j
+<span class="kw">WHERE</span>  j.state != <span class="str">'NOT RUNNING'</span>
+<span class="kw">ORDER BY</span> j.job_name;
+
+<span class="cm">-- Real-time table transfer progress</span>
+<span class="kw">SELECT</span> sl.opname,
+       sl.target_desc,
+       sl.sofar,
+       sl.totalwork,
+       <span class="fn">ROUND</span>(sl.sofar / <span class="fn">NULLIF</span>(sl.totalwork,<span class="num">0</span>) * <span class="num">100</span>, <span class="num">1</span>) pct,
+       sl.time_remaining  remaining_sec,
+       sl.elapsed_seconds elapsed_sec
+<span class="kw">FROM</span>   v$session_longops sl
+<span class="kw">WHERE</span>  sl.opname <span class="kw">LIKE</span> <span class="str">'Data Pump%'</span>
+  <span class="kw">AND</span>  sl.totalwork > <span class="num">0</span>
+  <span class="kw">AND</span>  sl.sofar    < sl.totalwork
+<span class="kw">ORDER BY</span> sl.start_time <span class="kw">DESC</span>;
+
+<span class="cm">-- Find orphaned master tables (failed jobs not cleaned up)</span>
+<span class="kw">SELECT</span> owner, table_name
+<span class="kw">FROM</span>   dba_tables
+<span class="kw">WHERE</span>  table_name <span class="kw">LIKE</span> <span class="str">'SYS_EXPORT%'</span>
+    <span class="kw">OR</span> table_name <span class="kw">LIKE</span> <span class="str">'SYS_IMPORT%'</span>
+<span class="kw">ORDER BY</span> owner, table_name;
+
+<span class="cm">-- Privileged users with Data Pump roles</span>
+<span class="kw">SELECT</span> grantee, granted_role, admin_option
+<span class="kw">FROM</span>   dba_role_privs
+<span class="kw">WHERE</span>  granted_role <span class="kw">IN</span> (<span class="str">'DATAPUMP_EXP_FULL_DATABASE'</span>,
+                          <span class="str">'DATAPUMP_IMP_FULL_DATABASE'</span>)
+<span class="kw">ORDER BY</span> grantee;</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-12" style="background:#060c18;border-top:1px solid rgba(255,255,255,.06)">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fas fa-file-export" style="color:#0ea5e9"></i>
+            <span class="font-bold text-white" style="font-family:'Sora',sans-serif">Oracle Data Pump Guide</span>
+          </div>
+          <p class="text-slate-500 text-sm">Based on Oracle 19c official documentation. All commands verified against Oracle production environments.</p>
+        </div>
+        <div class="flex flex-wrap gap-4 text-xs text-slate-500">
+          <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sutil/oracle-data-pump-export-utility.html" target="_blank" rel="noopener" class="hover:text-sky-400 transition-colors">expdp Docs</a>
+          <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sutil/datapump-import-utility.html" target="_blank" rel="noopener" class="hover:text-sky-400 transition-colors">impdp Docs</a>
+          <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/arpls/DBMS_DATAPUMP.html" target="_blank" rel="noopener" class="hover:text-sky-400 transition-colors">DBMS_DATAPUMP</a>
+          <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DBA_DATAPUMP_JOBS.html" target="_blank" rel="noopener" class="hover:text-sky-400 transition-colors">DBA_DATAPUMP_JOBS</a>
+          <a href="index.html" class="hover:text-sky-400 transition-colors">&#8592; All Topics</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Back to top -->
+  <button id="btt" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+
+  <script>
+    /* Tabs */
+    function initTabs(containerId) {
+      const container = document.getElementById(containerId + '-tabs');
+      if (!container) return;
+      const parent = container.parentElement;
+      const btns = container.querySelectorAll('.tab-btn');
+      const panes = parent.querySelectorAll('.tab-pane');
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          btns.forEach(b => b.classList.remove('active'));
+          panes.forEach(p => p.classList.remove('active'));
+          btn.classList.add('active');
+          const target = btn.getAttribute('data-tab');
+          const pane = parent.querySelector('[data-pane="' + target + '"]');
+          if (pane) pane.classList.add('active');
+        });
+      });
+    }
+    initTabs('expmodes');
+    initTabs('params');
+
+    /* Accordions */
+    function toggleAcc(btn) {
+      const body = btn.nextElementSibling;
+      const icon = btn.querySelector('.fa-chevron-down');
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      btn.classList.toggle('open', !isOpen);
+      if (icon) icon.style.transform = isOpen ? '' : 'rotate(180deg)';
+    }
+
+    /* Scroll reveal */
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+    }, { threshold: 0.08 });
+    reveals.forEach(r => io.observe(r));
+
+    /* Back to top */
+    const btt = document.getElementById('btt');
+    window.addEventListener('scroll', () => btt.classList.toggle('show', window.scrollY > 400));
+
+    /* Active nav on scroll */
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const scrollSpy = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          navLinks.forEach(l => l.classList.remove('active'));
+          const active = document.querySelector('.nav-link[href="#' + e.target.id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    sections.forEach(s => scrollSpy.observe(s));
+
+    /* Mobile menu */
+    document.getElementById('menu-btn').addEventListener('click', () => {
+      document.getElementById('mobile-menu').classList.toggle('open');
+    });
+
+    /* Close mobile menu on link click */
+    document.querySelectorAll('#mobile-menu .nav-link').forEach(l => {
+      l.addEventListener('click', () => document.getElementById('mobile-menu').classList.remove('open'));
+    });
+  </script>
+</body>
+</html>
