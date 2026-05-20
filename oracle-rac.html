@@ -1,0 +1,2446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Oracle RAC – Real Application Clusters | Oracle DBA Simplified</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--color-primary:#22c55e;--color-secondary:#4ade80;--color-accent:#86efac;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0b1120;color:#e2e8f0;font-family:'DM Sans',sans-serif;line-height:1.7}
+    h1,h2,h3,h4{font-family:'Sora',sans-serif}
+    .glass{background:rgba(255,255,255,.04);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.07);border-radius:16px}
+    .badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.5px}
+    .badge-green{background:rgba(34,197,94,.18);color:#4ade80}
+    .badge-sky{background:rgba(14,165,233,.18);color:#38bdf8}
+    .badge-amber{background:rgba(245,158,11,.18);color:#fbbf24}
+    .badge-red{background:rgba(248,113,113,.18);color:#f87171}
+    .badge-purple{background:rgba(167,139,250,.18);color:#a78bfa}
+    .badge-slate{background:rgba(148,163,184,.12);color:#94a3b8}
+    .badge-yellow{background:rgba(251,191,36,.18);color:#fbbf24}
+    .terminal{background:#0a0f1e;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+    .terminal-bar{background:#1e293b;padding:8px 12px;display:flex;gap:6px;align-items:center}
+    .t-dot{width:10px;height:10px;border-radius:50%}
+    pre{overflow-x:auto}
+    code .kw{color:#7dd3fc}
+    code .fn{color:#4ade80}
+    code .str{color:#86efac}
+    code .cm{color:#475569}
+    code .num{color:#f9a8d4}
+    code .op{color:#fb923c}
+    code .kv{color:#c084fc}
+    code .am{color:#86efac}
+    .tab-btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;color:#64748b;background:transparent;border:none;white-space:nowrap}
+    .tab-btn.active,.tab-btn:hover{background:rgba(34,197,94,.15);color:#4ade80}
+    .tab-pane{display:none}.tab-pane.active{display:block}
+    .acc-btn{width:100%;text-align:left;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s;color:#e2e8f0;font-family:'Sora',sans-serif;font-weight:600;font-size:15px}
+    .acc-btn:hover,.acc-btn.open{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.06)}
+    .acc-btn.open{border-radius:10px 10px 0 0}
+    .acc-body{display:none;padding:20px;border:1px solid rgba(34,197,94,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)}
+    .acc-body.open{display:block}
+    .stat-card{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.22);border-radius:14px;padding:22px 24px}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .55s ease,transform .55s ease}
+    .reveal.visible{opacity:1;transform:none}
+    .section{padding:80px 0}
+    .section-alt{background:rgba(255,255,255,.015)}
+    nav{position:sticky;top:0;z-index:50;background:rgba(11,17,32,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07)}
+    .nav-link{color:#94a3b8;font-size:13px;font-weight:500;padding:6px 10px;border-radius:6px;transition:all .2s;text-decoration:none;white-space:nowrap}
+    .nav-link:hover,.nav-link.active{color:#4ade80;background:rgba(34,197,94,.1)}
+    #btt{position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:#22c55e;color:#000;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:18px;z-index:99;box-shadow:0 4px 20px rgba(34,197,94,.4)}
+    .arch-card{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.18);border-radius:12px;padding:18px}
+    .proc-badge{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Sora',sans-serif;background:rgba(34,197,94,.15);color:#86efac;border:1px solid rgba(34,197,94,.25);margin:2px}
+    table{width:100%;border-collapse:collapse}
+    th{background:rgba(34,197,94,.12);color:#4ade80;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;padding:11px 14px;text-align:left;text-transform:uppercase;letter-spacing:.5px}
+    td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:#cbd5e1;vertical-align:top}
+    tr:last-child td{border-bottom:none}
+    tr:nth-child(even) td{background:rgba(255,255,255,.018)}
+    .yes{color:#34d399}.no{color:#f87171}
+    #mobile-menu{display:none}
+    #mobile-menu.open{display:block}
+    .node-box{border:2px solid;border-radius:12px;padding:14px;text-align:center}
+    .param-card{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:16px 18px}
+    .err-acc{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;transition:border-color .2s}
+    .err-acc:hover{border-color:rgba(34,197,94,.3)}
+    .err-body{border-top:1px solid rgba(34,197,94,.15);background:rgba(0,0,0,.2)}
+    .cf-box{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:14px 16px}
+    .net-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;font-family:'Sora',sans-serif}
+    .qa-item{border-left:3px solid rgba(34,197,94,.5);background:rgba(34,197,94,.04);border-radius:0 10px 10px 0;padding:16px 20px;margin-bottom:12px}
+    .qa-q{color:#4ade80;font-weight:700;font-family:'Sora',sans-serif;margin-bottom:8px}
+    .qa-a{color:#cbd5e1;font-size:14px;line-height:1.7}
+    .cheat-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+    .cheat-cmd{font-family:'JetBrains Mono',monospace;font-size:12px;color:#4ade80;background:rgba(34,197,94,.1);border-radius:6px;padding:4px 8px;white-space:nowrap;flex-shrink:0}
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-14">
+        <a href="index.html" class="flex items-center gap-2 text-white font-bold text-sm" style="font-family:'Sora',sans-serif;text-decoration:none">
+          <i class="fas fa-database" style="color:#4ade80"></i>
+          Oracle DBA Simplified
+        </a>
+        <div class="hidden lg:flex items-center gap-1">
+          <a href="#overview" class="nav-link">What Is RAC</a>
+          <a href="#cache-fusion" class="nav-link">Cache Fusion</a>
+          <a href="#rhel-setup" class="nav-link">RHEL Setup</a>
+          <a href="#aws-rac" class="nav-link">AWS EC2</a>
+          <a href="#commands" class="nav-link">Commands</a>
+          <a href="#monitoring" class="nav-link">GV$ Views</a>
+          <a href="#waits" class="nav-link">Wait Events</a>
+          <a href="#services" class="nav-link">Services/FAN</a>
+          <a href="#errors" class="nav-link">ORA Errors</a>
+          <a href="#reference" class="nav-link">Quick Ref</a>
+        </div>
+        <button id="menu-btn" class="lg:hidden text-slate-400 hover:text-white p-2 bg-transparent border-none cursor-pointer">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      <div id="mobile-menu" class="pb-3 lg:hidden">
+        <div class="flex flex-col gap-1">
+          <a href="#overview" class="nav-link">What Is RAC</a>
+          <a href="#cache-fusion" class="nav-link">Cache Fusion</a>
+          <a href="#rhel-setup" class="nav-link">RHEL Setup</a>
+          <a href="#aws-rac" class="nav-link">AWS EC2</a>
+          <a href="#commands" class="nav-link">Commands</a>
+          <a href="#monitoring" class="nav-link">GV$ Views</a>
+          <a href="#waits" class="nav-link">Wait Events</a>
+          <a href="#services" class="nav-link">Services/FAN</a>
+          <a href="#errors" class="nav-link">ORA Errors</a>
+          <a href="#reference" class="nav-link">Quick Ref</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden" style="background:linear-gradient(135deg,#0b1120 0%,#0a1a10 55%,#0b1120 100%);padding:80px 0 64px">
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 65% 50% at 50% 0%,rgba(34,197,94,.10),transparent)"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 relative">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.28)">
+          <i class="fas fa-server text-sm" style="color:#4ade80"></i>
+          <span class="text-sm font-semibold" style="color:#86efac;font-family:'Sora',sans-serif">Oracle 19c · Real Application Clusters</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-3">Oracle RAC</h1>
+        <p class="text-2xl font-bold mb-4" style="color:#4ade80;font-family:'Sora',sans-serif">Real Application Clusters</p>
+        <p class="text-slate-400 max-w-2xl mx-auto text-base">Multiple instances, one database — Oracle's shared-everything cluster technology delivering simultaneous high availability and horizontal scalability across multiple servers, on RHEL and AWS EC2.</p>
+      </div>
+      <!-- Stat cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div class="stat-card text-center reveal">
+          <div class="text-3xl font-extrabold mb-1" style="color:#4ade80;font-family:'Sora',sans-serif">N:1</div>
+          <div class="text-slate-300 text-sm font-semibold">Instances : Database</div>
+          <div class="text-slate-500 text-xs mt-1">Many instances share one DB</div>
+        </div>
+        <div class="stat-card text-center reveal">
+          <div class="text-3xl font-extrabold mb-1" style="color:#4ade80;font-family:'Sora',sans-serif">3</div>
+          <div class="text-slate-300 text-sm font-semibold">SCAN IPs</div>
+          <div class="text-slate-500 text-xs mt-1">Single Client Access Name</div>
+        </div>
+        <div class="stat-card text-center reveal">
+          <div class="text-3xl font-extrabold mb-1" style="color:#4ade80;font-family:'Sora',sans-serif">30s</div>
+          <div class="text-slate-300 text-sm font-semibold">CSS Misscount</div>
+          <div class="text-slate-500 text-xs mt-1">Default node eviction timeout</div>
+        </div>
+        <div class="stat-card text-center reveal">
+          <div class="text-3xl font-extrabold mb-1" style="color:#4ade80;font-family:'Sora',sans-serif">0</div>
+          <div class="text-slate-300 text-sm font-semibold">Disk I/O for Block Transfer</div>
+          <div class="text-slate-500 text-xs mt-1">Cache Fusion bypasses disk</div>
+        </div>
+      </div>
+      <!-- Terminal -->
+      <div class="terminal max-w-3xl mx-auto reveal">
+        <div class="terminal-bar">
+          <div class="t-dot" style="background:#ff5f57"></div>
+          <div class="t-dot" style="background:#febc2e"></div>
+          <div class="t-dot" style="background:#28c840"></div>
+          <span class="text-slate-500 text-xs ml-2">oracle@racnode1 ~</span>
+        </div>
+        <div class="p-4 text-sm" style="font-family:'JetBrains Mono',monospace;font-size:12px">
+          <div><span style="color:#4ade80">$</span> <span style="color:#e2e8f0">crsctl stat res -t</span></div>
+          <div style="color:#475569;margin:4px 0">--------------------------------------------------------------------------------</div>
+          <div><span style="color:#7dd3fc">Name</span>           <span style="color:#7dd3fc">Target</span>  <span style="color:#7dd3fc">State</span>   <span style="color:#7dd3fc">Server</span>     <span style="color:#7dd3fc">State details</span></div>
+          <div style="color:#475569">--------------------------------------------------------------------------------</div>
+          <div><span style="color:#86efac">ora.racdb.db</span>   <span style="color:#4ade80">ONLINE</span>  <span style="color:#4ade80">ONLINE</span>  <span style="color:#e2e8f0">racnode1</span>   <span style="color:#fbbf24">Open,HOME=/u01/..</span></div>
+          <div><span style="color:#86efac">ora.racdb.db</span>   <span style="color:#4ade80">ONLINE</span>  <span style="color:#4ade80">ONLINE</span>  <span style="color:#e2e8f0">racnode2</span>   <span style="color:#fbbf24">Open,HOME=/u01/..</span></div>
+          <div><span style="color:#86efac">ora.SCAN1.lsnr</span> <span style="color:#4ade80">ONLINE</span>  <span style="color:#4ade80">ONLINE</span>  <span style="color:#e2e8f0">racnode1</span>   <span style="color:#fbbf24">STABLE</span></div>
+          <div><span style="color:#86efac">ora.node1.vip</span>  <span style="color:#4ade80">ONLINE</span>  <span style="color:#4ade80">ONLINE</span>  <span style="color:#e2e8f0">racnode1</span>   <span style="color:#fbbf24">STABLE</span></div>
+          <div><span style="color:#86efac">ora.node2.vip</span>  <span style="color:#4ade80">ONLINE</span>  <span style="color:#4ade80">ONLINE</span>  <span style="color:#e2e8f0">racnode2</span>   <span style="color:#fbbf24">STABLE</span></div>
+          <div style="margin-top:8px"><span style="color:#4ade80">$</span> <span style="color:#e2e8f0">olsnodes -v</span></div>
+          <div><span style="color:#86efac">racnode1</span>   1   <span style="color:#4ade80">Hub</span>   <span style="color:#fbbf24">Active</span></div>
+          <div><span style="color:#86efac">racnode2</span>   2   <span style="color:#4ade80">Hub</span>   <span style="color:#fbbf24">Active</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 1: What Is Oracle RAC -->
+  <section id="overview" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 reveal">
+        <span class="badge badge-green mb-4">Section 01</span>
+        <h2 class="text-3xl font-bold text-white mb-3">What Is Oracle RAC?</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Architecture, components, and the "one database, many instances" mental model — explained simply.</p>
+      </div>
+
+      <!-- Concept cards -->
+      <div class="grid md:grid-cols-3 gap-6 mb-12 reveal">
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(34,197,94,.15)"><i class="fas fa-shield-alt" style="color:#4ade80"></i></div>
+            <h3 class="font-bold text-white" style="font-family:'Sora',sans-serif">High Availability</h3>
+          </div>
+          <p class="text-slate-400 text-sm">If one node fails, other nodes continue serving the database instantly. No single compute point of failure. Node VIPs fail over in seconds so clients get fast "connection refused" instead of TCP timeouts.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(34,197,94,.15)"><i class="fas fa-expand-arrows-alt" style="color:#4ade80"></i></div>
+            <h3 class="font-bold text-white" style="font-family:'Sora',sans-serif">Horizontal Scalability</h3>
+          </div>
+          <p class="text-slate-400 text-sm">Add nodes to increase throughput without replacing hardware. Each new node adds its own SGA and processing power to the cluster. Workloads distribute across all active instances via SCAN load balancing.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(34,197,94,.15)"><i class="fas fa-balance-scale" style="color:#4ade80"></i></div>
+            <h3 class="font-bold text-white" style="font-family:'Sora',sans-serif">Workload Distribution</h3>
+          </div>
+          <p class="text-slate-400 text-sm">Separate OLTP, reporting, and batch workloads onto different instances using services. Each service routes to preferred/available instances, keeping workloads isolated while sharing the same data.</p>
+        </div>
+      </div>
+
+      <!-- The Big Picture: Architecture SVG -->
+      <div class="glass p-6 mb-10 reveal">
+        <h3 class="text-lg font-bold text-white mb-6 text-center" style="font-family:'Sora',sans-serif">Oracle RAC Architecture — The Big Picture</h3>
+        <div class="overflow-x-auto">
+          <svg width="100%" viewBox="0 0 860 420" style="min-width:600px;max-width:860px;display:block;margin:0 auto" font-family="DM Sans, sans-serif">
+            <!-- Background regions -->
+            <rect x="10" y="10" width="260" height="260" rx="14" fill="rgba(34,197,94,.07)" stroke="rgba(34,197,94,.3)" stroke-width="1.5"/>
+            <text x="140" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="#4ade80" font-family="Sora,sans-serif">NODE 1 (racnode1)</text>
+
+            <rect x="290" y="10" width="260" height="260" rx="14" fill="rgba(34,197,94,.07)" stroke="rgba(34,197,94,.3)" stroke-width="1.5"/>
+            <text x="420" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="#4ade80" font-family="Sora,sans-serif">NODE 2 (racnode2)</text>
+
+            <!-- Node 1 internals -->
+            <rect x="26" y="46" width="112" height="60" rx="8" fill="rgba(14,165,233,.12)" stroke="rgba(14,165,233,.3)" stroke-width="1"/>
+            <text x="82" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#38bdf8">Instance 1</text>
+            <text x="82" y="82" text-anchor="middle" font-size="9" fill="#94a3b8">SGA + Processes</text>
+            <text x="82" y="96" text-anchor="middle" font-size="9" fill="#94a3b8">UNDO_TBS1 | Thread 1</text>
+
+            <rect x="152" y="46" width="108" height="60" rx="8" fill="rgba(245,158,11,.10)" stroke="rgba(245,158,11,.25)" stroke-width="1"/>
+            <text x="206" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#fbbf24">Clusterware</text>
+            <text x="206" y="82" text-anchor="middle" font-size="9" fill="#94a3b8">OHASD · CSSD</text>
+            <text x="206" y="96" text-anchor="middle" font-size="9" fill="#94a3b8">CRSD · EVMD</text>
+
+            <rect x="26" y="120" width="230" height="44" rx="8" fill="rgba(34,197,94,.08)" stroke="rgba(34,197,94,.2)" stroke-width="1"/>
+            <text x="141" y="138" text-anchor="middle" font-size="11" font-weight="600" fill="#4ade80">LMS / GCS (Cache Fusion)</text>
+            <text x="141" y="154" text-anchor="middle" font-size="9" fill="#94a3b8">LMD · LMON · LCK0 · ACMS</text>
+
+            <rect x="26" y="178" width="108" height="38" rx="8" fill="rgba(139,92,246,.10)" stroke="rgba(139,92,246,.25)" stroke-width="1"/>
+            <text x="80" y="198" text-anchor="middle" font-size="10" font-weight="600" fill="#a78bfa">Public NIC</text>
+            <text x="80" y="210" text-anchor="middle" font-size="9" fill="#94a3b8">VIP: 192.168.1.111</text>
+
+            <rect x="148" y="178" width="108" height="38" rx="8" fill="rgba(251,113,133,.10)" stroke="rgba(251,113,133,.25)" stroke-width="1"/>
+            <text x="202" y="198" text-anchor="middle" font-size="10" font-weight="600" fill="#fb7185">Private NIC</text>
+            <text x="202" y="210" text-anchor="middle" font-size="9" fill="#94a3b8">Interconnect: 10.0.0.1</text>
+
+            <!-- Node 2 internals -->
+            <rect x="306" y="46" width="112" height="60" rx="8" fill="rgba(14,165,233,.12)" stroke="rgba(14,165,233,.3)" stroke-width="1"/>
+            <text x="362" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#38bdf8">Instance 2</text>
+            <text x="362" y="82" text-anchor="middle" font-size="9" fill="#94a3b8">SGA + Processes</text>
+            <text x="362" y="96" text-anchor="middle" font-size="9" fill="#94a3b8">UNDO_TBS2 | Thread 2</text>
+
+            <rect x="432" y="46" width="108" height="60" rx="8" fill="rgba(245,158,11,.10)" stroke="rgba(245,158,11,.25)" stroke-width="1"/>
+            <text x="486" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#fbbf24">Clusterware</text>
+            <text x="486" y="82" text-anchor="middle" font-size="9" fill="#94a3b8">OHASD · CSSD</text>
+            <text x="486" y="96" text-anchor="middle" font-size="9" fill="#94a3b8">CRSD · EVMD</text>
+
+            <rect x="306" y="120" width="230" height="44" rx="8" fill="rgba(34,197,94,.08)" stroke="rgba(34,197,94,.2)" stroke-width="1"/>
+            <text x="421" y="138" text-anchor="middle" font-size="11" font-weight="600" fill="#4ade80">LMS / GCS (Cache Fusion)</text>
+            <text x="421" y="154" text-anchor="middle" font-size="9" fill="#94a3b8">LMD · LMON · LCK0 · ACMS</text>
+
+            <rect x="306" y="178" width="108" height="38" rx="8" fill="rgba(139,92,246,.10)" stroke="rgba(139,92,246,.25)" stroke-width="1"/>
+            <text x="360" y="198" text-anchor="middle" font-size="10" font-weight="600" fill="#a78bfa">Public NIC</text>
+            <text x="360" y="210" text-anchor="middle" font-size="9" fill="#94a3b8">VIP: 192.168.1.112</text>
+
+            <rect x="428" y="178" width="108" height="38" rx="8" fill="rgba(251,113,133,.10)" stroke="rgba(251,113,133,.25)" stroke-width="1"/>
+            <text x="482" y="198" text-anchor="middle" font-size="10" font-weight="600" fill="#fb7185">Private NIC</text>
+            <text x="482" y="210" text-anchor="middle" font-size="9" fill="#94a3b8">Interconnect: 10.0.0.2</text>
+
+            <!-- Private Interconnect arrow between nodes -->
+            <line x1="256" y1="197" x2="306" y2="197" stroke="#fb7185" stroke-width="2.5" stroke-dasharray="6,3"/>
+            <text x="281" y="192" text-anchor="middle" font-size="9" fill="#fb7185">Cache</text>
+            <text x="281" y="205" text-anchor="middle" font-size="9" fill="#fb7185">Fusion</text>
+
+            <!-- SCAN / Client side -->
+            <rect x="580" y="10" width="270" height="120" rx="14" fill="rgba(56,189,248,.06)" stroke="rgba(56,189,248,.25)" stroke-width="1.5"/>
+            <text x="715" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="#38bdf8" font-family="Sora,sans-serif">CLIENT ACCESS</text>
+            <rect x="596" y="46" width="238" height="36" rx="8" fill="rgba(56,189,248,.12)" stroke="rgba(56,189,248,.25)" stroke-width="1"/>
+            <text x="715" y="64" text-anchor="middle" font-size="11" font-weight="600" fill="#7dd3fc">SCAN Listener (3 IPs)</text>
+            <text x="715" y="76" text-anchor="middle" font-size="9" fill="#94a3b8">racdb-scan.example.com · Port 1521</text>
+            <text x="715" y="100" text-anchor="middle" font-size="9" fill="#94a3b8">Load Balancing Advisory → routes to least-loaded instance</text>
+            <text x="715" y="114" text-anchor="middle" font-size="9" fill="#64748b">VIP listeners on each node for direct connections</text>
+
+            <!-- Client arrow to SCAN -->
+            <rect x="620" y="146" width="190" height="32" rx="8" fill="rgba(56,189,248,.08)" stroke="rgba(56,189,248,.2)" stroke-width="1"/>
+            <text x="715" y="164" text-anchor="middle" font-size="10" font-weight="600" fill="#38bdf8">Application / Client</text>
+            <line x1="715" y1="146" x2="715" y2="130" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#arr)"/>
+            <defs><marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#38bdf8"/></marker><marker id="arr2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4ade80"/></marker></defs>
+
+            <!-- SCAN to VIPs -->
+            <line x1="580" y1="65" x2="270" y2="98" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+            <line x1="580" y1="75" x2="545" y2="98" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+
+            <!-- Shared Storage -->
+            <rect x="120" y="300" width="480" height="110" rx="14" fill="rgba(245,158,11,.07)" stroke="rgba(245,158,11,.3)" stroke-width="1.5"/>
+            <text x="360" y="324" text-anchor="middle" font-size="12" font-weight="700" fill="#fbbf24" font-family="Sora,sans-serif">SHARED STORAGE (Oracle ASM)</text>
+            <rect x="136" y="334" width="90" height="34" rx="6" fill="rgba(245,158,11,.15)" stroke="rgba(245,158,11,.3)" stroke-width="1"/>
+            <text x="181" y="352" text-anchor="middle" font-size="10" font-weight="600" fill="#fbbf24">+DATA</text>
+            <text x="181" y="364" text-anchor="middle" font-size="8" fill="#94a3b8">Datafiles</text>
+            <rect x="240" y="334" width="90" height="34" rx="6" fill="rgba(245,158,11,.15)" stroke="rgba(245,158,11,.3)" stroke-width="1"/>
+            <text x="285" y="352" text-anchor="middle" font-size="10" font-weight="600" fill="#fbbf24">+FRA</text>
+            <text x="285" y="364" text-anchor="middle" font-size="8" fill="#94a3b8">Archive / Backups</text>
+            <rect x="344" y="334" width="90" height="34" rx="6" fill="rgba(34,197,94,.12)" stroke="rgba(34,197,94,.3)" stroke-width="1"/>
+            <text x="389" y="352" text-anchor="middle" font-size="10" font-weight="600" fill="#4ade80">+OCR_VOTE</text>
+            <text x="389" y="364" text-anchor="middle" font-size="8" fill="#94a3b8">OCR · Voting Disks</text>
+            <rect x="448" y="334" width="100" height="34" rx="6" fill="rgba(139,92,246,.12)" stroke="rgba(139,92,246,.3)" stroke-width="1"/>
+            <text x="498" y="352" text-anchor="middle" font-size="10" font-weight="600" fill="#a78bfa">Redo + Undo</text>
+            <text x="498" y="364" text-anchor="middle" font-size="8" fill="#94a3b8">Per-instance threads</text>
+            <text x="360" y="396" text-anchor="middle" font-size="9" fill="#64748b">All nodes read/write same datafiles simultaneously · Control files · SPFILEs · Password files</text>
+
+            <!-- Storage arrows up -->
+            <line x1="140" y1="300" x2="140" y2="232" stroke="rgba(245,158,11,.4)" stroke-width="1.5" marker-end="url(#arr2)"/>
+            <line x1="420" y1="300" x2="420" y2="232" stroke="rgba(245,158,11,.4)" stroke-width="1.5" marker-end="url(#arr2)"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Grid Infrastructure components -->
+      <div class="mb-10 reveal">
+        <h3 class="text-xl font-bold text-white mb-6" style="font-family:'Sora',sans-serif">Oracle Grid Infrastructure Stack</h3>
+        <p class="text-slate-400 text-sm mb-6">Grid Infrastructure = Oracle Clusterware + Oracle ASM. It runs two stacked layers of daemons, each managed by a parent daemon.</p>
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Lower stack -->
+          <div class="glass p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="badge badge-amber">Lower Stack</span>
+              <span class="text-white font-semibold text-sm" style="font-family:'Sora',sans-serif">Managed by OHASD</span>
+            </div>
+            <p class="text-slate-500 text-xs mb-4">OHASD (Oracle High Availability Services Daemon) starts first at OS boot and manages the lower layer.</p>
+            <div class="space-y-3">
+              <div class="param-card">
+                <div class="flex items-start gap-3">
+                  <span class="proc-badge">OHASD</span>
+                  <div><p class="text-white text-sm font-semibold">Oracle HA Services Daemon</p><p class="text-slate-400 text-xs mt-1">Root of the stack. Started by OS init/systemd on every boot. Manages all lower-stack daemons.</p></div>
+                </div>
+              </div>
+              <div class="param-card">
+                <div class="flex items-start gap-3">
+                  <span class="proc-badge">CSSD</span>
+                  <div><p class="text-white text-sm font-semibold">Cluster Synchronization Services</p><p class="text-slate-400 text-xs mt-1">The heartbeat engine. Sends network heartbeats every second; writes disk heartbeats to voting disks. Detects node failures and triggers eviction after <code style="color:#4ade80">misscount</code> seconds (default 30s).</p></div>
+                </div>
+              </div>
+              <div class="param-card">
+                <div class="flex items-start gap-3">
+                  <span class="proc-badge">GPNPD</span>
+                  <div><p class="text-white text-sm font-semibold">Grid Plug &amp; Play Profile Daemon</p><p class="text-slate-400 text-xs mt-1">Provides the GPNP profile (XML): ASM diskstring, private/public network names, voting disk location. Read before ASM starts.</p></div>
+                </div>
+              </div>
+              <div class="param-card">
+                <div class="flex items-start gap-3">
+                  <span class="proc-badge">CTSSD</span>
+                  <div><p class="text-white text-sm font-semibold">Cluster Time Sync Services</p><p class="text-slate-400 text-xs mt-1">OBSERVER mode if NTP is present; ACTIVE mode if NTP is absent. Keeps cluster-wide time in sync.</p></div>
+                </div>
+              </div>
+              <div class="param-card">
+                <div class="flex items-start gap-3">
+                  <span class="proc-badge">GIPCD</span>
+                  <div><p class="text-white text-sm font-semibold">Grid IPC Daemon</p><p class="text-slate-400 text-xs mt-1">Communications infrastructure for all inter-node daemon messaging within the cluster.</p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Upper stack -->
+          <div class="glass p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="badge badge-sky">Upper Stack</span>
+              <span class="text-white font-semibold text-sm" style="font-family:'Sora',sans-serif">Managed by CRSD</span>
+            </div>
+            <p class="text-slate-500 text-xs mb-4">CRSD (Cluster Ready Services Daemon) starts after ASM and manages all Oracle database resources.</p>
+            <div class="space-y-3">
+              <div class="param-card">
+                <div class="flex items-start gap-3">
+                  <span class="proc-badge">CRSD</span>
+                  <div><p class="text-white text-sm font-semibold">Cluster Ready Services Daemon</p><p class="text-slate-400 text-xs mt-1">The resource manager. Starts, stops, monitors, and fails over ALL Oracle resources: DB instances, ASM, listeners, services, VIPs. Reads/writes OCR for resource configuration.</p></div>
+                </div>
+              </div>
+              <div class="param-card">
+                <div class="flex items-start gap-3">
+                  <span class="proc-badge">EVMD</span>
+                  <div><p class="text-white text-sm font-semibold">Event Manager Daemon</p><p class="text-slate-400 text-xs mt-1">Publishes FAN (Fast Application Notification) events to ONS. Applications learn about instance UP/DOWN events in real time.</p></div>
+                </div>
+              </div>
+              <div class="param-card">
+                <div class="flex items-start gap-3">
+                  <span class="proc-badge">MDNSD</span>
+                  <div><p class="text-white text-sm font-semibold">Multicast DNS Daemon</p><p class="text-slate-400 text-xs mt-1">Assists GNS (Grid Naming Service) for dynamic cluster name resolution without external DNS.</p></div>
+                </div>
+              </div>
+              <div class="glass p-4 mt-3" style="border-color:rgba(34,197,94,.2)">
+                <p class="text-xs font-semibold text-slate-300 mb-2">Startup Sequence (simplified)</p>
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                  <span class="proc-badge">OS init</span>
+                  <i class="fas fa-arrow-right text-slate-600 text-xs"></i>
+                  <span class="proc-badge">OHASD</span>
+                  <i class="fas fa-arrow-right text-slate-600 text-xs"></i>
+                  <span class="proc-badge">GPNPD</span>
+                  <i class="fas fa-arrow-right text-slate-600 text-xs"></i>
+                  <span class="proc-badge">CSSD</span>
+                  <i class="fas fa-arrow-right text-slate-600 text-xs"></i>
+                  <span class="proc-badge">ASM</span>
+                  <i class="fas fa-arrow-right text-slate-600 text-xs"></i>
+                  <span class="proc-badge">CRSD</span>
+                  <i class="fas fa-arrow-right text-slate-600 text-xs"></i>
+                  <span class="proc-badge">DB Instances</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OCR + Voting Disk side by side -->
+      <div class="grid md:grid-cols-2 gap-6 mb-10 reveal">
+        <!-- OCR -->
+        <div class="glass p-5">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(34,197,94,.15)"><i class="fas fa-database" style="color:#4ade80"></i></div>
+            <div><h3 class="font-bold text-white" style="font-family:'Sora',sans-serif">OCR — Oracle Cluster Registry</h3><p class="text-slate-500 text-xs">The cluster's configuration database</p></div>
+          </div>
+          <p class="text-slate-400 text-sm mb-4">OCR is the shared configuration store for the entire cluster. Stored inside ASM (recommended) or on a shared raw device.</p>
+          <p class="text-slate-400 text-sm mb-3"><strong class="text-slate-300">What it stores:</strong> node membership, resource configs (DBs, instances, services, VIPs, listeners), ASM disk group info, SCAN VIP details, resource dependencies and start/stop policies.</p>
+          <div class="terminal mb-3">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Check OCR integrity</span>
+<span class="fn">ocrcheck</span>
+<span class="fn">ocrcheck</span> -details
+
+<span class="cm"># Show auto-backup info (every 4 hrs)</span>
+<span class="fn">ocrconfig</span> -showbackup
+
+<span class="cm"># Manual backup</span>
+<span class="fn">ocrconfig</span> -manualbackup
+
+<span class="cm"># Restore from backup</span>
+<span class="fn">ocrconfig</span> -restore /path/to/backup
+
+<span class="cm"># Dump OCR contents to file</span>
+<span class="fn">ocrdump</span> /tmp/ocr_dump.txt</code></pre>
+          </div>
+          <div class="cf-box text-xs text-slate-400">
+            <strong class="text-slate-300">OLR vs OCR:</strong> OLR (Oracle Local Registry) is per-node at <code style="color:#4ade80">$GRID_HOME/cdata/&lt;hostname&gt;.olr</code>. It stores only what OHASD needs to start (before ASM is accessible). OCR is shared and requires ASM/shared disk.
+          </div>
+        </div>
+        <!-- Voting Disk -->
+        <div class="glass p-5">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(245,158,11,.15)"><i class="fas fa-vote-yea" style="color:#fbbf24"></i></div>
+            <div><h3 class="font-bold text-white" style="font-family:'Sora',sans-serif">Voting Disks — The Tie-Breaker</h3><p class="text-slate-500 text-xs">Split-brain prevention via quorum</p></div>
+          </div>
+          <p class="text-slate-400 text-sm mb-4">Each node writes a heartbeat block to voting disks every second. In a split-brain scenario (nodes can't talk to each other), the sub-cluster that can write to the <strong class="text-slate-300">majority of voting disks survives</strong>. The minority self-evicts.</p>
+          <table class="mb-4" style="font-size:12px">
+            <thead><tr><th>Voting Disks</th><th>Failures Tolerated</th><th>Recommendation</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td class="no">0 — no tolerance</td><td class="no">Never use alone</td></tr>
+              <tr><td>3</td><td class="yes">1</td><td class="yes">Minimum for HA</td></tr>
+              <tr><td>5</td><td class="yes">2</td><td class="yes">Preferred</td></tr>
+            </tbody>
+          </table>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Query voting disk locations</span>
+<span class="fn">crsctl</span> query css votedisk
+
+<span class="cm"># CSS timing parameters</span>
+<span class="fn">crsctl</span> <span class="kw">get</span> css misscount    <span class="cm"># default 30s</span>
+<span class="fn">crsctl</span> <span class="kw">get</span> css disktimeout  <span class="cm"># default 200s</span>
+<span class="fn">crsctl</span> <span class="kw">get</span> css reboottime   <span class="cm"># default 3s</span>
+
+<span class="cm"># Warning thresholds in ocssd.log:</span>
+<span class="cm"># 50% misscount (15s) → 1st WARNING</span>
+<span class="cm"># 75% misscount (22s) → 2nd WARNING</span>
+<span class="cm"># 100% misscount (30s) → EVICTION</span></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Network types -->
+      <div class="glass p-6 reveal">
+        <h3 class="text-lg font-bold text-white mb-5" style="font-family:'Sora',sans-serif">Four Network Types in Oracle RAC</h3>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+          <div class="cf-box">
+            <span class="net-badge mb-2" style="background:rgba(139,92,246,.15);color:#a78bfa">Public</span>
+            <p class="text-white text-sm font-semibold mt-2">Client Connections</p>
+            <p class="text-slate-400 text-xs mt-1">Standard LAN. Physical hostname IPs. Not for inter-instance traffic.</p>
+            <p class="text-xs mt-2" style="color:#a78bfa">e.g., 192.168.1.101</p>
+          </div>
+          <div class="cf-box">
+            <span class="net-badge mb-2" style="background:rgba(34,197,94,.15);color:#4ade80">VIP</span>
+            <p class="text-white text-sm font-semibold mt-2">Fast Failover</p>
+            <p class="text-slate-400 text-xs mt-1">One per node. Managed by Clusterware. Fails over instantly on node death — clients get fast "connection refused".</p>
+            <p class="text-xs mt-2" style="color:#4ade80">e.g., 192.168.1.111</p>
+          </div>
+          <div class="cf-box">
+            <span class="net-badge mb-2" style="background:rgba(251,113,133,.15);color:#fb7185">Private</span>
+            <p class="text-white text-sm font-semibold mt-2">Cache Fusion</p>
+            <p class="text-slate-400 text-xs mt-1">Dedicated high-speed NIC for block transfers. Never mix with client traffic. Recommend 10/25GbE, MTU 9000.</p>
+            <p class="text-xs mt-2" style="color:#fb7185">e.g., 10.0.0.1</p>
+          </div>
+          <div class="cf-box">
+            <span class="net-badge mb-2" style="background:rgba(56,189,248,.15);color:#38bdf8">SCAN</span>
+            <p class="text-white text-sm font-semibold mt-2">Single Entry Point</p>
+            <p class="text-slate-400 text-xs mt-1">One DNS name → 3 IPs → 3 listeners. Routes to least-loaded instance. Clients never need to change tnsnames.</p>
+            <p class="text-xs mt-2" style="color:#38bdf8">racdb-scan:1521</p>
+          </div>
+        </div>
+        <div class="cf-box">
+          <p class="text-sm font-semibold text-white mb-2">SCAN Connection Flow (step by step)</p>
+          <div class="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            <span class="proc-badge">1. Client → DNS resolves scan → picks 1 of 3 IPs</span>
+            <i class="fas fa-arrow-right text-slate-600"></i>
+            <span class="proc-badge">2. Connect to SCAN listener :1521</span>
+            <i class="fas fa-arrow-right text-slate-600"></i>
+            <span class="proc-badge">3. LB Advisory → finds least-loaded instance</span>
+            <i class="fas fa-arrow-right text-slate-600"></i>
+            <span class="proc-badge">4. Redirect → "connect to node2-vip:1521 for SALES"</span>
+            <i class="fas fa-arrow-right text-slate-600"></i>
+            <span class="proc-badge">5. Client connects to VIP listener → server process</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: Cache Fusion -->
+  <section id="cache-fusion" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 reveal">
+        <span class="badge badge-green mb-4">Section 02</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Cache Fusion — Deep Dive</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">How Oracle transfers blocks between instances at memory speed — the technology that makes RAC work.</p>
+      </div>
+
+      <!-- What is Cache Fusion -->
+      <div class="glass p-6 mb-8 reveal">
+        <h3 class="text-lg font-bold text-white mb-4" style="font-family:'Sora',sans-serif">The Problem Cache Fusion Solves</h3>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <p class="text-slate-400 text-sm mb-3"><strong class="text-red-400">Before Cache Fusion (pre-Oracle 8i):</strong> If Instance 2 needed a block that Instance 1 had modified, Instance 1 had to flush the block to disk. Instance 2 then read it from disk. This "ping" was painfully slow — it happened at disk I/O speed (~10ms per ping).</p>
+            <p class="text-slate-400 text-sm"><strong class="text-green-400">With Cache Fusion (Oracle 8i+):</strong> Blocks are shipped directly between buffer caches over the private interconnect. No disk I/O. Block transfers happen at network speed (~0.2ms). The combined buffer cache of all instances acts as a virtual "global buffer cache."</p>
+          </div>
+          <div class="cf-box">
+            <p class="text-sm font-semibold text-white mb-3">Key Cache Fusion Processes</p>
+            <div class="space-y-2 text-xs">
+              <div class="flex items-start gap-2"><span class="proc-badge">LMS (0-9)</span><span class="text-slate-400">Lock Manager Server — ships blocks between buffer caches; manages PCM locks; the primary Cache Fusion workhorse. Up to 10 LMS processes.</span></div>
+              <div class="flex items-start gap-2"><span class="proc-badge">LMON</span><span class="text-slate-400">Global Enqueue Monitor — manages GES; detects node failures; orchestrates GRD reconfigurations and dynamic remastering.</span></div>
+              <div class="flex items-start gap-2"><span class="proc-badge">LMD</span><span class="text-slate-400">Global Enqueue Daemon — services remote lock requests; handles distributed deadlock detection.</span></div>
+              <div class="flex items-start gap-2"><span class="proc-badge">ACMS</span><span class="text-slate-400">Atomic Controlfile Memory Service — ensures distributed SGA memory updates either commit cluster-wide or fully roll back.</span></div>
+              <div class="flex items-start gap-2"><span class="proc-badge">LMHB</span><span class="text-slate-400">GC/GE Heartbeat Monitor — monitors LMS, LMD, and LMON for health; triggers alerts if they hang.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GCS vs GES -->
+      <div class="grid md:grid-cols-2 gap-6 mb-8 reveal">
+        <div class="glass p-5">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="badge badge-green">GCS</span>
+            <h3 class="font-bold text-white" style="font-family:'Sora',sans-serif">Global Cache Service</h3>
+          </div>
+          <p class="text-slate-400 text-sm mb-3">Manages <strong class="text-slate-300">data block</strong> coherency across all instances. Tracks which instance holds each block and in what mode. Coordinates all block transfers via LMS processes.</p>
+          <ul class="text-slate-400 text-sm space-y-2">
+            <li><i class="fas fa-check text-xs text-green-400 mr-2"></i>Maintains the GRD (Global Resource Directory)</li>
+            <li><i class="fas fa-check text-xs text-green-400 mr-2"></i>Manages PCM lock modes: Null → Shared → Exclusive</li>
+            <li><i class="fas fa-check text-xs text-green-400 mr-2"></i>Handles CR (Consistent Read) and Current block transfers</li>
+            <li><i class="fas fa-check text-xs text-green-400 mr-2"></i>Coordinates Dynamic Resource Mastering (DRM)</li>
+          </ul>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="badge badge-sky">GES</span>
+            <h3 class="font-bold text-white" style="font-family:'Sora',sans-serif">Global Enqueue Service</h3>
+          </div>
+          <p class="text-slate-400 text-sm mb-3">Manages all <strong class="text-slate-300">non-block</strong> resources cluster-wide. Ensures consistent locking semantics for transactions, DDL, dictionary entries, and library cache objects.</p>
+          <ul class="text-slate-400 text-sm space-y-2">
+            <li><i class="fas fa-check text-xs text-sky-400 mr-2"></i>Transaction locks (TX), DML locks (TM)</li>
+            <li><i class="fas fa-check text-xs text-sky-400 mr-2"></i>Dictionary cache locks and row cache locks</li>
+            <li><i class="fas fa-check text-xs text-sky-400 mr-2"></i>Library cache locks and pins (shared SQL)</li>
+            <li><i class="fas fa-check text-xs text-sky-400 mr-2"></i>Sequence number coordination across instances</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Block Transfer types with tabs -->
+      <div class="glass p-6 mb-8 reveal" id="cf-tabs-wrap">
+        <h3 class="text-lg font-bold text-white mb-2" style="font-family:'Sora',sans-serif">Block Transfer Types</h3>
+        <p class="text-slate-400 text-sm mb-5">Cache Fusion block transfers are classified by how many nodes are involved. 2-way is optimal; 3-way indicates the master and holder are different nodes.</p>
+        <div class="flex flex-wrap gap-2 mb-6" id="cf-tabs">
+          <button class="tab-btn active" data-tab="2way">2-Way Transfer</button>
+          <button class="tab-btn" data-tab="3way">3-Way Transfer</button>
+          <button class="tab-btn" data-tab="current">Current Block DML</button>
+          <button class="tab-btn" data-tab="grd">GRD &amp; DRM</button>
+        </div>
+        <div id="cf-tab-2way" class="tab-pane active">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div>
+              <p class="text-slate-300 text-sm font-semibold mb-2">Scenario: Instance 2 needs block X. Instance 1 is <em>both</em> master and holder.</p>
+              <p class="text-slate-400 text-sm mb-4">This is the <strong class="text-green-400">optimal</strong> case — only 1 message + 1 block transfer. Wait event: <code style="color:#4ade80">gc cr block 2-way</code> or <code style="color:#4ade80">gc current block 2-way</code>.</p>
+              <p class="text-slate-400 text-sm">Normal and expected. High rates simply mean lots of read traffic across nodes — consider application-level instance affinity if you want to reduce them.</p>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">2-way block transfer</span></div>
+              <pre class="p-4 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">Instance 2                    Instance 1
+(requester)                (master + holder)</span>
+     |                            |
+     |-- <span class="kw">REQUEST</span> block X ------&gt;|
+     |                            |
+     |&lt;-- <span class="fn">SHIP block X</span> ----------|
+     |   (1 msg + 1 transfer)     |
+     |                            |
+ <span class="str">Wait: gc cr block 2-way</span></code></pre>
+            </div>
+          </div>
+        </div>
+        <div id="cf-tab-3way" class="tab-pane">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div>
+              <p class="text-slate-300 text-sm font-semibold mb-2">Scenario: Instance 2 needs block X. Instance 3 is the master. Instance 1 is the holder.</p>
+              <p class="text-slate-400 text-sm mb-4">Requires 2 messages + 1 block transfer — slightly slower. Wait event: <code style="color:#4ade80">gc cr block 3-way</code>. Normal but less optimal.</p>
+              <p class="text-slate-400 text-sm">Consistently high 3-way rates suggest mastering is not aligned with usage. Dynamic Remastering (DRM) should self-correct over time by moving the master to the most frequent user.</p>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">3-way block transfer</span></div>
+              <pre class="p-4 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">Inst 2        Inst 3 (master)  Inst 1 (holder)</span>
+  |                |                |
+  |-- <span class="kw">REQUEST</span> --&gt;|                |
+  |               |-- <span class="kw">FWD req</span> --&gt;|
+  |               |                |
+  |&lt;------------- <span class="fn">SHIP block X</span> ---|
+  |  (2 msgs + 1 transfer)
+<span class="str">Wait: gc cr block 3-way</span></code></pre>
+            </div>
+          </div>
+        </div>
+        <div id="cf-tab-current" class="tab-pane">
+          <p class="text-slate-300 text-sm font-semibold mb-3">DML Scenario: Node 2 wants to UPDATE a row in block B that Node 1 currently holds dirty (XCUR).</p>
+          <div class="terminal mb-4">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">current block transfer (DML)</span></div>
+            <pre class="p-4 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="kw">1.</span> Node 2 session: <span class="fn">UPDATE</span> table <span class="kw">SET</span> ... <span class="kw">WHERE</span> pk=100
+<span class="kw">2.</span> LMD on Node 2 sends <span class="str">BL (Buffer Lock) request</span> to GRD master for block B
+<span class="kw">3.</span> GRD master (Node 1) sees it holds block B in <span class="am">XCUR</span> (dirty)
+<span class="kw">4.</span> Master sends <span class="kw">"downgrade and ship"</span> to Node 1's LMS
+<span class="kw">5.</span> Node 1 LMS: downgrades lock → <span class="am">PI</span> (Past Image), ships block to Node 2
+<span class="kw">6.</span> Node 2 receives block in <span class="am">XCUR</span> mode → makes modification
+<span class="kw">7.</span> Node 1 retains <span class="am">PI</span> until checkpoint → then PI is discarded</code></pre>
+          </div>
+          <div class="cf-box text-sm text-slate-400"><strong class="text-slate-300">What is a PI (Past Image)?</strong> When a node transfers its current dirty block to another node, it keeps a copy of the pre-transfer state. This is the Past Image. It enables faster instance recovery — the recovering instance can find the pre-crash image in the former holder's buffer cache rather than reading from disk.</div>
+        </div>
+        <div id="cf-tab-grd" class="tab-pane">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div>
+              <p class="text-slate-300 text-sm font-semibold mb-2">Global Resource Directory (GRD)</p>
+              <p class="text-slate-400 text-sm mb-3">A distributed in-memory directory split across all instances' SGAs. Tracks every block held in any instance's buffer cache: which instance holds it, in what lock mode, and its SCN.</p>
+              <p class="text-slate-300 text-sm font-semibold mb-2">Dynamic Resource Mastering (DRM)</p>
+              <p class="text-slate-400 text-sm mb-3">When one instance issues 50+ more BL requests than others for an object, GRD ownership for that object "remasters" to that instance. This converts 3-way transfers to 2-way. Managed by LMON + LMS0.</p>
+              <div class="cf-box text-xs text-slate-400">
+                <strong class="text-slate-300">PCM Lock Modes:</strong>
+                <span class="proc-badge">N — Null</span>
+                <span class="proc-badge">S — Shared (read)</span>
+                <span class="proc-badge">X — Exclusive (write)</span>
+                <span class="proc-badge">PI — Past Image</span>
+                <span class="proc-badge">CR — Consistent Read</span>
+              </div>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">SQL*Plus (sysdba)</span></div>
+              <pre class="p-4 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">-- Buffer cache state across instances</span>
+<span class="kw">SELECT</span> inst_id, status, dirty, forced_reads,
+       forced_writes
+<span class="kw">FROM</span> gv$<span class="fn">bh</span>
+<span class="kw">WHERE</span> file# = <span class="num">5</span> <span class="kw">AND</span> dbablk = <span class="num">1234</span>
+<span class="kw">ORDER BY</span> inst_id;
+
+<span class="cm">-- Disable DRM (if causing freeze issues)</span>
+<span class="kw">ALTER SYSTEM SET</span>
+  <span class="str">"_lm_dynamic_remastering"</span>=<span class="kw">FALSE</span>
+<span class="kw">SCOPE</span>=SPFILE;
+
+<span class="cm">-- Increase LMS processes</span>
+<span class="kw">ALTER SYSTEM SET</span>
+  gcs_server_processes = <span class="num">4</span>
+<span class="kw">SCOPE</span>=SPFILE;</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: RAC on RHEL Setup -->
+  <section id="rhel-setup" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 reveal">
+        <span class="badge badge-green mb-4">Section 03</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Oracle RAC on RHEL — Setup Guide</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Pre-installation OS hardening, kernel parameters, ASM disk setup, Grid Infrastructure install, and DBCA — step by step.</p>
+      </div>
+
+      <!-- Steps accordion -->
+      <div class="space-y-4 mb-10 reveal">
+
+        <!-- Step 1 -->
+        <div class="acc-btn open" onclick="toggleAcc(this)">
+          <span><span class="proc-badge mr-3">Step 1</span>OS Prerequisites — RPMs, Users &amp; Groups</span>
+          <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+        </div>
+        <div class="acc-body open">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">root@racnode1</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Easiest: Oracle preinstall RPM (RHEL/OL)</span>
+<span class="fn">yum</span> install oracle-database-preinstall-19c
+
+<span class="cm"># Creates oracle user, sets sysctl, limits.conf</span>
+<span class="cm"># For manual install — key RPMs:</span>
+<span class="fn">yum</span> install -y binutils gcc gcc-c++ glibc glibc-devel \
+  ksh libaio libaio-devel libgcc libstdc++ \
+  libstdc++-devel sysstat elfutils-libelf-devel \
+  smartmontools net-tools compat-libcap1
+
+<span class="cm"># OS groups</span>
+<span class="fn">groupadd</span> -g 54321 oinstall
+<span class="fn">groupadd</span> -g 54322 dba
+<span class="fn">groupadd</span> -g 54327 asmdba
+<span class="fn">groupadd</span> -g 54328 asmoper
+<span class="fn">groupadd</span> -g 54329 asmadmin
+
+<span class="cm"># grid user (owns Grid Infrastructure)</span>
+<span class="fn">useradd</span> -u 54321 -g oinstall \
+  -G dba,asmdba,asmoper,asmadmin grid
+
+<span class="cm"># oracle user (owns DB software)</span>
+<span class="fn">useradd</span> -u 54322 -g oinstall \
+  -G dba,oper,backupdba,asmdba oracle</code></pre>
+            </div>
+            <div class="space-y-3 text-sm text-slate-400">
+              <div class="param-card"><strong class="text-slate-300">grid user:</strong> Owns $GRID_HOME. Installs Oracle Grid Infrastructure (Clusterware + ASM). Must be separate from oracle user in 11g+.</div>
+              <div class="param-card"><strong class="text-slate-300">oracle user:</strong> Owns $ORACLE_HOME. Installs and runs Oracle Database software.</div>
+              <div class="param-card"><strong class="text-slate-300">oinstall group:</strong> Primary group for both users. Required for the oraInventory directory.</div>
+              <div class="param-card"><strong class="text-slate-300">asmadmin group:</strong> OSASM group — grants SYSASM privilege to the grid user for ASM operations.</div>
+              <div class="param-card"><strong class="text-slate-300">SSH equivalence:</strong> Set up passwordless SSH between all nodes for both grid and oracle users. Test with <code style="color:#4ade80">ssh node2 date</code> — must not prompt for password.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="acc-btn" onclick="toggleAcc(this)">
+          <span><span class="proc-badge mr-3">Step 2</span>Kernel Parameters — /etc/sysctl.conf</span>
+          <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+        </div>
+        <div class="acc-body">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">/etc/sysctl.d/97-oracle.conf</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code>fs.aio-max-nr = <span class="num">1048576</span>
+fs.file-max = <span class="num">6815744</span>
+kernel.shmall = <span class="num">2097152</span>
+kernel.shmmax = <span class="num">4294967295</span>
+kernel.shmmni = <span class="num">4096</span>
+kernel.sem = <span class="num">250 32000 100 128</span>
+net.ipv4.ip_local_port_range = <span class="num">9000 65500</span>
+net.core.rmem_default = <span class="num">262144</span>
+net.core.rmem_max = <span class="num">4194304</span>
+net.core.wmem_default = <span class="num">262144</span>
+net.core.wmem_max = <span class="num">1048576</span>
+net.ipv4.conf.all.rp_filter = <span class="num">2</span>
+net.ipv4.conf.default.rp_filter = <span class="num">2</span>
+
+<span class="cm"># Apply immediately</span>
+<span class="fn">sysctl</span> --system</code></pre>
+            </div>
+            <div class="space-y-2">
+              <div class="param-card text-xs text-slate-400"><strong class="text-slate-300">kernel.shmmax</strong> — Max shared memory segment size. Set to ~50% of RAM (in bytes). For 64GB RAM: 34359738368.</div>
+              <div class="param-card text-xs text-slate-400"><strong class="text-slate-300">kernel.shmall</strong> — Total shared memory pages. Formula: shmmax ÷ page_size (4096). For 34GB shmmax: ≈8388608.</div>
+              <div class="param-card text-xs text-slate-400"><strong class="text-slate-300">kernel.sem</strong> — SEMMSL SEMMNS SEMOPM SEMMNI. Oracle requires 250 32000 100 128.</div>
+              <div class="param-card text-xs text-slate-400"><strong class="text-slate-300">net.ipv4.ip_local_port_range</strong> — Start at 9000 to avoid conflicts with Oracle/cluster ports (below 9000).</div>
+              <div class="param-card text-xs text-slate-400"><strong class="text-slate-300">rp_filter = 2</strong> — "Loose" reverse path filtering. Required for multi-homed RAC servers where interconnect traffic uses a different routing path than client traffic.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="acc-btn" onclick="toggleAcc(this)">
+          <span><span class="proc-badge mr-3">Step 3</span>Resource Limits — /etc/security/limits.conf</span>
+          <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+        </div>
+        <div class="acc-body">
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">/etc/security/limits.conf</span></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code>oracle   soft   nofile    <span class="num">1024</span>
+oracle   hard   nofile    <span class="num">65536</span>
+oracle   soft   nproc     <span class="num">16384</span>
+oracle   hard   nproc     <span class="num">16384</span>
+oracle   soft   stack     <span class="num">10240</span>
+oracle   hard   stack     <span class="num">32768</span>
+oracle   soft   memlock   <span class="num">134217728</span>   <span class="cm"># ~90% RAM in KB for HugePages</span>
+oracle   hard   memlock   <span class="num">134217728</span>
+
+grid     soft   nofile    <span class="num">1024</span>
+grid     hard   nofile    <span class="num">65536</span>
+grid     soft   nproc     <span class="num">16384</span>
+grid     hard   nproc     <span class="num">16384</span>
+grid     soft   memlock   <span class="num">134217728</span>
+grid     hard   memlock   <span class="num">134217728</span>
+
+<span class="cm"># HugePages — disable transparent hugepages (add to /etc/rc.local)</span>
+echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled
+echo never &gt; /sys/kernel/mm/transparent_hugepage/defrag
+
+<span class="cm"># Enable HugePages in sysctl.conf</span>
+<span class="cm"># vm.nr_hugepages = CEIL(total_SGA_bytes / 2MB) + 10% buffer</span>
+<span class="cm"># Example: SGA=20GB → 20480/2 = 10240 + buffer = 11264</span>
+vm.nr_hugepages = <span class="num">11264</span>
+vm.hugetlb_shm_group = <span class="num">54321</span>  <span class="cm"># GID of oinstall</span></code></pre>
+          </div>
+          <div class="cf-box mt-3 text-sm text-slate-400"><strong class="text-slate-300">HugePages Note:</strong> HugePages (2MB pages) prevent the SGA from being paged out and reduce TLB misses. They are <strong class="text-red-400">incompatible with AMM</strong> (MEMORY_TARGET parameter). When using HugePages, you must use ASMM: set <code style="color:#4ade80">SGA_TARGET</code> and <code style="color:#4ade80">PGA_AGGREGATE_TARGET</code> instead of MEMORY_TARGET.</div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="acc-btn" onclick="toggleAcc(this)">
+          <span><span class="proc-badge mr-3">Step 4</span>/etc/hosts and Network Setup</span>
+          <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+        </div>
+        <div class="acc-body">
+          <div class="terminal mb-3">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">/etc/hosts (on ALL nodes)</span></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Public IPs (physical hostnames)</span>
+<span class="num">192.168.1.101</span>  node1.example.com  node1
+<span class="num">192.168.1.102</span>  node2.example.com  node2
+
+<span class="cm"># VIPs (one per node — managed by Clusterware)</span>
+<span class="num">192.168.1.111</span>  node1-vip.example.com  node1-vip
+<span class="num">192.168.1.112</span>  node2-vip.example.com  node2-vip
+
+<span class="cm"># Private interconnect</span>
+<span class="num">10.0.0.1</span>  node1-priv.example.com  node1-priv
+<span class="num">10.0.0.2</span>  node2-priv.example.com  node2-priv
+
+<span class="cm"># SCAN (3 IPs — DNS recommended; /etc/hosts for lab only)</span>
+<span class="num">192.168.1.120</span>  racdb-scan.example.com  racdb-scan
+<span class="num">192.168.1.121</span>  racdb-scan.example.com  racdb-scan
+<span class="num">192.168.1.122</span>  racdb-scan.example.com  racdb-scan</code></pre>
+          </div>
+          <div class="cf-box text-sm text-slate-400"><strong class="text-slate-300">MTU 9000 for interconnect:</strong> Set jumbo frames on the private NIC to reduce block fragmentation. An 8KB Oracle block = 5-6 packets at MTU 1500, but only 1 packet at MTU 9000. Set on all nodes AND the switch: <code style="color:#4ade80">ip link set eth1 mtu 9000</code> — persist in NIC config file. Verify: <code style="color:#4ade80">ping -s 8192 -M do node2-priv</code> (must succeed without fragmentation).</div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="acc-btn" onclick="toggleAcc(this)">
+          <span><span class="proc-badge mr-3">Step 5</span>ASM Disk Setup with udev Rules</span>
+          <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+        </div>
+        <div class="acc-body">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div>
+              <p class="text-slate-400 text-sm mb-3">udev rules ensure shared disks have consistent names, ownership (grid:asmadmin), and permissions (0660) across all nodes and reboots.</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">root — udev setup</span></div>
+                <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># 1. Get SCSI ID of each disk</span>
+<span class="fn">/usr/lib/udev/scsi_id</span> -g -u -d /dev/sdb
+
+<span class="cm"># 2. Create udev rules file</span>
+<span class="cm"># /etc/udev/rules.d/99-oracle-asmdevices.rules</span>
+KERNEL==<span class="str">"sd?1"</span>, SUBSYSTEM==<span class="str">"block"</span>, \
+  PROGRAM==<span class="str">"/usr/lib/udev/scsi_id -g -u -d /dev/$parent"</span>, \
+  RESULT==<span class="str">"&lt;SCSI_ID_for_sdb&gt;"</span>, \
+  SYMLINK+=<span class="str">"oracleasm/disks/DISK1"</span>, \
+  OWNER=<span class="str">"grid"</span>, GROUP=<span class="str">"asmadmin"</span>, \
+  MODE=<span class="str">"0660"</span>
+
+<span class="cm"># 3. Reload udev rules</span>
+<span class="fn">/sbin/udevadm</span> control --reload-rules
+<span class="fn">/sbin/udevadm</span> trigger
+
+<span class="cm"># 4. Verify</span>
+<span class="fn">ls</span> -la /dev/oracleasm/disks/</code></pre>
+              </div>
+            </div>
+            <div>
+              <p class="text-slate-400 text-sm mb-3">Alternative: ASMLib (simpler on Oracle Linux; not available on RHEL without OL kernel modules).</p>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">root — ASMLib</span></div>
+                <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Install (Oracle Linux only)</span>
+<span class="fn">yum</span> install oracleasm-support kmod-oracleasm
+
+<span class="cm"># Configure (enter: grid / asmadmin / y / y)</span>
+<span class="fn">/usr/sbin/oracleasm</span> configure -i
+
+<span class="fn">/usr/sbin/oracleasm</span> init
+
+<span class="cm"># Mark disks (on first node)</span>
+<span class="fn">/usr/sbin/oracleasm</span> createdisk DISK1 /dev/sdb1
+<span class="fn">/usr/sbin/oracleasm</span> createdisk DISK2 /dev/sdc1
+<span class="fn">/usr/sbin/oracleasm</span> createdisk DISK3 /dev/sdd1
+
+<span class="cm"># Discover on other nodes</span>
+<span class="fn">/usr/sbin/oracleasm</span> scandisks
+<span class="fn">/usr/sbin/oracleasm</span> listdisks</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="acc-btn" onclick="toggleAcc(this)">
+          <span><span class="proc-badge mr-3">Step 6</span>Grid Infrastructure Installation (19c)</span>
+          <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+        </div>
+        <div class="acc-body">
+          <div class="terminal mb-4">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">grid@racnode1 — silent GI install</span></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Extract GI software</span>
+<span class="fn">unzip</span> LINUX.X64_193000_grid_home.zip -d /u01/app/19.0.0/grid
+
+<span class="cm"># Run OUI (interactive or silent)</span>
+/u01/app/19.0.0/grid/<span class="fn">gridSetup.sh</span> -silent \
+  -responseFile /tmp/grid_install.rsp
+
+<span class="cm"># Key response file parameters:</span>
+oracle.install.option=<span class="str">CRS_CONFIG</span>
+oracle.install.grid.CLUSTER_NAME=<span class="str">racdb-cluster</span>
+oracle.install.grid.SCAN_NAME=<span class="str">racdb-scan</span>
+oracle.install.grid.SCAN_PORT=<span class="num">1521</span>
+oracle.install.grid.clusterNodes=<span class="str">node1:node1-vip,node2:node2-vip</span>
+<span class="cm"># Type: 1=public, 5=ASM+private, 3=do-not-use</span>
+oracle.install.grid.networkInterfaceList=<span class="str">eth0:192.168.1.0:1,eth1:10.0.0.0:5</span>
+oracle.install.grid.storageOption=<span class="str">ASM</span>
+oracle.install.grid.diskDiscoveryString=<span class="str">/dev/oracleasm/disks/*</span>
+OSDBA_GROUP=<span class="str">dba</span>
+OSASM_GROUP=<span class="str">asmadmin</span>
+
+<span class="cm"># Run root scripts when prompted (as root, on all nodes):</span>
+/u01/app/oraInventory/<span class="fn">orainstRoot.sh</span>   <span class="cm"># on all nodes</span>
+/u01/app/19.0.0/grid/<span class="fn">root.sh</span>           <span class="cm"># on all nodes sequentially</span></code></pre>
+          </div>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="cf-box text-xs text-slate-400">
+              <strong class="text-slate-300">Key GI directories (12c+ ADR):</strong><br/>
+              <code style="color:#4ade80">$ORACLE_BASE/diag/crs/&lt;host&gt;/crs/trace/alert.log</code> — main CRS alert log<br/>
+              <code style="color:#4ade80">$GRID_HOME/gpnp/&lt;host&gt;/profiles/peer/profile.xml</code> — GPNP profile<br/>
+              <code style="color:#4ade80">$GRID_HOME/cdata/&lt;clustername&gt;/</code> — OCR auto-backups<br/>
+              <code style="color:#4ade80">$GRID_HOME/cdata/&lt;hostname&gt;.olr</code> — OLR (local registry)
+            </div>
+            <div class="cf-box text-xs text-slate-400">
+              <strong class="text-slate-300">Post-GI verification:</strong><br/>
+              <code style="color:#4ade80">crsctl check crs</code> — check all daemons<br/>
+              <code style="color:#4ade80">crsctl stat res -t</code> — all resources status<br/>
+              <code style="color:#4ade80">olsnodes -v</code> — all nodes in cluster<br/>
+              <code style="color:#4ade80">srvctl status scan</code> — SCAN listeners up<br/>
+              <code style="color:#4ade80">asmcmd lsdg</code> — ASM disk groups mounted
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 7 -->
+        <div class="acc-btn" onclick="toggleAcc(this)">
+          <span><span class="proc-badge mr-3">Step 7</span>Create RAC Database (DBCA) + Key init.ora Parameters</span>
+          <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+        </div>
+        <div class="acc-body">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">oracle@racnode1 — DBCA silent</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="fn">dbca</span> -silent -createDatabase \
+  -templateName General_Purpose.dbc \
+  -gdbName racdb \
+  -sid racdb \
+  -sysPassword <span class="str">Oracle_123</span> \
+  -systemPassword <span class="str">Oracle_123</span> \
+  -createAsContainerDatabase <span class="kw">false</span> \
+  -emConfiguration <span class="kw">NONE</span> \
+  -datafileDestination <span class="str">+DATA</span> \
+  -recoveryAreaDestination <span class="str">+FRA</span> \
+  -storageType <span class="str">ASM</span> \
+  -diskGroupName <span class="str">DATA</span> \
+  -recoveryGroupName <span class="str">FRA</span> \
+  -characterSet <span class="str">AL32UTF8</span> \
+  -totalMemory <span class="num">4096</span> \
+  -nodelist <span class="str">node1,node2</span> \
+  -databaseType <span class="str">MULTIPURPOSE</span></code></pre>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">Key RAC init.ora parameters</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">-- Shared across all instances (in spfile)</span>
+cluster_database = <span class="kw">TRUE</span>
+cluster_database_instances = <span class="num">2</span>
+
+<span class="cm">-- Per-instance (racdb1 / racdb2)</span>
+<span class="cm">-- racdb1.instance_number=1</span>
+instance_number = <span class="num">1</span>   <span class="cm">-- or 2 on node2</span>
+thread = <span class="num">1</span>             <span class="cm">-- or 2 on node2</span>
+undo_tablespace = <span class="str">UNDOTBS1</span>  <span class="cm">-- UNDOTBS2 on node2</span>
+
+<span class="cm">-- Listeners (shared + per-instance)</span>
+remote_listener = <span class="str">'racdb-scan:1521'</span>
+local_listener = <span class="str">'(DESCRIPTION=(ADDRESS_LIST=</span>
+<span class="str">  (ADDRESS=(PROTOCOL=TCP)(HOST=node1-vip)(PORT=1521))))'</span>
+
+<span class="cm">-- Interconnect override (usually auto-detected)</span>
+<span class="cm">-- cluster_interconnects=10.0.0.1  </span></code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: Oracle RAC on AWS EC2 -->
+  <section id="aws-rac" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 reveal">
+        <span class="badge badge-sky mb-4">Section 04</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Oracle RAC on AWS EC2</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Running Oracle RAC in the cloud — architecture differences, networking solutions, shared storage options, and real-world limitations.</p>
+      </div>
+
+      <!-- Key challenge -->
+      <div class="glass p-5 mb-8 reveal" style="border-color:rgba(251,191,36,.25)">
+        <div class="flex items-start gap-4">
+          <i class="fas fa-exclamation-triangle text-xl mt-1" style="color:#fbbf24"></i>
+          <div>
+            <h3 class="font-bold text-white mb-2" style="font-family:'Sora',sans-serif">The Core AWS Challenge: No Multicast</h3>
+            <p class="text-slate-400 text-sm">Standard AWS VPC networking is Layer 3 only — it does <strong class="text-red-400">not support multicast</strong>. Oracle Clusterware interconnect traditionally needs multicast for cluster membership messaging. The solution used by most production RAC-on-AWS deployments is <strong class="text-yellow-300">FlashGrid CLAN</strong> (Cloud Area Network), which emulates a virtual Layer 2 network on top of EC2 networking, enabling multicast and cluster-aware interconnect.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- AWS vs On-prem comparison -->
+      <div class="glass p-6 mb-8 reveal">
+        <h3 class="text-lg font-bold text-white mb-5" style="font-family:'Sora',sans-serif">On-Premises vs AWS EC2 — Key Differences</h3>
+        <table>
+          <thead><tr><th>Feature</th><th>On-Premises (RHEL)</th><th>AWS EC2</th></tr></thead>
+          <tbody>
+            <tr><td class="text-slate-300">Interconnect</td><td class="yes">InfiniBand / 25-100GbE, sub-100μs</td><td class="text-amber-400">10GbE via SR-IOV, 200-500μs typical</td></tr>
+            <tr><td class="text-slate-300">Multicast</td><td class="yes">Native (physical switch)</td><td class="no">Not supported — needs FlashGrid CLAN</td></tr>
+            <tr><td class="text-slate-300">Shared Storage</td><td class="yes">SAN (FC/iSCSI), local NVMe</td><td class="text-amber-400">EBS io2 Multi-Attach or NFS (FSx)</td></tr>
+            <tr><td class="text-slate-300">Cross-AZ HA</td><td class="yes">Extended RAC across sites</td><td class="text-amber-400">Complex; single AZ preferred</td></tr>
+            <tr><td class="text-slate-300">Oracle Support</td><td class="yes">Full Oracle Support</td><td class="text-amber-400">Best-effort / customer-managed</td></tr>
+            <tr><td class="text-slate-300">Licensing</td><td>Standard BYOL</td><td class="text-amber-400">BYOL; must license all vCPUs; no License Mobility</td></tr>
+            <tr><td class="text-slate-300">Deployment Speed</td><td class="no">Days/weeks</td><td class="yes">Hours (CloudFormation + FlashGrid)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- AWS Components -->
+      <div class="grid md:grid-cols-2 gap-6 mb-8 reveal">
+        <!-- Networking -->
+        <div class="glass p-5">
+          <h3 class="text-base font-bold text-white mb-4" style="font-family:'Sora',sans-serif"><i class="fab fa-aws mr-2" style="color:#ff9900"></i>AWS Networking Setup</h3>
+          <div class="space-y-3 text-sm">
+            <div class="param-card">
+              <strong class="text-slate-300">Cluster Placement Group</strong>
+              <p class="text-slate-400 text-xs mt-1">All RAC nodes must be in a <strong>cluster placement group</strong> (same AZ). Provides up to 10Gbps between instances, lowest available latency. Required for Cache Fusion performance.</p>
+            </div>
+            <div class="param-card">
+              <strong class="text-slate-300">Enhanced Networking (SR-IOV)</strong>
+              <p class="text-slate-400 text-xs mt-1">Enable on all instances. Reduces network latency and CPU overhead. Use ENA (Elastic Network Adapter) on R5/C5/M5 instances.</p>
+            </div>
+            <div class="param-card">
+              <strong class="text-slate-300">ENI Layout per Node</strong>
+              <p class="text-slate-400 text-xs mt-1"><code style="color:#4ade80">eth0</code> — Public subnet (VIPs, SCAN, client access)<br/><code style="color:#4ade80">eth1</code> — Private subnet (Cache Fusion interconnect)<br/><code style="color:#4ade80">eth2</code> — (optional) second private NIC for HAIP</p>
+            </div>
+            <div class="param-card">
+              <strong class="text-slate-300">Security Group Ports</strong>
+              <div class="terminal mt-2">
+                <pre class="p-2 text-xs" style="font-family:'JetBrains Mono',monospace"><code>TCP  <span class="num">1521</span>  — SQL*Net (client)
+TCP  <span class="num">42424</span> — CSS (cluster heartbeat)
+UDP  <span class="num">42424</span> — CSS
+TCP  <span class="num">49895</span> — ONS / FAN events
+<span class="cm">All TCP/UDP from private subnet (interconnect)</span></code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Shared Storage -->
+        <div class="glass p-5">
+          <h3 class="text-base font-bold text-white mb-4" style="font-family:'Sora',sans-serif"><i class="fas fa-hdd mr-2" style="color:#4ade80"></i>Shared Storage Options</h3>
+          <div class="space-y-3">
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-1"><span class="badge badge-green">Option 1</span><strong class="text-slate-300 text-sm">EBS io2 Multi-Attach</strong></div>
+              <p class="text-slate-400 text-xs">A single io2 EBS volume attached to up to 16 EC2 instances simultaneously. Used as ASM raw disks. Requires cluster-aware I/O (ASM handles this). Single AZ only.</p>
+              <div class="terminal mt-2">
+                <pre class="p-2 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="fn">aws</span> ec2 create-volume \
+  --availability-zone us-east-1a \
+  --size <span class="num">500</span> --volume-type io2 \
+  --iops <span class="num">16000</span> \
+  --multi-attach-enabled
+
+<span class="fn">aws</span> ec2 attach-volume \
+  --volume-id vol-xxxx \
+  --instance-id i-node1 --device /dev/sdb
+<span class="fn">aws</span> ec2 attach-volume \
+  --volume-id vol-xxxx \
+  --instance-id i-node2 --device /dev/sdb</code></pre>
+              </div>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-1"><span class="badge badge-sky">Option 2</span><strong class="text-slate-300 text-sm">FSx for NetApp ONTAP (NFS)</strong></div>
+              <p class="text-slate-400 text-xs">Fully managed NFS with cross-AZ replication. Used with Oracle Direct NFS (dNFS). Best for simpler HA or cross-AZ setups. Not traditional ASM-based RAC.</p>
+            </div>
+            <div class="param-card">
+              <div class="flex items-center gap-2 mb-1"><span class="badge badge-amber">Option 3</span><strong class="text-slate-300 text-sm">FlashGrid Storage Fabric</strong></div>
+              <p class="text-slate-400 text-xs">Software that aggregates per-node EBS volumes into shared storage. Works alongside FlashGrid CLAN for networking. Most complete AWS RAC solution — available via AWS Marketplace.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FlashGrid + DNS for SCAN -->
+      <div class="grid md:grid-cols-2 gap-6 mb-8 reveal">
+        <div class="glass p-5">
+          <h3 class="text-base font-bold text-white mb-3" style="font-family:'Sora',sans-serif">FlashGrid CLAN Architecture</h3>
+          <p class="text-slate-400 text-sm mb-3">FlashGrid CLAN runs as a software layer on each RAC node. It creates a virtual private network between nodes with multicast emulation — making AWS EC2 behave like an on-premises environment for Oracle Clusterware.</p>
+          <div class="space-y-2 text-xs text-slate-400">
+            <div class="cf-box"><strong class="text-slate-300">CloudFormation Deployment:</strong> Subscribe to FlashGrid on AWS Marketplace → upload Oracle ZIPs to S3 → configure template (node count, instance types, storage) → FlashGrid Launcher generates CloudFormation stack → deploy → Clusterware + DB installed automatically.</div>
+            <div class="cf-box mt-2"><strong class="text-slate-300">Recommended Instance Types:</strong> R5.4xlarge or larger for DB nodes (memory-optimized). C5n for network-heavy workloads. Always in same cluster placement group.</div>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <h3 class="text-base font-bold text-white mb-3" style="font-family:'Sora',sans-serif">Route 53 SCAN DNS Setup</h3>
+          <p class="text-slate-400 text-sm mb-3">AWS Route 53 supports multiple A records for a single name (round-robin) — perfect for SCAN's 3 IPs.</p>
+          <div class="terminal mb-3">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Route 53 record set for SCAN</span>
+racdb-scan.example.com.  <span class="num">300</span>  IN  A  <span class="num">10.0.1.20</span>
+racdb-scan.example.com.  <span class="num">300</span>  IN  A  <span class="num">10.0.1.21</span>
+racdb-scan.example.com.  <span class="num">300</span>  IN  A  <span class="num">10.0.1.22</span>
+
+<span class="cm"># Verify from EC2 instance:</span>
+<span class="fn">nslookup</span> racdb-scan.example.com
+<span class="cm"># Should return all 3 IPs</span></code></pre>
+          </div>
+          <div class="cf-box text-xs text-slate-400">
+            <strong class="text-slate-300">Oracle Licensing on AWS:</strong> AWS is NOT in Oracle's Authorized Cloud Environments for License Mobility. RAC Option requires separate license. Must license all vCPUs on the instance (1 processor license per 2 vCPUs). Oracle provides best-effort support for RAC on EC2.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: srvctl / crsctl Commands -->
+  <section id="commands" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 reveal">
+        <span class="badge badge-green mb-4">Section 05</span>
+        <h2 class="text-3xl font-bold text-white mb-3">srvctl &amp; crsctl — Complete Command Reference</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Every command you need to manage Oracle RAC cluster resources from the command line.</p>
+      </div>
+
+      <div class="cf-box mb-6 reveal text-sm text-slate-400">
+        <strong class="text-slate-300">srvctl vs crsctl — Rule of Thumb:</strong> Use <code style="color:#4ade80">srvctl</code> for Oracle application resources (databases, instances, services, listeners, VIPs, ASM). Use <code style="color:#4ade80">crsctl</code> for Clusterware infrastructure (daemons, voting disks, OCR, CSS parameters). Most srvctl commands run as oracle/grid; most crsctl destructive ops need root.
+      </div>
+
+      <!-- Command tabs -->
+      <div class="glass p-6 mb-8 reveal" id="cmd-tabs-wrap">
+        <div class="flex flex-wrap gap-2 mb-5" id="cmd-tabs">
+          <button class="tab-btn active" data-tab="db">Database / Instance</button>
+          <button class="tab-btn" data-tab="svc">Services</button>
+          <button class="tab-btn" data-tab="scan">SCAN &amp; VIP</button>
+          <button class="tab-btn" data-tab="asm">ASM</button>
+          <button class="tab-btn" data-tab="crs">crsctl</button>
+          <button class="tab-btn" data-tab="misc">ocrcheck / olsnodes</button>
+        </div>
+
+        <div id="cmd-tab-db" class="tab-pane active">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">srvctl — database</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Start / Stop database (all instances)</span>
+<span class="fn">srvctl</span> start database -d racdb
+<span class="fn">srvctl</span> start database -d racdb -o mount
+<span class="fn">srvctl</span> stop database -d racdb
+<span class="fn">srvctl</span> stop database -d racdb -o immediate
+<span class="fn">srvctl</span> stop database -d racdb -o abort
+
+<span class="cm"># Status and config</span>
+<span class="fn">srvctl</span> status database -d racdb
+<span class="fn">srvctl</span> status database -d racdb -v   <span class="cm"># verbose</span>
+<span class="fn">srvctl</span> config database -d racdb      <span class="cm"># full config</span>
+<span class="fn">srvctl</span> config database               <span class="cm"># list all DBs</span>
+
+<span class="cm"># Enable / Disable auto-start</span>
+<span class="fn">srvctl</span> enable database -d racdb
+<span class="fn">srvctl</span> disable database -d racdb</code></pre>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">srvctl — instance</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Start / Stop specific instance</span>
+<span class="fn">srvctl</span> start instance -d racdb -i racdb1
+<span class="fn">srvctl</span> stop instance -d racdb -i racdb1
+<span class="fn">srvctl</span> stop instance -d racdb \
+  -i racdb1 -o abort
+
+<span class="cm"># Status per instance</span>
+<span class="fn">srvctl</span> status instance -d racdb -i racdb1
+
+<span class="cm"># Add / Remove instance</span>
+<span class="fn">srvctl</span> add instance -d racdb \
+  -i racdb1 -n node1
+<span class="fn">srvctl</span> add instance -d racdb \
+  -i racdb2 -n node2
+<span class="fn">srvctl</span> remove instance -d racdb -i racdb1
+
+<span class="cm"># Enable / Disable</span>
+<span class="fn">srvctl</span> enable instance -d racdb -i racdb1
+<span class="fn">srvctl</span> disable instance -d racdb -i racdb1</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div id="cmd-tab-svc" class="tab-pane">
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">srvctl — services</span></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Add service with preferred/available instances</span>
+<span class="fn">srvctl</span> add service -d racdb -s oltp_svc \
+  -r racdb1,racdb2 \
+  -clbgoal SHORT -rlbgoal SERVICE_TIME \
+  -failovertype SELECT -failovermethod BASIC \
+  -failoverretry 30 -failoverdelay 10 \
+  -notification TRUE
+
+<span class="cm"># Add service with Application Continuity</span>
+<span class="fn">srvctl</span> add service -d racdb -s ac_svc \
+  -r racdb1,racdb2 \
+  -failovertype TRANSACTION \
+  -commit_outcome TRUE -notification TRUE \
+  -replay_init_time 1800 -retention 86400 \
+  -clbgoal SHORT -rlbgoal SERVICE_TIME
+
+<span class="cm"># Start / Stop service</span>
+<span class="fn">srvctl</span> start service -d racdb -s oltp_svc
+<span class="fn">srvctl</span> stop service -d racdb -s oltp_svc
+
+<span class="cm"># Relocate service (planned maintenance)</span>
+<span class="fn">srvctl</span> relocate service -d racdb \
+  -s oltp_svc -i racdb1 -t racdb2
+
+<span class="cm"># Status / Config</span>
+<span class="fn">srvctl</span> status service -d racdb
+<span class="fn">srvctl</span> status service -d racdb -s oltp_svc
+<span class="fn">srvctl</span> config service -d racdb -s oltp_svc
+
+<span class="cm"># Modify service goal</span>
+<span class="fn">srvctl</span> modify service -d racdb -s oltp_svc \
+  -rlbgoal THROUGHPUT
+
+<span class="cm"># Remove service</span>
+<span class="fn">srvctl</span> remove service -d racdb -s oltp_svc -f</code></pre>
+          </div>
+        </div>
+
+        <div id="cmd-tab-scan" class="tab-pane">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">srvctl — SCAN</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="fn">srvctl</span> status scan
+<span class="fn">srvctl</span> status scan_listener
+<span class="fn">srvctl</span> start scan
+<span class="fn">srvctl</span> stop scan
+<span class="fn">srvctl</span> start scan_listener
+<span class="fn">srvctl</span> stop scan_listener
+<span class="fn">srvctl</span> config scan
+<span class="fn">srvctl</span> config scan_listener
+<span class="fn">srvctl</span> modify scan \
+  -scanname racdb-scan.example.com
+<span class="fn">srvctl</span> modify scan_listener -p 1522</code></pre>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">srvctl — VIP &amp; nodeapps</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="fn">srvctl</span> status vip -n node1
+<span class="fn">srvctl</span> start vip -n node1
+<span class="fn">srvctl</span> stop vip -n node1 -f
+<span class="fn">srvctl</span> config vip -n node1
+<span class="fn">srvctl</span> relocate vip -n node1 -d node2
+
+<span class="cm"># nodeapps = VIP + Listeners + ONS + eONS</span>
+<span class="fn">srvctl</span> status nodeapps
+<span class="fn">srvctl</span> status nodeapps -n node1
+<span class="fn">srvctl</span> start nodeapps -n node1
+<span class="fn">srvctl</span> config nodeapps -n node1</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div id="cmd-tab-asm" class="tab-pane">
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">srvctl — ASM &amp; Diskgroups</span></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># ASM instance management</span>
+<span class="fn">srvctl</span> status asm
+<span class="fn">srvctl</span> status asm -n node1
+<span class="fn">srvctl</span> start asm
+<span class="fn">srvctl</span> start asm -n node1
+<span class="fn">srvctl</span> stop asm -n node1 -f
+<span class="fn">srvctl</span> config asm
+<span class="fn">srvctl</span> config asm -detail
+
+<span class="cm"># Diskgroup management</span>
+<span class="fn">srvctl</span> status diskgroup -g DATA
+<span class="fn">srvctl</span> start diskgroup -g DATA
+<span class="fn">srvctl</span> stop diskgroup -g DATA -n node1
+<span class="fn">srvctl</span> config diskgroup -g DATA
+<span class="fn">srvctl</span> add diskgroup -g DATA -n node1,node2</code></pre>
+          </div>
+        </div>
+
+        <div id="cmd-tab-crs" class="tab-pane">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">crsctl — cluster &amp; resources</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Cluster health check</span>
+<span class="fn">crsctl</span> check crs
+<span class="fn">crsctl</span> check cluster -all
+<span class="fn">crsctl</span> check cssd
+<span class="fn">crsctl</span> check crsd
+
+<span class="cm"># Resource status (best daily command)</span>
+<span class="fn">crsctl</span> stat res -t             <span class="cm"># tabular all</span>
+<span class="fn">crsctl</span> stat res -t -init       <span class="cm"># daemon resources</span>
+<span class="fn">crsctl</span> stat res ora.racdb.db -v
+
+<span class="cm"># Start / Stop CRS (as root)</span>
+<span class="fn">crsctl</span> start crs
+<span class="fn">crsctl</span> stop crs
+<span class="fn">crsctl</span> stop crs -f
+
+<span class="cm"># Enable / Disable auto-start</span>
+<span class="fn">crsctl</span> enable crs
+<span class="fn">crsctl</span> disable crs
+
+<span class="cm"># Version info</span>
+<span class="fn">crsctl</span> query crs softwareversion
+<span class="fn">crsctl</span> query crs activeversion</code></pre>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">crsctl — voting / CSS params</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Voting disk operations</span>
+<span class="fn">crsctl</span> query css votedisk
+<span class="fn">crsctl</span> add css votedisk /dev/sdd
+<span class="fn">crsctl</span> delete css votedisk /dev/sdd
+
+<span class="cm"># CSS timing parameters</span>
+<span class="fn">crsctl</span> <span class="kw">get</span> css misscount
+<span class="fn">crsctl</span> <span class="kw">set</span> css misscount 60   <span class="cm"># increase for slow storage</span>
+<span class="fn">crsctl</span> <span class="kw">get</span> css disktimeout
+<span class="fn">crsctl</span> <span class="kw">set</span> css disktimeout 200
+<span class="fn">crsctl</span> <span class="kw">get</span> css reboottime
+
+<span class="cm"># What-if impact analysis (12c+)</span>
+<span class="fn">crsctl</span> eval stop server node1 -explain
+<span class="fn">crsctl</span> eval stop resource \
+  ora.racdb.db -explain
+
+<span class="cm"># Cluster verify utility</span>
+<span class="fn">cluvfy</span> stage -pre crsinst \
+  -n node1,node2 -verbose
+<span class="fn">cluvfy</span> comp nodereach -n node1,node2</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div id="cmd-tab-misc" class="tab-pane">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">olsnodes</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="fn">olsnodes</span>            <span class="cm"># list all node names</span>
+<span class="fn">olsnodes</span> -v         <span class="cm"># names + numbers + roles</span>
+<span class="fn">olsnodes</span> -n         <span class="cm"># names + node numbers</span>
+<span class="fn">olsnodes</span> -i         <span class="cm"># names + VIP addresses</span>
+<span class="fn">olsnodes</span> -p         <span class="cm"># names + private IPs</span>
+<span class="fn">olsnodes</span> -s         <span class="cm"># names + active/inactive</span>
+<span class="fn">olsnodes</span> -c         <span class="cm"># cluster name</span>
+<span class="fn">olsnodes</span> -l         <span class="cm"># local node info</span>
+
+<span class="cm"># Network interface config</span>
+<span class="fn">oifcfg</span> getif
+<span class="fn">oifcfg</span> iflist -p -n
+<span class="fn">oifcfg</span> setif -global \
+  eth0/192.168.1.0:public
+<span class="fn">oifcfg</span> setif -global \
+  eth1/10.0.0.0:cluster_interconnect</code></pre>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">ocrcheck / ocrconfig</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># OCR integrity check</span>
+<span class="fn">ocrcheck</span>
+<span class="fn">ocrcheck</span> -details
+
+<span class="cm"># Backup operations</span>
+<span class="fn">ocrconfig</span> -showbackup      <span class="cm"># view auto-backups</span>
+<span class="fn">ocrconfig</span> -manualbackup    <span class="cm"># trigger now</span>
+<span class="fn">ocrconfig</span> -restore /path/  <span class="cm"># restore OCR</span>
+
+<span class="cm"># Add second OCR location</span>
+<span class="fn">ocrconfig</span> -add +OCR_DG2
+
+<span class="cm"># Dump OCR contents</span>
+<span class="fn">ocrdump</span> /tmp/ocr_dump.txt
+
+<span class="cm"># OLR local backup</span>
+<span class="fn">ocrconfig</span> -local -showbackup
+<span class="fn">ocrconfig</span> -local -restore /path/</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: GV$ Views & Monitoring -->
+  <section id="monitoring" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 reveal">
+        <span class="badge badge-green mb-4">Section 06</span>
+        <h2 class="text-3xl font-bold text-white mb-3">GV$ Views &amp; Monitoring Queries</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">The extra G in GV$ stands for Global — these views aggregate data from ALL instances in the cluster via the INST_ID column.</p>
+      </div>
+
+      <!-- GV$ views reference table -->
+      <div class="glass p-6 mb-8 reveal">
+        <h3 class="text-base font-bold text-white mb-4" style="font-family:'Sora',sans-serif">Key GV$ Views Reference</h3>
+        <table>
+          <thead><tr><th>View</th><th>Purpose</th><th>Key Columns</th></tr></thead>
+          <tbody>
+            <tr><td><code style="color:#4ade80">GV$INSTANCE</code></td><td>Instance state, host, version, startup time per node</td><td>INST_ID, STATUS, HOST_NAME, DATABASE_STATUS</td></tr>
+            <tr><td><code style="color:#4ade80">GV$SESSION</code></td><td>All sessions across all nodes</td><td>INST_ID, SID, SERIAL#, USERNAME, EVENT</td></tr>
+            <tr><td><code style="color:#4ade80">GV$LOCK</code></td><td>All locks across all nodes</td><td>INST_ID, TYPE, ID1, ID2, BLOCK, LMODE</td></tr>
+            <tr><td><code style="color:#4ade80">GV$SQL</code></td><td>SQL stats with cluster wait time</td><td>CLUSTER_WAIT_TIME, EXECUTIONS</td></tr>
+            <tr><td><code style="color:#4ade80">GV$BH</code></td><td>Buffer cache — lock modes, PI/CR/XCUR status</td><td>STATUS, DIRTY, FORCED_READS, FORCED_WRITES</td></tr>
+            <tr><td><code style="color:#4ade80">GV$CACHE_TRANSFER</code></td><td>Block transfer counts per object/instance</td><td>FILE#, BLOCK#, BLOCK_TRANSFERS</td></tr>
+            <tr><td><code style="color:#4ade80">GV$GC_ELEMENT</code></td><td>GCS resource details</td><td>MASTER_NODE, POLICY</td></tr>
+            <tr><td><code style="color:#4ade80">GV$CLUSTER_INTERCONNECTS</code></td><td>Active interconnect details per node</td><td>NAME, IP_ADDRESS, IS_PUBLIC, SOURCE</td></tr>
+            <tr><td><code style="color:#4ade80">GV$INTERCONNECT_PERF</code></td><td>Interconnect throughput stats</td><td>NAME, IP_ADDRESS</td></tr>
+            <tr><td><code style="color:#4ade80">GV$SYSTEM_EVENT</code></td><td>Wait event totals per instance</td><td>INST_ID, EVENT, TOTAL_WAITS, TIME_WAITED</td></tr>
+            <tr><td><code style="color:#4ade80">GV$ACTIVE_SESSION_HISTORY</code></td><td>In-memory ASH data per instance</td><td>INST_ID, EVENT, SQL_ID, CURRENT_OBJ#</td></tr>
+            <tr><td><code style="color:#4ade80">GV$GES_BLOCKING_ENQUEUE</code></td><td>Blocking GES enqueues (library cache locks across nodes)</td><td>INST_ID, RESOURCE_NAME1, BLOCKER</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Query tabs -->
+      <div class="glass p-6 mb-8 reveal" id="mon-tabs-wrap">
+        <h3 class="text-base font-bold text-white mb-4" style="font-family:'Sora',sans-serif">Ready-to-Use Monitoring Queries</h3>
+        <div class="flex flex-wrap gap-2 mb-5" id="mon-tabs">
+          <button class="tab-btn active" data-tab="health">Node Health</button>
+          <button class="tab-btn" data-tab="intercon">Interconnect</button>
+          <button class="tab-btn" data-tab="cf">Cache Fusion</button>
+          <button class="tab-btn" data-tab="locks">Cross-Node Locks</button>
+          <button class="tab-btn" data-tab="ash">AWR / ASH</button>
+        </div>
+
+        <div id="mon-tab-health" class="tab-pane active">
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">Node health queries</span></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">-- All instances status</span>
+<span class="kw">SELECT</span> inst_id, instance_name, host_name,
+       status, database_status, active_state,
+       archiver, thread#,
+       to_char(startup_time,<span class="str">'DD-MON-YY HH24:MI:SS'</span>) startup
+<span class="kw">FROM</span>   gv$<span class="fn">instance</span>
+<span class="kw">ORDER BY</span> inst_id;
+
+<span class="cm">-- Session count per instance</span>
+<span class="kw">SELECT</span> inst_id,
+       count(*) total_sessions,
+       sum(<span class="kw">CASE WHEN</span> status=<span class="str">'ACTIVE'</span> <span class="kw">THEN</span> <span class="num">1</span> <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) active,
+       sum(<span class="kw">CASE WHEN</span> status=<span class="str">'INACTIVE'</span> <span class="kw">THEN</span> <span class="num">1</span> <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) inactive
+<span class="kw">FROM</span>   gv$<span class="fn">session</span>
+<span class="kw">WHERE</span>  type = <span class="str">'USER'</span>
+<span class="kw">GROUP BY</span> inst_id
+<span class="kw">ORDER BY</span> inst_id;
+
+<span class="cm">-- Top waiting sessions across all nodes</span>
+<span class="kw">SELECT</span> inst_id, sid, serial#, username,
+       program, machine, status,
+       wait_class, event, seconds_in_wait
+<span class="kw">FROM</span>   gv$<span class="fn">session</span>
+<span class="kw">WHERE</span>  username <span class="kw">IS NOT NULL</span>
+  <span class="kw">AND</span>  type = <span class="str">'USER'</span>
+<span class="kw">ORDER BY</span> seconds_in_wait <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">20</span> <span class="kw">ROWS ONLY</span>;</code></pre>
+          </div>
+        </div>
+
+        <div id="mon-tab-intercon" class="tab-pane">
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">Interconnect queries</span></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">-- Active interconnect per node</span>
+<span class="kw">SELECT</span> inst_id, name, ip_address,
+       is_public, source
+<span class="kw">FROM</span>   gv$<span class="fn">cluster_interconnects</span>
+<span class="kw">ORDER BY</span> inst_id;
+
+<span class="cm">-- All configured interfaces</span>
+<span class="kw">SELECT</span> name, ip_address, is_public, source
+<span class="kw">FROM</span>   v$<span class="fn">configured_interconnects</span>;
+
+<span class="cm">-- Verify interconnect via oradebug (as SYS)</span>
+<span class="fn">ORADEBUG</span> SETMYPID;
+<span class="fn">ORADEBUG</span> IPC;
+
+<span class="cm">-- OS-level interconnect test (run as root)</span>
+<span class="cm">-- ping -s 8192 -M do node2-priv  (test jumbo frames)</span>
+<span class="cm">-- If fails: MTU mismatch or switch config issue</span>
+
+<span class="cm">-- gc block lost — critical interconnect health metric</span>
+<span class="kw">SELECT</span> inst_id, event,
+       total_waits, time_waited,
+       average_wait
+<span class="kw">FROM</span>   gv$<span class="fn">system_event</span>
+<span class="kw">WHERE</span>  event = <span class="str">'gc block lost'</span>
+<span class="kw">ORDER BY</span> inst_id;
+<span class="cm">-- Even a few occurrences = investigate interconnect NOW</span></code></pre>
+          </div>
+        </div>
+
+        <div id="mon-tab-cf" class="tab-pane">
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">Cache Fusion stats queries</span></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">-- GC wait events summary per instance</span>
+<span class="kw">SELECT</span> inst_id, event,
+       total_waits, time_waited,
+       average_wait, max_wait
+<span class="kw">FROM</span>   gv$<span class="fn">system_event</span>
+<span class="kw">WHERE</span>  event <span class="kw">LIKE</span> <span class="str">'gc%'</span>
+<span class="kw">ORDER BY</span> inst_id, time_waited <span class="kw">DESC</span>;
+
+<span class="cm">-- Top GC waits happening right now</span>
+<span class="kw">SELECT</span> inst_id, event, state,
+       wait_time_micro, p1, p2, p3
+<span class="kw">FROM</span>   gv$<span class="fn">session_wait</span>
+<span class="kw">WHERE</span>  event <span class="kw">LIKE</span> <span class="str">'gc%'</span>
+<span class="kw">ORDER BY</span> wait_time_micro <span class="kw">DESC</span>;
+
+<span class="cm">-- SQL with high cluster wait time</span>
+<span class="kw">SELECT</span> inst_id, sql_id,
+       cluster_wait_time,
+       executions,
+       <span class="fn">ROUND</span>(cluster_wait_time/<span class="fn">DECODE</span>(executions,<span class="num">0</span>,<span class="num">1</span>,
+         executions),<span class="num">2</span>) cwt_per_exec,
+       <span class="fn">SUBSTR</span>(sql_text,<span class="num">1</span>,<span class="num">60</span>) sql_snippet
+<span class="kw">FROM</span>   gv$<span class="fn">sqlarea</span>
+<span class="kw">WHERE</span>  cluster_wait_time &gt; <span class="num">0</span>
+<span class="kw">ORDER BY</span> cluster_wait_time <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">20</span> <span class="kw">ROWS ONLY</span>;</code></pre>
+          </div>
+        </div>
+
+        <div id="mon-tab-locks" class="tab-pane">
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">Cross-node lock queries</span></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">-- Blocking sessions across all RAC nodes</span>
+<span class="kw">SELECT</span> s.inst_id blocker_inst,
+       s.sid blocker_sid,
+       s.username blocker_user,
+       s.event blocker_event,
+       w.inst_id waiter_inst,
+       w.sid waiter_sid,
+       w.username waiter_user,
+       w.event waiter_event,
+       w.seconds_in_wait
+<span class="kw">FROM</span>   gv$<span class="fn">session</span> s
+<span class="kw">JOIN</span>   gv$<span class="fn">session</span> w
+  <span class="kw">ON</span>  (w.blocking_instance = s.inst_id
+  <span class="kw">AND</span>  w.blocking_session  = s.sid)
+<span class="kw">ORDER BY</span> w.seconds_in_wait <span class="kw">DESC</span>;
+
+<span class="cm">-- Full lock detail with object name</span>
+<span class="kw">SELECT</span> l.inst_id, s.username,
+       s.sid, s.serial#,
+       <span class="fn">DECODE</span>(l.block,<span class="num">0</span>,<span class="str">'WAITING'</span>,<span class="str">'BLOCKING'</span>) status,
+       <span class="fn">DECODE</span>(l.type,<span class="str">'TX'</span>,<span class="str">'TRANSACTION'</span>,
+             <span class="str">'TM'</span>,<span class="str">'DML'</span>, l.type) lock_type,
+       <span class="fn">DECODE</span>(l.lmode,<span class="num">0</span>,<span class="str">'NONE'</span>,<span class="num">2</span>,<span class="str">'ROW SHARE'</span>,
+             <span class="num">3</span>,<span class="str">'ROW EXCL'</span>,<span class="num">4</span>,<span class="str">'SHARE'</span>,
+             <span class="num">6</span>,<span class="str">'EXCLUSIVE'</span>,<span class="kw">TO_CHAR</span>(l.lmode)) lock_mode,
+       d.object_name, l.ctime
+<span class="kw">FROM</span>   gv$<span class="fn">lock</span> l
+<span class="kw">JOIN</span>   gv$<span class="fn">session</span> s
+  <span class="kw">ON</span>  (l.inst_id=s.inst_id <span class="kw">AND</span> l.sid=s.sid)
+<span class="kw">JOIN</span>   gv$<span class="fn">locked_object</span> o
+  <span class="kw">ON</span>  (o.inst_id=s.inst_id <span class="kw">AND</span> s.sid=o.session_id)
+<span class="kw">JOIN</span>   dba_objects d <span class="kw">ON</span> d.object_id=o.object_id
+<span class="kw">WHERE</span>  (l.id1,l.id2,l.type) <span class="kw">IN</span>
+  (<span class="kw">SELECT</span> id1,id2,type <span class="kw">FROM</span> gv$<span class="fn">lock</span> <span class="kw">WHERE</span> request&gt;<span class="num">0</span>)
+<span class="kw">ORDER BY</span> l.ctime <span class="kw">DESC</span>;</code></pre>
+          </div>
+        </div>
+
+        <div id="mon-tab-ash" class="tab-pane">
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">AWR / ASH for RAC</span></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">-- RAC AWR report (all instances, l_inst_num=0)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">TABLE</span>(
+  DBMS_WORKLOAD_REPOSITORY.<span class="fn">AWR_REPORT_TEXT</span>(
+    l_dbid     =&gt; (<span class="kw">SELECT</span> dbid <span class="kw">FROM</span> v$<span class="fn">database</span>),
+    l_inst_num =&gt; <span class="num">0</span>,    <span class="cm">-- 0 = all instances</span>
+    l_bid      =&gt; &amp;begin_snap,
+    l_eid      =&gt; &amp;end_snap
+));
+
+<span class="cm">-- GC wait events from AWR history (last 7 days)</span>
+<span class="kw">SELECT</span> event_name, wait_class,
+       <span class="fn">ROUND</span>(time_waited_micro/<span class="num">1e6</span>,<span class="num">2</span>) total_secs,
+       total_waits,
+       <span class="fn">ROUND</span>(time_waited_micro/
+         <span class="fn">DECODE</span>(total_waits,<span class="num">0</span>,<span class="num">1</span>,total_waits)/<span class="num">1000</span>,<span class="num">2</span>) avg_ms
+<span class="kw">FROM</span>   dba_hist_system_event
+<span class="kw">WHERE</span>  event_name <span class="kw">LIKE</span> <span class="str">'gc%'</span>
+  <span class="kw">AND</span>  snap_id &gt; (<span class="kw">SELECT</span> max(snap_id)-<span class="num">168</span>
+                  <span class="kw">FROM</span> dba_hist_snapshot)
+<span class="kw">ORDER BY</span> time_waited_micro <span class="kw">DESC</span>;
+
+<span class="cm">-- ASH drill: hot blocks with gc waits (last 30 min)</span>
+<span class="kw">SELECT</span> ash.inst_id, ash.event,
+       ash.current_file#, ash.current_block#,
+       o.object_name, o.object_type,
+       count(*) samples
+<span class="kw">FROM</span>   gv$<span class="fn">active_session_history</span> ash
+<span class="kw">LEFT JOIN</span> dba_extents e
+  <span class="kw">ON</span>  (ash.current_file# = e.file_id
+  <span class="kw">AND</span>  ash.current_block# <span class="kw">BETWEEN</span>
+       e.block_id <span class="kw">AND</span> e.block_id+e.blocks-<span class="num">1</span>)
+<span class="kw">LEFT JOIN</span> dba_objects o <span class="kw">ON</span> e.segment_name=o.object_name
+<span class="kw">WHERE</span>  ash.event <span class="kw">LIKE</span> <span class="str">'gc buffer busy%'</span>
+  <span class="kw">AND</span>  ash.sample_time &gt; sysdate-<span class="num">30</span>/<span class="num">1440</span>
+<span class="kw">GROUP BY</span> ash.inst_id, ash.event,
+         ash.current_file#, ash.current_block#,
+         o.object_name, o.object_type
+<span class="kw">ORDER BY</span> samples <span class="kw">DESC</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7: Wait Events & Tuning -->
+  <section id="waits" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 reveal">
+        <span class="badge badge-green mb-4">Section 07</span>
+        <h2 class="text-3xl font-bold text-white mb-3">RAC Wait Events &amp; Performance Tuning</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Understanding and fixing gc wait events — the most common RAC-specific performance bottlenecks.</p>
+      </div>
+
+      <!-- Wait events accordion -->
+      <div class="space-y-4 reveal">
+
+        <div class="err-acc">
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span class="flex items-center gap-3"><span style="background:rgba(239,68,68,.15);color:#f87171;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700">HIGH IMPACT</span>gc buffer busy acquire</span>
+            <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+          </button>
+          <div class="acc-body err-body" style="padding:20px">
+            <div class="grid md:grid-cols-2 gap-5">
+              <div>
+                <p class="text-slate-300 text-sm font-semibold mb-2">What it means</p>
+                <p class="text-slate-400 text-sm mb-3">A session on the local node needs a block, but <strong class="text-yellow-300">another session on the same node</strong> already sent a request for that block and is waiting for it to arrive from a remote node. You're queued behind a local requester.</p>
+                <p class="text-slate-300 text-sm font-semibold mb-2">Root Causes</p>
+                <ul class="text-slate-400 text-sm space-y-1">
+                  <li><i class="fas fa-circle text-red-400 text-xs mr-2"></i>Hot blocks — high concurrency on same data blocks</li>
+                  <li><i class="fas fa-circle text-red-400 text-xs mr-2"></i>Right-hand index growth (sequence-based inserts)</li>
+                  <li><i class="fas fa-circle text-red-400 text-xs mr-2"></i>Small sequence cache causing frequent cross-node coordination</li>
+                  <li><i class="fas fa-circle text-red-400 text-xs mr-2"></i>Insufficient PCTFREE / freelist contention</li>
+                </ul>
+              </div>
+              <div>
+                <p class="text-slate-300 text-sm font-semibold mb-2">Diagnosis &amp; Fix</p>
+                <div class="terminal mb-3">
+                  <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div></div>
+                  <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">-- Find hot blocks causing this wait</span>
+<span class="kw">SELECT</span> current_obj#, o.object_name,
+       current_file#, current_block#,
+       count(*) samples
+<span class="kw">FROM</span>   gv$<span class="fn">active_session_history</span> ash
+<span class="kw">JOIN</span>   dba_objects o
+  <span class="kw">ON</span> ash.current_obj#=o.object_id
+<span class="kw">WHERE</span>  event=<span class="str">'gc buffer busy acquire'</span>
+  <span class="kw">AND</span>  sample_time &gt; sysdate-<span class="num">1</span>/<span class="num">24</span>
+<span class="kw">GROUP BY</span> current_obj#,o.object_name,
+         current_file#,current_block#
+<span class="kw">ORDER BY</span> samples <span class="kw">DESC</span>;
+
+<span class="cm">-- Fix: increase sequence cache</span>
+<span class="kw">ALTER SEQUENCE</span> my_seq <span class="kw">CACHE</span> <span class="num">1000</span> NOORDER;
+
+<span class="cm">-- Fix: use ASSM tablespace</span>
+<span class="cm">-- Avoids freelist contention automatically</span></code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="err-acc">
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span class="flex items-center gap-3"><span style="background:rgba(239,68,68,.15);color:#f87171;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700">HIGH IMPACT</span>gc buffer busy release</span>
+            <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+          </button>
+          <div class="acc-body err-body" style="padding:20px">
+            <p class="text-slate-400 text-sm mb-2"><strong class="text-yellow-300">Different from acquire:</strong> Here, a session on the local node needs a block, but a <strong class="text-red-400">remote instance</strong> is currently requesting that block from the local node. The local session waits while the block is being "released" to the remote requester.</p>
+            <p class="text-slate-400 text-sm">Root causes are the same as <code style="color:#4ade80">gc buffer busy acquire</code> — hot blocks, high cross-node DML traffic. Both events together indicate the same objects need attention. Fixes: application partitioning (pin each workload to its own instance using services), reverse-key indexes, partitioning tables.</p>
+          </div>
+        </div>
+
+        <div class="err-acc">
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span class="flex items-center gap-3"><span style="background:rgba(245,158,11,.15);color:#fbbf24;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700">MONITOR</span>gc cr block 2-way / 3-way</span>
+            <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+          </button>
+          <div class="acc-body err-body" style="padding:20px">
+            <div class="grid md:grid-cols-2 gap-5">
+              <div>
+                <p class="text-slate-400 text-sm mb-2"><strong class="text-green-400">2-way:</strong> Consistent Read block transferred directly between 2 nodes (requester = master + holder). <strong>Normal and optimal</strong>. One message + one transfer. If very high — consider instance affinity for heavy-reader workloads.</p>
+                <p class="text-slate-400 text-sm"><strong class="text-amber-400">3-way:</strong> Master and holder are different nodes — 2 messages + one transfer. Slightly slower but normal in a multi-node cluster. Consistently high 3-way rates suggest DRM hasn't aligned mastering with usage patterns yet. If problematic: let DRM run or tune <code style="color:#4ade80">_gc_policy_minimum</code>.</p>
+              </div>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div></div>
+                <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">-- 2-way vs 3-way ratio check</span>
+<span class="kw">SELECT</span> inst_id, event,
+       total_waits, average_wait
+<span class="kw">FROM</span>   gv$<span class="fn">system_event</span>
+<span class="kw">WHERE</span>  event <span class="kw">IN</span> (
+  <span class="str">'gc cr block 2-way'</span>,
+  <span class="str">'gc cr block 3-way'</span>,
+  <span class="str">'gc current block 2-way'</span>,
+  <span class="str">'gc current block 3-way'</span>)
+<span class="kw">ORDER BY</span> inst_id, event;
+
+<span class="cm">-- Ideal: 2-way >> 3-way in ratio</span></code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="err-acc">
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span class="flex items-center gap-3"><span style="background:rgba(239,68,68,.15);color:#f87171;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700">CRITICAL</span>gc current block congested / gc cr block congested</span>
+            <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+          </button>
+          <div class="acc-body err-body" style="padding:20px">
+            <div class="grid md:grid-cols-2 gap-5">
+              <div>
+                <p class="text-slate-400 text-sm mb-2"><strong class="text-red-400">Congested = GCS is backed up.</strong> Requests are piling up — LMS processes can't keep up with block transfer demand. This indicates a systemic problem.</p>
+                <p class="text-slate-300 text-sm font-semibold mt-3 mb-2">Causes:</p>
+                <ul class="text-slate-400 text-sm space-y-1">
+                  <li><i class="fas fa-circle text-red-400 text-xs mr-2"></i>Interconnect bandwidth saturation</li>
+                  <li><i class="fas fa-circle text-red-400 text-xs mr-2"></i>LMS process count too low for workload</li>
+                  <li><i class="fas fa-circle text-red-400 text-xs mr-2"></i>Server CPU starvation</li>
+                  <li><i class="fas fa-circle text-red-400 text-xs mr-2"></i>Extremely high block transfer rate (application design)</li>
+                </ul>
+              </div>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div></div>
+                <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">-- Increase LMS processes (default auto-scales)</span>
+<span class="kw">ALTER SYSTEM SET</span>
+  gcs_server_processes = <span class="num">4</span> <span class="kw">SCOPE</span>=SPFILE;
+
+<span class="cm">-- Set LMS as high-priority OS thread</span>
+<span class="kw">ALTER SYSTEM SET</span>
+  <span class="str">"_high_priority_processes"</span>=<span class="str">'LMS*|LGWR*'</span>
+  <span class="kw">SCOPE</span>=SPFILE;
+
+<span class="cm">-- Upgrade interconnect bandwidth</span>
+<span class="cm">-- Reduce cross-node traffic via</span>
+<span class="cm">-- application partitioning / services</span>
+<span class="cm">-- PARALLEL_FORCE_LOCAL=TRUE for parallel SQL</span></code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="err-acc">
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span class="flex items-center gap-3"><span style="background:rgba(239,68,68,.15);color:#f87171;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700">CRITICAL</span>gc block lost</span>
+            <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+          </button>
+          <div class="acc-body err-body" style="padding:20px">
+            <p class="text-slate-400 text-sm mb-2">If a requested block is not received within <strong class="text-red-400">0.5 seconds</strong>, it is considered "lost" and must be re-requested. Even <strong class="text-red-400">occasional occurrences</strong> indicate a serious interconnect problem — packet loss, network congestion, faulty NIC/switch, or MTU mismatch.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="kw">SELECT</span> inst_id, event, total_waits, time_waited
+<span class="kw">FROM</span>   gv$<span class="fn">system_event</span>
+<span class="kw">WHERE</span>  event = <span class="str">'gc block lost'</span>;
+<span class="cm">-- Non-zero = immediate investigation required</span>
+<span class="cm">-- Check: ping -s 8192 node2-priv</span>
+<span class="cm">--        ethtool eth1 (NIC errors)</span>
+<span class="cm">--        ip link show eth1 (packet drops)</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="err-acc">
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span class="flex items-center gap-3"><span style="background:rgba(245,158,11,.15);color:#fbbf24;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700">MONITOR</span>library cache lock (RAC context)</span>
+            <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+          </button>
+          <div class="acc-body err-body" style="padding:20px">
+            <p class="text-slate-400 text-sm mb-2">In RAC, a session parsing/compiling an object on one node holds a library cache lock that blocks sessions on <strong class="text-yellow-300">other nodes</strong> from parsing the same object. More impactful than single-instance because the lock crosses the cluster boundary via GES.</p>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">-- Find library cache lock waiters</span>
+<span class="kw">SELECT</span> inst_id, sid, serial#, username,
+       event, seconds_in_wait, state
+<span class="kw">FROM</span>   gv$<span class="fn">session</span>
+<span class="kw">WHERE</span>  event = <span class="str">'library cache lock'</span>
+<span class="kw">ORDER BY</span> seconds_in_wait <span class="kw">DESC</span>;
+
+<span class="cm">-- Pin critical packages to prevent invalidation</span>
+<span class="kw">EXEC</span> DBMS_SHARED_POOL.<span class="fn">KEEP</span>(
+  <span class="str">'SYS.DBMS_STATS'</span>, <span class="str">'P'</span>);
+
+<span class="cm">-- Avoid concurrent DDL from multiple sessions</span>
+<span class="cm">-- across nodes during peak hours</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 8: Services, FAN, TAF -->
+  <section id="services" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 reveal">
+        <span class="badge badge-green mb-4">Section 08</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Services, FAN, TAF &amp; Application Continuity</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">How applications connect to RAC, survive failures, and get load-balanced — from services to FAN events to full transactional replay.</p>
+      </div>
+
+      <!-- Services -->
+      <div class="glass p-6 mb-8 reveal">
+        <h3 class="text-lg font-bold text-white mb-4" style="font-family:'Sora',sans-serif">Database Services — The Right Way to Connect</h3>
+        <div class="cf-box mb-5 text-sm text-slate-400">
+          <strong class="text-red-400">Never use the default service</strong> (same as DB_NAME) for production. It has no HA properties — if the instance it's on dies, clients don't fail over. Always create dedicated services for each workload type.
+        </div>
+        <div class="grid md:grid-cols-2 gap-5 mb-5">
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">Service creation options</span></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">-- srvctl: preferred/available instances</span>
+<span class="fn">srvctl</span> add service -d racdb \
+  -s oltp_svc \
+  -r racdb1,racdb2 \         <span class="cm">-- preferred</span>
+  -a racdb3 \                <span class="cm">-- available (failover)</span>
+  -clbgoal SHORT \           <span class="cm">-- conn-time LB: OLTP</span>
+  -rlbgoal SERVICE_TIME \    <span class="cm">-- runtime LB</span>
+  -notification TRUE         <span class="cm">-- enable FAN</span>
+
+<span class="cm">-- Or via SQL (DBMS_SERVICE)</span>
+<span class="kw">BEGIN</span>
+  DBMS_SERVICE.<span class="fn">CREATE_SERVICE</span>(
+    service_name    =&gt; <span class="str">'OLTP_SVC'</span>,
+    network_name    =&gt; <span class="str">'OLTP_SVC'</span>,
+    failover_method =&gt; DBMS_SERVICE.FAILOVER_METHOD_BASIC,
+    failover_type   =&gt; DBMS_SERVICE.FAILOVER_TYPE_SELECT,
+    failover_retries=&gt; <span class="num">30</span>,
+    failover_delay  =&gt; <span class="num">10</span>,
+    clb_goal        =&gt; DBMS_SERVICE.CLB_GOAL_SHORT,
+    rlb_goal        =&gt; DBMS_SERVICE.RLB_GOAL_SERVICE_TIME
+  );
+<span class="kw">END</span>;
+/
+<span class="kw">EXEC</span> DBMS_SERVICE.<span class="fn">START_SERVICE</span>(<span class="str">'OLTP_SVC'</span>);</code></pre>
+          </div>
+          <div class="space-y-3 text-sm">
+            <div class="param-card">
+              <strong class="text-slate-300">CLBGOAL (Connection Load Balancing Goal)</strong>
+              <p class="text-slate-400 text-xs mt-1"><code style="color:#4ade80">SHORT</code> — for OLTP (short-lived sessions): balance by active sessions + CPU. <code style="color:#4ade80">LONG</code> — for long-lived connections: balance by session count only.</p>
+            </div>
+            <div class="param-card">
+              <strong class="text-slate-300">RLBGOAL (Runtime Load Balancing Goal)</strong>
+              <p class="text-slate-400 text-xs mt-1"><code style="color:#4ade80">SERVICE_TIME</code> — routes by response time (OLTP). <code style="color:#4ade80">THROUGHPUT</code> — routes by CPU/throughput (batch). <code style="color:#4ade80">NONE</code> — no runtime LB.</p>
+            </div>
+            <div class="param-card">
+              <strong class="text-slate-300">tnsnames.ora with SCAN</strong>
+              <div class="terminal mt-2">
+                <pre class="p-2 text-xs" style="font-family:'JetBrains Mono',monospace"><code>RACDB =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL=TCP)
+      (HOST=racdb-scan.example.com)
+      (PORT=1521))
+    (CONNECT_DATA =
+      (SERVICE_NAME = oltp_svc)))</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAN -->
+      <div class="glass p-6 mb-8 reveal">
+        <h3 class="text-lg font-bold text-white mb-4" style="font-family:'Sora',sans-serif">FAN — Fast Application Notification</h3>
+        <div class="grid md:grid-cols-2 gap-5">
+          <div>
+            <p class="text-slate-400 text-sm mb-3">FAN publishes real-time events when cluster topology changes. Applications learn about node/service failures in <strong class="text-green-400">milliseconds</strong> — not after TCP timeout (which can take 30+ minutes).</p>
+            <div class="space-y-2 text-sm">
+              <div class="cf-box"><strong class="text-red-400">DOWN events</strong> — instance/service went offline → application abandons connections to that instance immediately</div>
+              <div class="cf-box"><strong class="text-green-400">UP events</strong> — instance/service came online → application can route new connections there</div>
+              <div class="cf-box"><strong class="text-sky-400">Load Balancing Advisory events</strong> — published every 30s with current load per instance → UCP rebalances connections</div>
+            </div>
+            <p class="text-slate-400 text-sm mt-3">From Oracle 12c, FAN is <strong class="text-green-400">auto-configured</strong> when connecting via JDBC Thin, ODP.NET, OCI to a 12c+ RAC database. No manual setup needed for modern drivers.</p>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">ONS status &amp; FAN callouts</span></div>
+            <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Check ONS status</span>
+<span class="fn">srvctl</span> status ons
+<span class="fn">srvctl</span> config ons
+
+<span class="cm"># FAN callout scripts</span>
+<span class="cm"># Place in $GRID_HOME/racg/usrco/</span>
+<span class="cm"># Executed when FAN events fire:</span>
+<span class="cm"># node_down.sh, service_down.sh etc.</span>
+<span class="cm"># Can restart app servers, send alerts</span>
+
+<span class="cm"># ONS port: 6200 (default)</span>
+<span class="cm"># For older JDBC clients, configure:</span>
+<span class="cm"># onsconfig nodes=node1:6200,node2:6200</span>
+
+<span class="cm"># Verify FAN in session</span>
+<span class="kw">SELECT</span> failover_type, failover_method,
+       failed_over
+<span class="kw">FROM</span>   v$<span class="fn">session</span>
+<span class="kw">WHERE</span>  sid = <span class="fn">SYS_CONTEXT</span>(<span class="str">'userenv'</span>,<span class="str">'sid'</span>);</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAF vs Application Continuity -->
+      <div class="glass p-6 mb-8 reveal">
+        <h3 class="text-lg font-bold text-white mb-5" style="font-family:'Sora',sans-serif">TAF vs Application Continuity — Side by Side</h3>
+        <div class="grid md:grid-cols-2 gap-6 mb-5">
+          <div>
+            <div class="flex items-center gap-2 mb-3"><span class="badge badge-amber">TAF</span><h4 class="text-white font-bold" style="font-family:'Sora',sans-serif">Transparent Application Failover</h4></div>
+            <p class="text-slate-400 text-sm mb-3">Oracle Net-level failover. Automatically reconnects the client to a surviving instance when the current instance fails.</p>
+            <ul class="text-slate-400 text-sm space-y-1 mb-3">
+              <li><i class="fas fa-check text-green-400 text-xs mr-2"></i>Replays current SELECT transparently</li>
+              <li><i class="fas fa-check text-green-400 text-xs mr-2"></i>Recreates session on new instance</li>
+              <li><i class="fas fa-times text-red-400 text-xs mr-2"></i>Does NOT replay uncommitted DML</li>
+              <li><i class="fas fa-times text-red-400 text-xs mr-2"></i>OCI driver only (no modern JDBC Thin)</li>
+            </ul>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">tnsnames.ora with TAF</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code>RACDB_TAF =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (FAILOVER = ON)
+      (LOAD_BALANCE = YES)
+      (ADDRESS = (PROTOCOL=TCP)
+        (HOST=node1-vip)(PORT=1521))
+      (ADDRESS = (PROTOCOL=TCP)
+        (HOST=node2-vip)(PORT=1521)))
+    (CONNECT_DATA =
+      (SERVICE_NAME = oltp_svc)
+      (FAILOVER_MODE =
+        (TYPE = SELECT)   <span class="cm">-- or SESSION</span>
+        (METHOD = BASIC)  <span class="cm">-- or PRECONNECT</span>
+        (RETRIES = 30)
+        (DELAY = 10))))</code></pre>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">AC</span><h4 class="text-white font-bold" style="font-family:'Sora',sans-serif">Application Continuity (12c+)</h4></div>
+            <p class="text-slate-400 text-sm mb-3">Masks ALL outages by rebuilding the session state AND replaying the entire in-flight request — including uncommitted DML. Zero visible disruption.</p>
+            <ul class="text-slate-400 text-sm space-y-1 mb-3">
+              <li><i class="fas fa-check text-green-400 text-xs mr-2"></i>Replays SELECT + uncommitted DML</li>
+              <li><i class="fas fa-check text-green-400 text-xs mr-2"></i>Reconstructs full session state</li>
+              <li><i class="fas fa-check text-green-400 text-xs mr-2"></i>Works with planned + unplanned outages</li>
+              <li><i class="fas fa-info-circle text-sky-400 text-xs mr-2"></i>Requires JDBC Thin Replay Driver + UCP</li>
+            </ul>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">AC service setup</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="fn">srvctl</span> modify service -d racdb \
+  -s oltp_svc \
+  -failovertype TRANSACTION \
+  -commit_outcome TRUE \
+  -notification TRUE \
+  -replay_init_time 1800 \
+  -retention 86400
+
+<span class="cm">-- Required grants for AC:</span>
+<span class="kw">GRANT EXECUTE ON</span> DBMS_APP_CONT
+  <span class="kw">TO</span> app_user;
+<span class="kw">GRANT</span> KEEP DATE TIME <span class="kw">TO</span> app_user;
+<span class="kw">GRANT</span> KEEP SYSGUID <span class="kw">TO</span> app_user;</code></pre>
+            </div>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Feature</th><th>TAF</th><th>Application Continuity</th></tr></thead>
+          <tbody>
+            <tr><td class="text-slate-300">Replays SELECT</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><td class="text-slate-300">Replays uncommitted DML</td><td class="no">No</td><td class="yes">Yes</td></tr>
+            <tr><td class="text-slate-300">Driver requirement</td><td>OCI only</td><td>JDBC Thin Replay Driver</td></tr>
+            <tr><td class="text-slate-300">Planned outages (rolling)</td><td class="no">No</td><td class="yes">Yes</td></tr>
+            <tr><td class="text-slate-300">Transaction history</td><td class="no">Not recorded</td><td class="yes">Recorded in call record</td></tr>
+            <tr><td class="text-slate-300">Connection pool</td><td>Any</td><td>UCP or WebLogic GridLink</td></tr>
+            <tr><td class="text-slate-300">Oracle version</td><td>All</td><td>12c+</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 9: ORA Errors & Troubleshooting -->
+  <section id="errors" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 reveal">
+        <span class="badge badge-red mb-4">Section 09</span>
+        <h2 class="text-3xl font-bold text-white mb-3">ORA Errors &amp; Troubleshooting</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Common RAC-specific errors, node eviction root causes, log file locations, and step-by-step diagnostic approach.</p>
+      </div>
+
+      <!-- ORA Errors accordion -->
+      <div class="space-y-4 mb-10 reveal">
+
+        <div class="err-acc">
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><span style="color:#f87171;font-family:'JetBrains Mono',monospace;font-weight:700">ORA-29740</span><span class="text-slate-400 text-sm ml-3">evicted by node [n], group incarnation [n]</span></span>
+            <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+          </button>
+          <div class="acc-body err-body" style="padding:20px">
+            <div class="grid md:grid-cols-2 gap-5">
+              <div>
+                <p class="text-slate-400 text-sm mb-3"><strong class="text-red-400">Meaning:</strong> This instance was forcibly evicted from the cluster by another node. The evicting node determined this node was unresponsive (missed heartbeats).</p>
+                <p class="text-slate-300 text-sm font-semibold mb-2">Common causes:</p>
+                <ul class="text-slate-400 text-sm space-y-1">
+                  <li><i class="fas fa-circle text-red-400 text-xs mr-2"></i>CSS misscount exceeded (default 30s) — network issue</li>
+                  <li><i class="fas fa-circle text-red-400 text-xs mr-2"></i>CSS disktimeout exceeded (default 200s) — storage issue</li>
+                  <li><i class="fas fa-circle text-red-400 text-xs mr-2"></i>OS OOM killer killed CSSD process</li>
+                  <li><i class="fas fa-circle text-red-400 text-xs mr-2"></i>CPU starvation causing missed heartbeats</li>
+                  <li><i class="fas fa-circle text-red-400 text-xs mr-2"></i>Kernel hang, NIC failure, switch issue</li>
+                </ul>
+              </div>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">Diagnostic steps</span></div>
+                <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># 1. Check CRS alert log</span>
+<span class="cm"># $ORACLE_BASE/diag/crs/&lt;host&gt;/crs/trace/alert.log</span>
+<span class="fn">adrci</span>
+  set base /u01/app/grid
+  show alert -tail 200
+
+<span class="cm"># 2. Check CSS log for timeout messages</span>
+<span class="cm"># Look for: "Missed 50% of check-ins for node X"</span>
+<span class="cm"># or: "Network connectivity to node X lost"</span>
+
+<span class="cm"># 3. Check for OOM kills</span>
+<span class="fn">dmesg</span> | grep -i oom
+<span class="fn">journalctl</span> -xe | grep -i oom
+
+<span class="cm"># 4. Verify interconnect</span>
+<span class="fn">ping</span> -s 8192 -M do node2-priv
+
+<span class="cm"># 5. Check voting disk access</span>
+<span class="fn">crsctl</span> query css votedisk</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="err-acc">
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><span style="color:#f87171;font-family:'JetBrains Mono',monospace;font-weight:700">ORA-15064</span><span class="text-slate-400 text-sm ml-3">communication failure with ASM instance</span></span>
+            <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+          </button>
+          <div class="acc-body err-body" style="padding:20px">
+            <p class="text-slate-400 text-sm mb-2">The database instance lost its connection to the ASM instance on the same or another node. Usually secondary to a deeper problem — ASM crash, node network failure, or ASM itself was evicted.</p>
+            <p class="text-slate-400 text-sm">Check the ASM alert log (<code style="color:#4ade80">$ORACLE_BASE/diag/asm/+asm/&lt;instance&gt;/trace/alert_+ASM1.log</code>) for the root cause. Fix the underlying issue, then: <code style="color:#4ade80">ALTER DISKGROUP DATA MOUNT;</code> from a surviving ASM instance.</p>
+          </div>
+        </div>
+
+        <div class="err-acc">
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><span style="color:#f87171;font-family:'JetBrains Mono',monospace;font-weight:700">Node Eviction / Split-Brain</span><span class="text-slate-400 text-sm ml-3">Timing, prevention and recovery</span></span>
+            <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+          </button>
+          <div class="acc-body err-body" style="padding:20px">
+            <div class="grid md:grid-cols-2 gap-5">
+              <div>
+                <p class="text-slate-300 text-sm font-semibold mb-2">CSS Warning Progression (misscount=30s)</p>
+                <div class="space-y-2 text-sm">
+                  <div class="cf-box"><span style="color:#fbbf24">15s (50%)</span> — First WARNING logged in ocssd.log</div>
+                  <div class="cf-box"><span style="color:#f97316">22s (75%)</span> — Second WARNING logged</div>
+                  <div class="cf-box"><span style="color:#ef4444">27s (90%)</span> — Third WARNING logged</div>
+                  <div class="cf-box" style="border-color:rgba(239,68,68,.4)"><span style="color:#f87171">30s (100%)</span> — <strong>EVICTION INITIATED</strong></div>
+                </div>
+                <div class="cf-box mt-3 text-xs text-slate-400">
+                  <strong class="text-slate-300">Rebootless fencing (11.2.0.2+):</strong> Instead of full OS reboot, only Clusterware processes are killed. OS stays up. Much faster recovery. Falls back to full reboot if rebootless fencing fails.
+                </div>
+              </div>
+              <div class="terminal">
+                <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">Node eviction investigation</span></div>
+                <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm"># Key alert log phrases to search for:</span>
+<span class="cm"># "reconfiguring cluster membership"</span>
+<span class="cm"># "CSSD: Network connectivity to node"</span>
+<span class="cm"># "Missed % of check-ins for node"</span>
+<span class="cm"># "I/O timeout" (disktimeout exceeded)</span>
+
+<span class="cm"># Log file locations (12c+):</span>
+<span class="cm"># CRS alert:  $ORACLE_BASE/diag/crs/</span>
+<span class="cm">#             &lt;host&gt;/crs/trace/alert.log</span>
+<span class="cm"># ASM alert:  $ORACLE_BASE/diag/asm/</span>
+<span class="cm">#             +asm/&lt;inst&gt;/trace/alert_*.log</span>
+<span class="cm"># DB alert:   $ORACLE_BASE/diag/rdbms/</span>
+<span class="cm">#             &lt;db&gt;/&lt;inst&gt;/trace/alert_*.log</span>
+<span class="cm"># OS log:     /var/log/messages or journalctl</span>
+
+<span class="cm"># Adjust CSS timing for slow storage (AWS)</span>
+<span class="fn">crsctl</span> <span class="kw">set</span> css misscount 60
+<span class="fn">crsctl</span> <span class="kw">set</span> css disktimeout 300</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="err-acc">
+          <button class="acc-btn" onclick="toggleAcc(this)">
+            <span><span style="color:#f87171;font-family:'JetBrains Mono',monospace;font-weight:700">Node Recovery</span><span class="text-slate-400 text-sm ml-3">What happens when a RAC instance crashes</span></span>
+            <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+          </button>
+          <div class="acc-body err-body" style="padding:20px">
+            <div class="space-y-2 text-sm text-slate-400">
+              <div class="cf-box"><span class="proc-badge mr-2">1</span>Other nodes' CSS detect missed heartbeats → declare node dead after misscount seconds</div>
+              <div class="cf-box"><span class="proc-badge mr-2">2</span>Failed node's <strong class="text-slate-300">VIP immediately fails over</strong> to another node → clients get fast "connection refused"</div>
+              <div class="cf-box"><span class="proc-badge mr-2">3</span><strong class="text-slate-300">FAN DOWN event</strong> published via ONS → JDBC/OCI applications abandon dead connections instantly</div>
+              <div class="cf-box"><span class="proc-badge mr-2">4</span>Services configured on failed instance <strong class="text-slate-300">fail over to available instances</strong> as defined in service config</div>
+              <div class="cf-box"><span class="proc-badge mr-2">5</span>GCS/GES reconfiguration: GRD redistributed across surviving instances. DRM remastering starts.</div>
+              <div class="cf-box"><span class="proc-badge mr-2">6</span><strong class="text-slate-300">SMON on a surviving instance</strong> mounts the dead instance's redo thread and performs crash recovery: roll forward all changes, then rollback uncommitted transactions</div>
+              <div class="cf-box"><span class="proc-badge mr-2">7</span>Blocks from dead instance's PIs and redo are recovered — database is fully consistent. Recovery time: seconds to minutes depending on redo volume.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 10: Quick Reference + Interview Q&A -->
+  <section id="reference" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 reveal">
+        <span class="badge badge-green mb-4">Section 10</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Quick Reference &amp; Interview Q&amp;A</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Command cheat sheet, key GV$ views, and the most important Oracle RAC interview questions with complete answers.</p>
+      </div>
+
+      <!-- Quick Reference tabs -->
+      <div class="glass p-6 mb-10 reveal" id="ref-tabs-wrap">
+        <div class="flex flex-wrap gap-2 mb-5" id="ref-tabs">
+          <button class="tab-btn active" data-tab="cheat">Command Cheatsheet</button>
+          <button class="tab-btn" data-tab="views">GV$ Quick Ref</button>
+          <button class="tab-btn" data-tab="params">Key Parameters</button>
+        </div>
+
+        <div id="ref-tab-cheat" class="tab-pane active">
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <p class="text-slate-400 text-xs font-semibold uppercase tracking-wide mb-3">Daily Health Check</p>
+              <div class="space-y-1 text-xs">
+                <div class="cheat-row"><code class="cheat-cmd">crsctl check cluster -all</code><span class="text-slate-400">All daemons on all nodes</span></div>
+                <div class="cheat-row"><code class="cheat-cmd">crsctl stat res -t</code><span class="text-slate-400">All resources tabular status</span></div>
+                <div class="cheat-row"><code class="cheat-cmd">srvctl status database -d racdb -v</code><span class="text-slate-400">DB status verbose</span></div>
+                <div class="cheat-row"><code class="cheat-cmd">srvctl status scan</code><span class="text-slate-400">SCAN listener status</span></div>
+                <div class="cheat-row"><code class="cheat-cmd">srvctl status service -d racdb</code><span class="text-slate-400">All service statuses</span></div>
+                <div class="cheat-row"><code class="cheat-cmd">olsnodes -v</code><span class="text-slate-400">Cluster nodes &amp; roles</span></div>
+                <div class="cheat-row"><code class="cheat-cmd">ocrcheck</code><span class="text-slate-400">OCR integrity</span></div>
+              </div>
+            </div>
+            <div>
+              <p class="text-slate-400 text-xs font-semibold uppercase tracking-wide mb-3">Start / Stop Sequence</p>
+              <div class="space-y-1 text-xs">
+                <div class="cheat-row"><code class="cheat-cmd">crsctl start crs</code><span class="text-slate-400">Start all clusterware (root)</span></div>
+                <div class="cheat-row"><code class="cheat-cmd">srvctl start asm</code><span class="text-slate-400">Start ASM instance</span></div>
+                <div class="cheat-row"><code class="cheat-cmd">srvctl start database -d racdb</code><span class="text-slate-400">Start all instances</span></div>
+                <div class="cheat-row"><code class="cheat-cmd">srvctl start service -d racdb -s svc</code><span class="text-slate-400">Start specific service</span></div>
+                <div class="cheat-row"><code class="cheat-cmd">srvctl stop service -d racdb -s svc</code><span class="text-slate-400">Stop service gracefully</span></div>
+                <div class="cheat-row"><code class="cheat-cmd">srvctl stop database -d racdb</code><span class="text-slate-400">Stop all instances</span></div>
+                <div class="cheat-row"><code class="cheat-cmd">crsctl stop crs -f</code><span class="text-slate-400">Force stop clusterware (root)</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="ref-tab-views" class="tab-pane">
+          <table style="font-size:12px">
+            <thead><tr><th>View</th><th>Use It For</th></tr></thead>
+            <tbody>
+              <tr><td><code style="color:#4ade80">GV$INSTANCE</code></td><td>Check all instances are OPEN; verify startup times</td></tr>
+              <tr><td><code style="color:#4ade80">GV$SESSION</code></td><td>Count sessions per node; find long-waiting sessions; identify blockers</td></tr>
+              <tr><td><code style="color:#4ade80">GV$LOCK + GV$LOCKED_OBJECT</code></td><td>Cross-node lock blocking analysis</td></tr>
+              <tr><td><code style="color:#4ade80">GV$SYSTEM_EVENT</code></td><td>Total gc wait event counts and times per instance</td></tr>
+              <tr><td><code style="color:#4ade80">GV$SESSION_WAIT</code></td><td>What every session is waiting on RIGHT NOW</td></tr>
+              <tr><td><code style="color:#4ade80">GV$ACTIVE_SESSION_HISTORY</code></td><td>Last 30 min ASH data; drill into hot blocks and wait events</td></tr>
+              <tr><td><code style="color:#4ade80">GV$SQLAREA</code></td><td>Find SQL with high CLUSTER_WAIT_TIME</td></tr>
+              <tr><td><code style="color:#4ade80">GV$BH</code></td><td>Buffer cache state (XCUR/CR/PI) per instance for a block</td></tr>
+              <tr><td><code style="color:#4ade80">GV$CLUSTER_INTERCONNECTS</code></td><td>Which NIC is Oracle using for Cache Fusion</td></tr>
+              <tr><td><code style="color:#4ade80">GV$GES_BLOCKING_ENQUEUE</code></td><td>Library cache locks crossing node boundaries</td></tr>
+              <tr><td><code style="color:#4ade80">DBA_HIST_SYSTEM_EVENT</code></td><td>Historic gc wait trends from AWR snapshots</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="ref-tab-params" class="tab-pane">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">RAC init.ora parameters</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="cm">-- Mandatory RAC parameters</span>
+cluster_database = <span class="kw">TRUE</span>
+cluster_database_instances = <span class="num">2</span>
+
+<span class="cm">-- Per-instance parameters</span>
+instance_number = <span class="num">1</span>  <span class="cm">-- unique per node</span>
+thread = <span class="num">1</span>           <span class="cm">-- redo thread per node</span>
+undo_tablespace = UNDOTBS1  <span class="cm">-- per node</span>
+
+<span class="cm">-- Listener/network</span>
+remote_listener = <span class="str">'racdb-scan:1521'</span>
+local_listener  = <span class="str">'(DESCRIPTION=...vip...)'</span>
+
+<span class="cm">-- Performance tuning</span>
+gcs_server_processes = <span class="num">4</span>  <span class="cm">-- LMS count</span>
+<span class="cm">-- "_lm_dynamic_remastering" = TRUE</span>
+<span class="cm">-- "_gc_policy_minimum" = 50</span>
+<span class="cm">-- "_gc_policy_limit" = 100</span>
+parallel_force_local = <span class="kw">FALSE</span>  <span class="cm">-- TRUE = all PQ on 1 node</span>
+use_large_pages = AUTO</code></pre>
+            </div>
+            <div class="terminal">
+              <div class="terminal-bar"><div class="t-dot" style="background:#ff5f57"></div><div class="t-dot" style="background:#febc2e"></div><div class="t-dot" style="background:#28c840"></div><span class="text-slate-500 text-xs ml-2">Query all RAC parameters</span></div>
+              <pre class="p-3 text-xs" style="font-family:'JetBrains Mono',monospace"><code><span class="kw">SELECT</span> name, value
+<span class="kw">FROM</span>   v$<span class="fn">parameter</span>
+<span class="kw">WHERE</span>  name <span class="kw">IN</span> (
+  <span class="str">'cluster_database'</span>,
+  <span class="str">'cluster_database_instances'</span>,
+  <span class="str">'instance_number'</span>,
+  <span class="str">'thread'</span>,
+  <span class="str">'undo_tablespace'</span>,
+  <span class="str">'remote_listener'</span>,
+  <span class="str">'local_listener'</span>,
+  <span class="str">'gcs_server_processes'</span>,
+  <span class="str">'use_large_pages'</span>,
+  <span class="str">'parallel_force_local'</span>
+);
+
+<span class="cm">-- Sequences: use large cache in RAC</span>
+<span class="cm">-- each node gets its own cache block</span>
+<span class="cm">-- so gaps in sequence values are normal</span>
+<span class="kw">ALTER SEQUENCE</span> my_seq <span class="kw">CACHE</span> <span class="num">1000</span> NOORDER;</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interview Q&A -->
+      <div class="reveal">
+        <h3 class="text-xl font-bold text-white mb-6" style="font-family:'Sora',sans-serif">Top Oracle RAC Interview Questions &amp; Answers</h3>
+        <div class="space-y-4">
+
+          <div class="qa-item">
+            <div class="qa-q">Q1: What is Oracle RAC and what are its primary purposes?</div>
+            <div class="qa-a">Oracle RAC (Real Application Clusters) allows multiple instances running on different servers to simultaneously access a single shared database (shared-everything architecture). Primary purposes: <strong>High Availability</strong> — if one node fails, others continue; <strong>Horizontal Scalability</strong> — add nodes for more throughput; <strong>Load Distribution</strong> — route workloads across instances via services. Key concept: one database, many instances.</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q2: Explain Cache Fusion. What problem does it solve?</div>
+            <div class="qa-a">Pre-Oracle 8i: when Instance 2 needed a block that Instance 1 had modified, Instance 1 had to write it to disk and Instance 2 had to read it from disk — very slow ("ping"). Cache Fusion eliminates this by shipping blocks directly between buffer caches over the private interconnect (memory-to-memory transfer). The Global Cache Service (GCS), driven by LMS processes, manages all transfers and maintains the GRD (Global Resource Directory) to track where every block is cached across all nodes.</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q3: What is SCAN and how many IPs does it need? How is it different from VIP?</div>
+            <div class="qa-a">SCAN (Single Client Access Name) is a single DNS name that resolves to exactly 3 IPs (Oracle recommendation). Three SCAN listeners run on cluster nodes, not tied to specific nodes. Clients use only the SCAN name — tnsnames.ora never changes when nodes are added/removed. SCAN also routes to the least-loaded instance via Load Balancing Advisory. VIP (Virtual IP) is one per node; if a node fails, its VIP moves to another node so clients get fast "connection refused" rather than TCP timeout. VIPs were the pre-SCAN solution — clients had to list all VIPs in tnsnames.</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q4: What is OCR and what does it store?</div>
+            <div class="qa-a">OCR (Oracle Cluster Registry) is the shared configuration repository for all Clusterware resources. Stored in ASM (recommended). Stores: node membership, all resource configs (databases, instances, services, VIPs, listeners, their start/stop policies and dependencies), ASM disk group info, SCAN VIP details. Auto-backed up every 4 hours. Key commands: <code>ocrcheck</code>, <code>ocrconfig -showbackup</code>, <code>ocrconfig -manualbackup</code>.</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q5: What is the voting disk and why should you have 3 or 5?</div>
+            <div class="qa-a">Voting disks prevent split-brain: each node writes a heartbeat block every second. When network communication fails, the sub-cluster with access to the majority of voting disks survives — the minority self-evicts. Formula: 2N+1 gives you N failures tolerated. With 1 disk: 0 failures tolerated. With 3: 1 failure tolerated. With 5: 2 failures tolerated. Always use 3 minimum, 5 preferred for production.</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q6: What happens when a node fails in Oracle RAC?</div>
+            <div class="qa-a">Sequence: (1) CSS on surviving nodes detects missed heartbeats → declares node dead after misscount seconds; (2) Failed node's VIP immediately fails over → clients get fast "connection refused"; (3) FAN DOWN event published via ONS → applications abandon connections to dead node instantly; (4) Services fail over to available instances; (5) GCS/GES reconfiguration — GRD redistributed among survivors; (6) SMON on a surviving instance mounts the failed instance's redo thread and performs crash recovery: roll forward, then rollback uncommitted transactions. Database is available throughout for surviving instances.</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q7: What is the difference between GCS and GES?</div>
+            <div class="qa-a">GCS (Global Cache Service) manages DATA BLOCK coherency — tracks which instance holds each block and in what lock mode (N/S/X), coordinates all block transfers via LMS processes. GES (Global Enqueue Service) manages all NON-BLOCK resources: transaction locks (TX), DDL locks (TM), dictionary cache locks, library cache locks, sequence coordination. Think: GCS = data blocks, GES = everything else (locks, latches, shared cursors).</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q8: What is the difference between srvctl and crsctl?</div>
+            <div class="qa-a">srvctl manages Oracle application resources built on top of Clusterware: databases, instances, services, listeners, VIPs, ASM, disk groups. Used by oracle/grid OS user. crsctl manages Clusterware infrastructure: start/stop the CRS stack, manage voting disks, query/set CSS timing parameters (misscount, disktimeout), check daemon health. Most crsctl destructive operations require root.</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q9: What is TAF vs Application Continuity? When would you use each?</div>
+            <div class="qa-a">TAF (Transparent Application Failover): Oracle Net-level, OCI driver only, replays SELECT queries, does NOT replay uncommitted DML. Good for simple read-heavy apps using OCI. Application Continuity (AC): 12c+, JDBC Thin Replay Driver + UCP, rebuilds full session state AND replays the entire in-flight request including uncommitted DML. Works for planned (rolling patching) and unplanned outages. Use TAF for legacy OCI apps; use AC for modern Java apps with Oracle's JDBC stack.</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q10: What is dynamic remastering (DRM)?</div>
+            <div class="qa-a">DRM redistributes GRD block ownership (mastering) based on actual access patterns. When one instance issues 50+ more BL (Buffer Lock) requests for an object than the current master, the master is relocated to that instance. This converts 3-way block transfers to 2-way, reducing interconnect overhead. Managed by LMON and LMS0. Can be disabled with <code>_lm_dynamic_remastering=FALSE</code> if it causes GRD freeze issues in older versions.</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q11: What is HAIP and when was it introduced?</div>
+            <div class="qa-a">HAIP (High Availability IP) was introduced in Oracle 11.2.0.2. It uses link-local addresses (169.254.x.x) to provide automatic load balancing and failover for interconnect traffic across multiple physical NICs. Managed by Clusterware — not OS bonding. Requires 2+ physical interfaces on the private network. When one NIC fails, traffic automatically routes to the other. Appears transparent to Cache Fusion.</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q12: Why is MTU 9000 recommended for the interconnect?</div>
+            <div class="qa-a">Default MTU is 1500 bytes. An 8KB Oracle data block fragmented at 1500 bytes requires 5-6 network packets per block transfer. With jumbo frames (MTU 9000), an 8KB block fits in approximately 1 packet. This dramatically reduces fragmentation overhead, CPU usage, and latency for Cache Fusion block transfers. Must be configured consistently on ALL nodes and the network switch. Verify with: <code>ping -s 8192 -M do node2-priv</code>.</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q13: Why do sequences show gaps in RAC and how do you configure them properly?</div>
+            <div class="qa-a">Each RAC instance receives its own cache block of sequence numbers (e.g., Instance 1 gets 1-20, Instance 2 gets 21-40). When instances switch between cache blocks, sequence values appear out of order. This is normal and expected in RAC. Best practice: use large CACHE values to reduce the frequency of cross-instance coordination, and always use NOORDER (default) unless strict ordering is required: <code>ALTER SEQUENCE s CACHE 1000 NOORDER;</code>. NOORDER means sequence values are unique but not necessarily monotonically increasing across all instances.</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q14: What is the GPNP profile and why is it important?</div>
+            <div class="qa-a">The GPNP (Grid Plug and Play) profile is a small XML file at <code>$GRID_HOME/gpnp/&lt;hostname&gt;/profiles/peer/profile.xml</code> on each node. It contains: ASM diskstring, ASM spfile location, public/private network interface names, voting disk storage info. It is read by the GPNPD daemon during Clusterware startup BEFORE ASM is accessible — so CSSD can find voting disks. It is the bootstrap configuration for the cluster. Corruption = cluster can't start.</div>
+          </div>
+
+          <div class="qa-item">
+            <div class="qa-q">Q15: How do you add a new node to an Oracle RAC cluster?</div>
+            <div class="qa-a">Steps: (1) Prepare the new node — same OS config, kernel params, users/groups, /etc/hosts entries, SSH equivalence; (2) Extend Grid Infrastructure: run <code>gridSetup.sh</code> from existing node, select "Add Cluster Member Nodes", then run root scripts on new node; (3) Extend Oracle RDBMS home: run <code>addNode.sh</code> from existing Oracle home; (4) Add instance via DBCA: <code>dbca -addInstance -gdbName racdb -nodeName node3 -instanceName racdb3</code>; (5) Verify: <code>olsnodes -v</code>, <code>srvctl status database -d racdb</code>.</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-12" style="background:#060c18;border-top:1px solid rgba(255,255,255,.05)">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:rgba(34,197,94,.15)">
+            <i class="fas fa-server" style="color:#4ade80"></i>
+          </div>
+          <div>
+            <p class="text-white font-bold text-sm" style="font-family:'Sora',sans-serif">Oracle RAC — Real Application Clusters</p>
+            <p class="text-slate-500 text-xs">Oracle DBA Simplified · Oracle 19c Reference</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <a href="index.html" class="text-slate-400 hover:text-white text-sm transition-colors">← Back to Topics</a>
+          <a href="asm-internals.html" class="text-slate-400 hover:text-white text-sm transition-colors">ASM Internals</a>
+          <a href="data-guard.html" class="text-slate-400 hover:text-white text-sm transition-colors">Data Guard</a>
+          <a href="performance-tuning.html" class="text-slate-400 hover:text-white text-sm transition-colors">Performance Tuning</a>
+        </div>
+        <p class="text-slate-600 text-xs text-center md:text-right">Built for Oracle DBAs learning RAC<br/>Covers RHEL &amp; AWS EC2 deployments</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Back to top -->
+  <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="display:none;position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:#22c55e;color:#000;border:none;cursor:pointer;align-items:center;justify-content:center;font-size:18px;z-index:99;box-shadow:0 4px 20px rgba(34,197,94,.4)">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+
+  <script>
+    // ── Tabs helper ──────────────────────────────────────────────────────
+    function initTabs(wrapperId) {
+      const wrap = document.getElementById(wrapperId);
+      if (!wrap) return;
+      const btnCont = wrap.querySelector('[id$="-tabs"]');
+      if (!btnCont) return;
+      const buttons = btnCont.querySelectorAll('.tab-btn');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          buttons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const tab = btn.getAttribute('data-tab');
+          const prefix = wrapperId.replace('-tabs-wrap', '');
+          wrap.querySelectorAll('.tab-pane').forEach(p => {
+            p.id === prefix + '-tab-' + tab
+              ? p.classList.add('active')
+              : p.classList.remove('active');
+          });
+        });
+      });
+    }
+
+    initTabs('cf-tabs-wrap');
+    initTabs('cmd-tabs-wrap');
+    initTabs('mon-tabs-wrap');
+    initTabs('ref-tabs-wrap');
+
+    // ── Accordion helper ─────────────────────────────────────────────────
+    function toggleAcc(btn) {
+      const body = btn.nextElementSibling;
+      const icon = btn.querySelector('i.fa-chevron-down');
+      const isOpen = btn.classList.contains('open');
+      btn.classList.toggle('open', !isOpen);
+      body.classList.toggle('open', !isOpen);
+      if (icon) icon.style.transform = !isOpen ? 'rotate(180deg)' : '';
+    }
+
+    // ── Scroll reveal ────────────────────────────────────────────────────
+    const revealObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+    // ── Back to top ──────────────────────────────────────────────────────
+    const btt = document.getElementById('btt');
+    window.addEventListener('scroll', () => {
+      btt.style.display = window.scrollY > 400 ? 'flex' : 'none';
+    });
+
+    // ── Mobile menu ──────────────────────────────────────────────────────
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (menuBtn && mobileMenu) {
+      menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+    }
+
+    // ── Active nav on scroll ─────────────────────────────────────────────
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+    const navObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          navLinks.forEach(l => {
+            l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id);
+          });
+        }
+      });
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    sections.forEach(s => navObserver.observe(s));
+  </script>
+</body>
+</html>
