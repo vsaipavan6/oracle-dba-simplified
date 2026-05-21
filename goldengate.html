@@ -23,15 +23,16 @@ nav{position:sticky;top:0;z-index:100;background:rgba(11,17,32,.88);backdrop-fil
 .nav-inner{max-width:1200px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:64px}
 .nav-logo{font-family:'Sora',sans-serif;font-weight:700;font-size:1.1rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:.5rem}
 .nav-logo span{color:var(--color-primary)}
-.nav-links{display:flex;gap:2rem;list-style:none}
-.nav-links a{color:var(--color-muted);font-size:.9rem;font-weight:500;transition:color .2s}
-.nav-links a:hover{color:#fff;text-decoration:none}
-.nav-back{display:flex;align-items:center;gap:.4rem;color:var(--color-primary);font-size:.9rem;font-weight:500}
+.nav-links{display:flex;gap:.25rem;list-style:none}
+.nav-links a{color:var(--color-muted);font-size:.8rem;font-weight:500;transition:color .2s;padding:.3rem .55rem;border-radius:6px;white-space:nowrap;text-decoration:none}
+.nav-links a:hover{color:#fff;background:rgba(255,255,255,.06);text-decoration:none}
+.nav-links a.active{color:var(--color-primary)}
+.nav-back{display:flex;align-items:center;gap:.4rem;color:var(--color-primary);font-size:.85rem;font-weight:500;white-space:nowrap}
 #menu-btn{display:none;background:none;border:none;color:#fff;cursor:pointer;padding:.5rem}
 #mobile-menu{display:none;background:rgba(11,17,32,.96);padding:1rem 1.5rem;border-bottom:1px solid var(--color-border)}
 #mobile-menu.open{display:block}
 #mobile-menu a{display:block;padding:.6rem 0;color:var(--color-muted);font-size:.95rem;border-bottom:1px solid var(--color-border)}
-@media(max-width:768px){.nav-links{display:none}#menu-btn{display:block}}
+@media(max-width:1024px){.nav-links{display:none}#menu-btn{display:block}}
 
 /* GLASS */
 .glass{background:var(--color-surface);backdrop-filter:blur(12px);border:1px solid var(--color-border);border-radius:var(--radius)}
@@ -142,11 +143,16 @@ footer a{color:var(--color-primary)}
   <div class="nav-inner">
     <a href="index.html" class="nav-logo">Oracle<span>DBA</span></a>
     <ul class="nav-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="oracle-architecture.html">Architecture</a></li>
-      <li><a href="rman-backup-recovery.html">RMAN</a></li>
-      <li><a href="data-guard.html">Data Guard</a></li>
-      <li><a href="oracle-rac.html">RAC</a></li>
+      <li><a href="#what-is-gg">What Is OGG</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#setup">Setup</a></li>
+      <li><a href="#ggsci">GGSCI</a></li>
+      <li><a href="#monitoring">Monitoring</a></li>
+      <li><a href="#troubleshooting">Troubleshooting</a></li>
+      <li><a href="#advanced">Advanced</a></li>
+      <li><a href="#zdm">Migration</a></li>
+      <li><a href="#errors">Errors</a></li>
+      <li><a href="#quickref">Quick Ref</a></li>
     </ul>
     <a href="index.html" class="nav-back">← All Topics</a>
     <button id="menu-btn" aria-label="Toggle menu">
@@ -154,11 +160,17 @@ footer a{color:var(--color-primary)}
     </button>
   </div>
   <div id="mobile-menu">
-    <a href="index.html">Home</a>
-    <a href="oracle-architecture.html">Architecture</a>
-    <a href="rman-backup-recovery.html">RMAN</a>
-    <a href="data-guard.html">Data Guard</a>
-    <a href="oracle-rac.html">RAC</a>
+    <a href="index.html">← All Topics</a>
+    <a href="#what-is-gg">What Is OGG</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#setup">Setup</a>
+    <a href="#ggsci">GGSCI</a>
+    <a href="#monitoring">Monitoring</a>
+    <a href="#troubleshooting">Troubleshooting</a>
+    <a href="#advanced">Advanced</a>
+    <a href="#zdm">Migration</a>
+    <a href="#errors">Errors</a>
+    <a href="#quickref">Quick Ref</a>
   </div>
 </nav>
 
@@ -2519,14 +2531,21 @@ EOF</pre>
 <!-- FOOTER -->
 <footer>
   <div style="max-width:1200px;margin:0 auto">
-    <p style="margin-bottom:.5rem">
-      <a href="index.html">← Back to All Topics</a> &nbsp;|&nbsp;
-      <a href="oracle-architecture.html">Oracle Architecture</a> &nbsp;|&nbsp;
+    <p style="margin-bottom:.75rem;font-size:.82rem;color:var(--color-muted)">
+      <a href="index.html">← All Topics</a> &nbsp;|&nbsp;
+      <a href="oracle-architecture.html">Architecture</a> &nbsp;|&nbsp;
       <a href="rman-backup-recovery.html">RMAN</a> &nbsp;|&nbsp;
       <a href="data-guard.html">Data Guard</a> &nbsp;|&nbsp;
-      <a href="oracle-rac.html">RAC</a>
+      <a href="performance-tuning.html">Performance</a> &nbsp;|&nbsp;
+      <a href="oracle-rac.html">RAC</a> &nbsp;|&nbsp;
+      <a href="asm-internals.html">ASM</a> &nbsp;|&nbsp;
+      <a href="data-pump.html">Data Pump</a> &nbsp;|&nbsp;
+      <a href="tablespace-management.html">Tablespace</a> &nbsp;|&nbsp;
+      <a href="user-management.html">User Mgmt</a> &nbsp;|&nbsp;
+      <a href="linux-for-dbas.html">Linux for DBAs</a> &nbsp;|&nbsp;
+      <a href="aws-rds-oracle.html">AWS RDS</a>
     </p>
-    <p>Oracle DBA Simplified — Built for DBA learners and practitioners.</p>
+    <p style="font-size:.82rem">Oracle DBA Simplified — Built for DBA learners and practitioners.</p>
   </div>
 </footer>
 
@@ -2583,6 +2602,9 @@ const menuBtn = document.getElementById('menu-btn');
 const mobileMenu = document.getElementById('mobile-menu');
 if (menuBtn && mobileMenu) {
   menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+  mobileMenu.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  });
 }
 
 // ── Back to Top ─────────────────────────────────────────────
@@ -2591,6 +2613,20 @@ window.addEventListener('scroll', () => {
   btt.style.display = window.scrollY > 400 ? 'flex' : 'none';
 });
 btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+// ── Active Nav on Scroll ────────────────────────────────────
+const pageSections = document.querySelectorAll('section[id]');
+const pageNavLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+const activeNavObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      pageNavLinks.forEach(l => {
+        l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id);
+      });
+    }
+  });
+}, { rootMargin: '-30% 0px -60% 0px' });
+pageSections.forEach(s => activeNavObserver.observe(s));
 </script>
 </body>
 </html>
