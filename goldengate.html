@@ -27,7 +27,10 @@ nav{position:sticky;top:0;z-index:100;background:rgba(11,17,32,.88);backdrop-fil
 .nav-links a{color:var(--color-muted);font-size:.8rem;font-weight:500;transition:color .2s;padding:.3rem .55rem;border-radius:6px;white-space:nowrap;text-decoration:none}
 .nav-links a:hover{color:#fff;background:rgba(255,255,255,.06);text-decoration:none}
 .nav-links a.active{color:var(--color-primary)}
-.nav-back{display:flex;align-items:center;gap:.4rem;color:var(--color-primary);font-size:.85rem;font-weight:500;white-space:nowrap}
+.nav-left{display:flex;align-items:center;gap:.75rem}
+.nav-home-back{display:flex;align-items:center;gap:.4rem;color:var(--color-muted);font-size:.85rem;font-weight:500;transition:color .2s;text-decoration:none;white-space:nowrap}
+.nav-home-back:hover{color:var(--color-primary);text-decoration:none}
+.nav-sep{color:rgba(255,255,255,.15)}
 #menu-btn{display:none;background:none;border:none;color:#fff;cursor:pointer;padding:.5rem}
 #mobile-menu{display:none;background:rgba(11,17,32,.96);padding:1rem 1.5rem;border-bottom:1px solid var(--color-border)}
 #mobile-menu.open{display:block}
@@ -141,10 +144,16 @@ footer a{color:var(--color-primary)}
 <!-- NAV -->
 <nav>
   <div class="nav-inner">
-    <a href="index.html" class="nav-logo">
-      <i class="fas fa-database" style="color:var(--color-primary)"></i>
-      Oracle DBA Simplified
-    </a>
+    <div class="nav-left">
+      <a href="index.html" class="nav-home-back">
+        <i class="fas fa-arrow-left" style="font-size:.7rem"></i> Back to Home
+      </a>
+      <span class="nav-sep">|</span>
+      <a href="index.html" class="nav-logo">
+        <i class="fas fa-database" style="color:var(--color-primary)"></i>
+        Oracle DBA Simplified
+      </a>
+    </div>
     <ul class="nav-links">
       <li><a href="#what-is-gg">What Is OGG</a></li>
       <li><a href="#architecture">Architecture</a></li>
@@ -157,13 +166,12 @@ footer a{color:var(--color-primary)}
       <li><a href="#errors">Errors</a></li>
       <li><a href="#quickref">Quick Ref</a></li>
     </ul>
-    <a href="index.html" class="nav-back">← All Topics</a>
     <button id="menu-btn" aria-label="Toggle menu">
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="19" y2="6"/><line x1="3" y1="12" x2="19" y2="12"/><line x1="3" y1="18" x2="19" y2="18"/></svg>
+      <i class="fas fa-bars"></i>
     </button>
   </div>
   <div id="mobile-menu">
-    <a href="index.html">← All Topics</a>
+    <a href="index.html"><i class="fas fa-arrow-left" style="font-size:.7rem;margin-right:.3rem"></i> Back to Home</a>
     <a href="#what-is-gg">What Is OGG</a>
     <a href="#architecture">Architecture</a>
     <a href="#setup">Setup</a>
