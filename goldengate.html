@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <style>
 :root{--color-primary:#f97316;--color-primary-dark:#ea6c0a;--color-primary-light:#fb923c;--color-bg:#0b1120;--color-surface:rgba(255,255,255,.04);--color-border:rgba(255,255,255,.07);--color-text:#e2e8f0;--color-muted:#94a3b8;--radius:12px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -21,8 +22,7 @@ img{max-width:100%}
 /* NAV */
 nav{position:sticky;top:0;z-index:100;background:rgba(11,17,32,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--color-border)}
 .nav-inner{max-width:1200px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:64px}
-.nav-logo{font-family:'Sora',sans-serif;font-weight:700;font-size:1.1rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:.5rem}
-.nav-logo span{color:var(--color-primary)}
+.nav-logo{font-family:'Sora',sans-serif;font-weight:700;font-size:.95rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:.5rem}
 .nav-links{display:flex;gap:.25rem;list-style:none}
 .nav-links a{color:var(--color-muted);font-size:.8rem;font-weight:500;transition:color .2s;padding:.3rem .55rem;border-radius:6px;white-space:nowrap;text-decoration:none}
 .nav-links a:hover{color:#fff;background:rgba(255,255,255,.06);text-decoration:none}
@@ -141,7 +141,10 @@ footer a{color:var(--color-primary)}
 <!-- NAV -->
 <nav>
   <div class="nav-inner">
-    <a href="index.html" class="nav-logo">Oracle<span>DBA</span></a>
+    <a href="index.html" class="nav-logo">
+      <i class="fas fa-database" style="color:var(--color-primary)"></i>
+      Oracle DBA Simplified
+    </a>
     <ul class="nav-links">
       <li><a href="#what-is-gg">What Is OGG</a></li>
       <li><a href="#architecture">Architecture</a></li>
