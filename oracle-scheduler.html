@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Oracle Scheduler | Oracle DBA Simplified</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0b1120;color:#e2e8f0;font-family:'DM Sans',sans-serif;line-height:1.7}
+    h1,h2,h3,h4{font-family:'Sora',sans-serif}
+    .glass{background:rgba(255,255,255,.04);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.07);border-radius:16px}
+    .badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.5px}
+    .badge-fuchsia{background:rgba(192,38,211,.18);color:#e879f9}
+    .badge-green{background:rgba(52,211,153,.18);color:#34d399}
+    .badge-yellow{background:rgba(251,191,36,.18);color:#fbbf24}
+    .badge-red{background:rgba(248,113,113,.18);color:#f87171}
+    .badge-blue{background:rgba(96,165,250,.18);color:#60a5fa}
+    .terminal{background:#0a0f1e;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+    .terminal-bar{background:#1e293b;padding:8px 12px;display:flex;gap:6px;align-items:center}
+    .t-dot{width:10px;height:10px;border-radius:50%}
+    pre{overflow-x:auto}
+    code .kw{color:#e879f9}
+    code .fn{color:#fbbf24}
+    code .str{color:#86efac}
+    code .cm{color:#475569}
+    code .num{color:#f9a8d4}
+    code .op{color:#fb923c}
+    .acc-btn{width:100%;text-align:left;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s;color:#e2e8f0;font-family:'Sora',sans-serif;font-weight:600;font-size:15px}
+    .acc-btn:hover{border-color:rgba(192,38,211,.4);background:rgba(192,38,211,.06)}
+    .acc-btn.open{border-color:rgba(192,38,211,.4);background:rgba(192,38,211,.06);border-radius:10px 10px 0 0}
+    .acc-body{display:none;padding:20px;border:1px solid rgba(192,38,211,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)}
+    .acc-body.open{display:block}
+    .stat-card{background:rgba(192,38,211,.08);border:1px solid rgba(192,38,211,.22);border-radius:14px;padding:22px 24px}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .55s ease,transform .55s ease}
+    .reveal.visible{opacity:1;transform:none}
+    .section{padding:80px 0}
+    .section-alt{background:rgba(255,255,255,.015)}
+    nav{position:sticky;top:0;z-index:50;background:rgba(11,17,32,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07)}
+    .nav-link{color:#94a3b8;font-size:13px;font-weight:500;padding:6px 10px;border-radius:6px;transition:all .2s;text-decoration:none;white-space:nowrap}
+    .nav-link:hover{color:#e879f9;background:rgba(192,38,211,.1)}
+    #btt{position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:#c026d3;color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:18px;z-index:99;box-shadow:0 4px 20px rgba(192,38,211,.4)}
+    #btt.show{display:flex}
+    .arch-card{background:rgba(192,38,211,.07);border:1px solid rgba(192,38,211,.18);border-radius:12px;padding:18px}
+    table{width:100%;border-collapse:collapse}
+    th{background:rgba(192,38,211,.12);color:#e879f9;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;padding:11px 14px;text-align:left;text-transform:uppercase;letter-spacing:.5px}
+    td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:#cbd5e1;vertical-align:top}
+    tr:last-child td{border-bottom:none}
+    tr:nth-child(even) td{background:rgba(255,255,255,.018)}
+    #mobile-menu{display:none}
+    #mobile-menu.open{display:block}
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-14">
+        <div class="flex items-center gap-3">
+          <a href="index.html" class="flex items-center gap-2 text-slate-400 hover:text-fuchsia-400 transition-colors text-sm font-medium" style="text-decoration:none">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Home
+          </a>
+          <span class="text-neutral-700">|</span>
+          <a href="index.html" class="flex items-center gap-2 text-white font-bold text-sm" style="font-family:'Sora',sans-serif;text-decoration:none">
+            <i class="fas fa-database text-fuchsia-400"></i> Oracle DBA Simplified
+          </a>
+        </div>
+        <div class="hidden lg:flex items-center gap-1">
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#jobs" class="nav-link">Creating Jobs</a>
+          <a href="#programs" class="nav-link">Programs</a>
+          <a href="#schedules" class="nav-link">Schedules</a>
+          <a href="#chains" class="nav-link">Job Chains</a>
+          <a href="#windows" class="nav-link">Windows</a>
+          <a href="#monitoring" class="nav-link">Monitoring</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+        <button id="menu-btn" class="lg:hidden text-slate-400 hover:text-white p-2 bg-transparent border-none cursor-pointer"><i class="fas fa-bars"></i></button>
+      </div>
+      <div id="mobile-menu" class="pb-3 lg:hidden">
+        <div class="flex flex-col gap-1">
+          <a href="index.html" class="nav-link" style="color:#c026d3"><i class="fas fa-arrow-left text-xs mr-1"></i> Back to Home</a>
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#jobs" class="nav-link">Creating Jobs</a>
+          <a href="#programs" class="nav-link">Programs</a>
+          <a href="#schedules" class="nav-link">Schedules</a>
+          <a href="#chains" class="nav-link">Job Chains</a>
+          <a href="#monitoring" class="nav-link">Monitoring</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden" style="background:linear-gradient(135deg,#0b1120 0%,#160a1a 55%,#0b1120 100%);padding:80px 0 64px">
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 65% 50% at 50% 0%,rgba(192,38,211,.13),transparent)"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 relative">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style="background:rgba(192,38,211,.12);border:1px solid rgba(192,38,211,.28)">
+          <i class="fas fa-calendar-check text-fuchsia-400 text-sm"></i>
+          <span class="text-fuchsia-300 text-sm font-semibold" style="font-family:'Sora',sans-serif">Oracle 19c · DBMS_SCHEDULER</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-3">Oracle Scheduler</h1>
+        <p class="text-2xl font-bold mb-4" style="color:#e879f9;font-family:'Sora',sans-serif">DBMS_SCHEDULER · Jobs · Chains · Windows</p>
+        <p class="text-slate-400 max-w-2xl mx-auto text-base">DBMS_SCHEDULER is Oracle's enterprise job scheduling engine — automate maintenance tasks, batch jobs, scripts, and complex multi-step workflows inside the database.</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#e879f9;font-family:'Sora',sans-serif">Jobs</div>
+          <div class="text-slate-300 text-sm font-semibold">Scheduled Tasks</div>
+          <div class="text-slate-500 text-xs mt-1">PL/SQL, scripts, executables</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#e879f9;font-family:'Sora',sans-serif">Chains</div>
+          <div class="text-slate-300 text-sm font-semibold">Multi-Step Workflows</div>
+          <div class="text-slate-500 text-xs mt-1">Sequential & conditional job steps</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#e879f9;font-family:'Sora',sans-serif">Windows</div>
+          <div class="text-slate-300 text-sm font-semibold">Resource Windows</div>
+          <div class="text-slate-500 text-xs mt-1">Run jobs in resource-managed windows</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#e879f9;font-family:'Sora',sans-serif">Cron</div>
+          <div class="text-slate-300 text-sm font-semibold">Repeat Interval</div>
+          <div class="text-slate-500 text-xs mt-1">FREQ=DAILY;BYHOUR=2;BYMINUTE=0</div>
+        </div>
+      </div>
+      <div class="max-w-3xl mx-auto">
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+            <span class="text-slate-500 text-xs ml-2">Quick: Simple daily scheduler job</span>
+          </div>
+          <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Create a simple daily PL/SQL job</span>
+<span class="kw">BEGIN</span>
+  <span class="fn">DBMS_SCHEDULER.CREATE_JOB</span>(
+    job_name        => <span class="str">'DAILY_STATS_GATHER'</span>,
+    job_type        => <span class="str">'PLSQL_BLOCK'</span>,
+    job_action      => <span class="str">'BEGIN DBMS_STATS.GATHER_DATABASE_STATS(cascade=>TRUE); END;'</span>,
+    repeat_interval => <span class="str">'FREQ=DAILY;BYHOUR=2;BYMINUTE=0;BYSECOND=0'</span>,
+    enabled         => <span class="kw">TRUE</span>,
+    comments        => <span class="str">'Gather statistics on all objects daily at 2am'</span>
+  );
+<span class="kw">END</span>;
+/</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: Overview -->
+  <section id="overview" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-fuchsia mb-4">Section 1</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Scheduler Architecture</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">DBMS_SCHEDULER uses named, reusable components — Programs, Schedules, Jobs, Chains, and Windows — that can be combined flexibly.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><i class="fas fa-file-code text-fuchsia-400"></i><h3 class="font-bold text-white">Program</h3></div>
+          <p class="text-slate-400 text-sm">Defines WHAT to run — a PL/SQL block, stored procedure, external script, or executable. Reusable across multiple jobs.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><i class="fas fa-clock text-fuchsia-400"></i><h3 class="font-bold text-white">Schedule</h3></div>
+          <p class="text-slate-400 text-sm">Defines WHEN to run — using calendar strings (FREQ=WEEKLY;BYDAY=MON,FRI) or event-based triggers. Reusable across jobs.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><i class="fas fa-play-circle text-fuchsia-400"></i><h3 class="font-bold text-white">Job</h3></div>
+          <p class="text-slate-400 text-sm">The execution unit — combines Program + Schedule (or inline definitions). Tracks run history, success/failure, duration.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><i class="fas fa-link text-fuchsia-400"></i><h3 class="font-bold text-white">Chain</h3></div>
+          <p class="text-slate-400 text-sm">Sequences multiple jobs with conditional logic — "run Step 2 only if Step 1 succeeded." ETL workflows, multi-phase maintenance.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><i class="fas fa-window-restore text-fuchsia-400"></i><h3 class="font-bold text-white">Window</h3></div>
+          <p class="text-slate-400 text-sm">A time window with a Resource Manager plan — run maintenance jobs only during low-traffic hours with reduced resource priority.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><i class="fas fa-layer-group text-fuchsia-400"></i><h3 class="font-bold text-white">Window Group</h3></div>
+          <p class="text-slate-400 text-sm">A named collection of Windows — "run during WEEKNIGHT_WINDOW or WEEKEND_WINDOW." Auto-stats uses MAINTENANCE_WINDOW_GROUP.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Creating Jobs -->
+  <section id="jobs" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-fuchsia mb-4">Section 2</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Creating Scheduler Jobs</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Jobs can run PL/SQL blocks, stored procedures, OS executables, or external scripts. Enable, disable, or run manually at any time.</p>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">Job Types & Management</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Type 1: PL/SQL Block Job</span>
+<span class="kw">BEGIN</span>
+  <span class="fn">DBMS_SCHEDULER.CREATE_JOB</span>(
+    job_name        => <span class="str">'PURGE_OLD_LOGS'</span>,
+    job_type        => <span class="str">'PLSQL_BLOCK'</span>,
+    job_action      => <span class="str">'BEGIN DELETE FROM app_logs WHERE log_date < SYSDATE-30; COMMIT; END;'</span>,
+    repeat_interval => <span class="str">'FREQ=DAILY;BYHOUR=1;BYMINUTE=30'</span>,
+    enabled         => <span class="kw">TRUE</span>
+  );
+<span class="kw">END</span>;
+/
+
+<span class="cm">-- Type 2: Stored Procedure Job</span>
+<span class="kw">BEGIN</span>
+  <span class="fn">DBMS_SCHEDULER.CREATE_JOB</span>(
+    job_name        => <span class="str">'RUN_ARCHIVE_PROC'</span>,
+    job_type        => <span class="str">'STORED_PROCEDURE'</span>,
+    job_action      => <span class="str">'PKG_ARCHIVE.DO_ARCHIVE'</span>,
+    repeat_interval => <span class="str">'FREQ=WEEKLY;BYDAY=SUN;BYHOUR=3'</span>,
+    enabled         => <span class="kw">TRUE</span>
+  );
+<span class="kw">END</span>;
+/
+
+<span class="cm">-- Type 3: External Script (OS executable)</span>
+<span class="kw">BEGIN</span>
+  <span class="fn">DBMS_SCHEDULER.CREATE_JOB</span>(
+    job_name        => <span class="str">'RMAN_BACKUP_JOB'</span>,
+    job_type        => <span class="str">'EXECUTABLE'</span>,
+    job_action      => <span class="str">'/dba/scripts/rman_backup.sh'</span>,
+    number_of_arguments => <span class="num">1</span>,
+    repeat_interval => <span class="str">'FREQ=DAILY;BYHOUR=2'</span>,
+    enabled         => <span class="kw">FALSE</span>  <span class="cm">-- enable after setting args</span>
+  );
+  <span class="fn">DBMS_SCHEDULER.SET_JOB_ARGUMENT_VALUE</span>(<span class="str">'RMAN_BACKUP_JOB'</span>,<span class="num">1</span>,<span class="str">'1'</span>);
+  <span class="fn">DBMS_SCHEDULER.ENABLE</span>(<span class="str">'RMAN_BACKUP_JOB'</span>);
+<span class="kw">END</span>;
+/
+
+<span class="cm">-- Run a job manually (immediate)</span>
+<span class="kw">EXEC</span> <span class="fn">DBMS_SCHEDULER.RUN_JOB</span>(<span class="str">'DAILY_STATS_GATHER'</span>);
+
+<span class="cm">-- Disable / Enable</span>
+<span class="kw">EXEC</span> <span class="fn">DBMS_SCHEDULER.DISABLE</span>(<span class="str">'PURGE_OLD_LOGS'</span>);
+<span class="kw">EXEC</span> <span class="fn">DBMS_SCHEDULER.ENABLE</span>(<span class="str">'PURGE_OLD_LOGS'</span>);
+
+<span class="cm">-- Drop a job</span>
+<span class="kw">EXEC</span> <span class="fn">DBMS_SCHEDULER.DROP_JOB</span>(<span class="str">'PURGE_OLD_LOGS'</span>, force => <span class="kw">TRUE</span>);</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Programs & Schedules -->
+  <section id="programs" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-fuchsia mb-4">Section 3</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Reusable Programs & Named Schedules</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Separate WHAT from WHEN using named Programs and Schedules — reuse them across multiple jobs.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Create a Reusable Program</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Named program (reusable)</span>
+<span class="kw">BEGIN</span>
+  <span class="fn">DBMS_SCHEDULER.CREATE_PROGRAM</span>(
+    program_name => <span class="str">'PROG_GATHER_STATS'</span>,
+    program_type => <span class="str">'STORED_PROCEDURE'</span>,
+    program_action => <span class="str">'PKG_MAINTENANCE.GATHER_STATS'</span>,
+    number_of_arguments => <span class="num">1</span>,
+    enabled => <span class="kw">FALSE</span>
+  );
+  <span class="fn">DBMS_SCHEDULER.DEFINE_PROGRAM_ARGUMENT</span>(
+    program_name => <span class="str">'PROG_GATHER_STATS'</span>,
+    argument_position => <span class="num">1</span>,
+    argument_name => <span class="str">'p_schema'</span>,
+    argument_type => <span class="str">'VARCHAR2'</span>,
+    default_value => <span class="str">'ALL'</span>
+  );
+  <span class="fn">DBMS_SCHEDULER.ENABLE</span>(<span class="str">'PROG_GATHER_STATS'</span>);
+<span class="kw">END</span>;
+/</code></pre>
+          </div>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Create a Named Schedule</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Named schedule (reusable calendar)</span>
+<span class="kw">BEGIN</span>
+  <span class="fn">DBMS_SCHEDULER.CREATE_SCHEDULE</span>(
+    schedule_name   => <span class="str">'SCHED_WEEKNIGHT_2AM'</span>,
+    repeat_interval => <span class="str">'FREQ=DAILY;BYDAY=MON,TUE,WED,THU,FRI;
+                        BYHOUR=2;BYMINUTE=0;BYSECOND=0'</span>,
+    comments => <span class="str">'Weeknights at 2am'</span>
+  );
+<span class="kw">END</span>;
+/
+
+<span class="cm">-- Create job using named program + schedule</span>
+<span class="kw">BEGIN</span>
+  <span class="fn">DBMS_SCHEDULER.CREATE_JOB</span>(
+    job_name      => <span class="str">'JOB_GATHER_MYSCHEMA'</span>,
+    program_name  => <span class="str">'PROG_GATHER_STATS'</span>,
+    schedule_name => <span class="str">'SCHED_WEEKNIGHT_2AM'</span>,
+    enabled       => <span class="kw">TRUE</span>
+  );
+<span class="kw">END</span>;
+/</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Chains -->
+  <section id="chains" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-fuchsia mb-4">Section 4</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Job Chains — Multi-Step Workflows</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Chains link jobs with conditional rules — Step 2 runs only if Step 1 succeeded. Perfect for ETL pipelines and maintenance sequences.</p>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">Create a 3-Step ETL Chain</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="kw">BEGIN</span>
+  <span class="cm">-- 1. Create the chain</span>
+  <span class="fn">DBMS_SCHEDULER.CREATE_CHAIN</span>(chain_name => <span class="str">'ETL_CHAIN'</span>);
+
+  <span class="cm">-- 2. Define chain steps (programs)</span>
+  <span class="fn">DBMS_SCHEDULER.DEFINE_CHAIN_STEP</span>(
+    chain_name   => <span class="str">'ETL_CHAIN'</span>,
+    step_name    => <span class="str">'STEP_EXTRACT'</span>,
+    program_name => <span class="str">'PROG_EXTRACT_DATA'</span>
+  );
+  <span class="fn">DBMS_SCHEDULER.DEFINE_CHAIN_STEP</span>(
+    chain_name   => <span class="str">'ETL_CHAIN'</span>,
+    step_name    => <span class="str">'STEP_TRANSFORM'</span>,
+    program_name => <span class="str">'PROG_TRANSFORM_DATA'</span>
+  );
+  <span class="fn">DBMS_SCHEDULER.DEFINE_CHAIN_STEP</span>(
+    chain_name   => <span class="str">'ETL_CHAIN'</span>,
+    step_name    => <span class="str">'STEP_LOAD'</span>,
+    program_name => <span class="str">'PROG_LOAD_DATA'</span>
+  );
+
+  <span class="cm">-- 3. Define rules (conditional flow)</span>
+  <span class="fn">DBMS_SCHEDULER.DEFINE_CHAIN_RULE</span>(
+    chain_name => <span class="str">'ETL_CHAIN'</span>, rule_name => <span class="str">'RULE1'</span>,
+    condition  => <span class="str">'TRUE'</span>,                 <span class="cm">-- Always start extract</span>
+    action     => <span class="str">'START STEP_EXTRACT'</span>
+  );
+  <span class="fn">DBMS_SCHEDULER.DEFINE_CHAIN_RULE</span>(
+    chain_name => <span class="str">'ETL_CHAIN'</span>, rule_name => <span class="str">'RULE2'</span>,
+    condition  => <span class="str">'STEP_EXTRACT COMPLETED SUCCESSFULLY'</span>,
+    action     => <span class="str">'START STEP_TRANSFORM'</span>
+  );
+  <span class="fn">DBMS_SCHEDULER.DEFINE_CHAIN_RULE</span>(
+    chain_name => <span class="str">'ETL_CHAIN'</span>, rule_name => <span class="str">'RULE3'</span>,
+    condition  => <span class="str">'STEP_TRANSFORM COMPLETED SUCCESSFULLY'</span>,
+    action     => <span class="str">'START STEP_LOAD'</span>
+  );
+  <span class="fn">DBMS_SCHEDULER.DEFINE_CHAIN_RULE</span>(
+    chain_name => <span class="str">'ETL_CHAIN'</span>, rule_name => <span class="str">'RULE_END'</span>,
+    condition  => <span class="str">'STEP_LOAD COMPLETED'</span>,
+    action     => <span class="str">'END'</span>
+  );
+
+  <span class="cm">-- 4. Enable the chain</span>
+  <span class="fn">DBMS_SCHEDULER.ENABLE</span>(<span class="str">'ETL_CHAIN'</span>);
+
+  <span class="cm">-- 5. Schedule the chain job</span>
+  <span class="fn">DBMS_SCHEDULER.CREATE_JOB</span>(
+    job_name        => <span class="str">'ETL_CHAIN_JOB'</span>,
+    job_type        => <span class="str">'CHAIN'</span>,
+    job_action      => <span class="str">'ETL_CHAIN'</span>,
+    repeat_interval => <span class="str">'FREQ=DAILY;BYHOUR=22;BYMINUTE=0'</span>,
+    enabled         => <span class="kw">TRUE</span>
+  );
+<span class="kw">END</span>;
+/</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Monitoring -->
+  <section id="monitoring" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-fuchsia mb-4">Section 5</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Monitoring Scheduler Jobs</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Use DBA_SCHEDULER_* views to track running jobs, review history, and diagnose failures.</p>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">Scheduler Monitoring Queries</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- All scheduler jobs and status</span>
+<span class="kw">SELECT</span> job_name, enabled, state, last_start_date,
+       last_run_duration, next_run_date
+<span class="kw">FROM</span>   dba_scheduler_jobs
+<span class="kw">ORDER BY</span> next_run_date;
+
+<span class="cm">-- Currently running jobs</span>
+<span class="kw">SELECT</span> job_name, elapsed_time, cpu_used, session_id
+<span class="kw">FROM</span>   dba_scheduler_running_jobs;
+
+<span class="cm">-- Job run history (last 7 days)</span>
+<span class="kw">SELECT</span> job_name, status, actual_start_date,
+       run_duration, error#, additional_info
+<span class="kw">FROM</span>   dba_scheduler_job_run_details
+<span class="kw">WHERE</span>  actual_start_date > <span class="fn">SYSDATE</span>-<span class="num">7</span>
+<span class="kw">ORDER BY</span> actual_start_date <span class="kw">DESC</span>;
+
+<span class="cm">-- Failed jobs with error details</span>
+<span class="kw">SELECT</span> job_name, status, error#, additional_info
+<span class="kw">FROM</span>   dba_scheduler_job_run_details
+<span class="kw">WHERE</span>  status != <span class="str">'SUCCEEDED'</span>
+<span class="kw">AND</span>    actual_start_date > <span class="fn">SYSDATE</span>-<span class="num">1</span>;
+
+<span class="cm">-- Stop a running job</span>
+<span class="kw">EXEC</span> <span class="fn">DBMS_SCHEDULER.STOP_JOB</span>(<span class="str">'ETL_CHAIN_JOB'</span>, force => <span class="kw">TRUE</span>);</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Interview Q&A -->
+  <section id="interview" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-fuchsia mb-4">Section 6</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Oracle Scheduler — Interview Q&amp;A</h2>
+      </div>
+      <div class="reveal max-w-3xl mx-auto space-y-3">
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is the difference between DBMS_JOB and DBMS_SCHEDULER?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">DBMS_JOB is the legacy job scheduler (pre-10g) — it only supports PL/SQL, has no named programs/schedules, limited monitoring, and runs as the submitting user only. DBMS_SCHEDULER (10g+) is the modern replacement — supports PL/SQL, stored procedures, OS executables, and external scripts; named reusable programs and schedules; job chains with conditional logic; resource windows; email notifications; detailed run history in DBA_SCHEDULER_* views. DBMS_JOB is deprecated since 12c; use DBMS_SCHEDULER exclusively.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            How do you run a scheduler job immediately (ad hoc)?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">Use <code class="text-fuchsia-300">DBMS_SCHEDULER.RUN_JOB('job_name')</code>. By default this runs synchronously (waits for completion). Pass <code class="text-fuchsia-300">use_current_session=>FALSE</code> for async execution. The job's next_run_date is not affected by manual runs — it still fires on its regular schedule.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is the MAINTENANCE_WINDOW_GROUP and why does it matter?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">MAINTENANCE_WINDOW_GROUP is a pre-defined Oracle window group that includes WEEKNIGHT_WINDOW (Mon-Fri 10pm-6am) and WEEKEND_WINDOW (Sat-Sun all day). Oracle's built-in automatic maintenance jobs — statistics gathering (AUTO_OPTIMIZER_STATS_COLLECTION), segment advisor (AUTO_SPACE_ADVISOR), and SQL Tuning Advisor — are scheduled to run within these windows. DBAs can adjust window start/end times or resource plans to control when maintenance jobs compete for resources.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            How do you troubleshoot a scheduler job that failed?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <ul class="text-slate-400 text-sm space-y-1 list-disc pl-4">
+              <li>Query DBA_SCHEDULER_JOB_RUN_DETAILS for error# and additional_info</li>
+              <li>Check DBA_SCHEDULER_JOB_LOG for state transitions</li>
+              <li>For EXECUTABLE jobs, check OS-level logs (stderr captured in additional_info)</li>
+              <li>Run the job manually (<code class="text-fuchsia-300">DBMS_SCHEDULER.RUN_JOB</code>) and check DBMS output</li>
+              <li>Verify the job owner has necessary privileges (grant them explicitly)</li>
+              <li>Check if scheduler is enabled: <code class="text-fuchsia-300">SELECT value FROM v$parameter WHERE name='job_queue_processes'</code> (must be > 0)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+  <footer class="py-8 border-t border-white/6 text-center text-slate-600 text-sm">
+    <a href="index.html" style="text-decoration:none;color:#c026d3" class="hover:opacity-80">&larr; Back to Oracle DBA Simplified</a>
+  </footer>
+
+  <script>
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:0.1});
+    reveals.forEach(r => io.observe(r));
+    const btt = document.getElementById('btt');
+    window.addEventListener('scroll', () => btt.classList.toggle('show', window.scrollY > 400));
+    document.getElementById('menu-btn').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('open'));
+  </script>
+</body>
+</html>

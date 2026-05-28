@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Oracle Auditing | Oracle DBA Simplified</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0b1120;color:#e2e8f0;font-family:'DM Sans',sans-serif;line-height:1.7}
+    h1,h2,h3,h4{font-family:'Sora',sans-serif}
+    .glass{background:rgba(255,255,255,.04);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.07);border-radius:16px}
+    .badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.5px}
+    .badge-amber{background:rgba(245,158,11,.18);color:#fbbf24}
+    .badge-green{background:rgba(52,211,153,.18);color:#34d399}
+    .badge-red{background:rgba(248,113,113,.18);color:#f87171}
+    .badge-blue{background:rgba(96,165,250,.18);color:#60a5fa}
+    .terminal{background:#0a0f1e;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+    .terminal-bar{background:#1e293b;padding:8px 12px;display:flex;gap:6px;align-items:center}
+    .t-dot{width:10px;height:10px;border-radius:50%}
+    pre{overflow-x:auto}
+    code .kw{color:#fbbf24}
+    code .fn{color:#f472b6}
+    code .str{color:#86efac}
+    code .cm{color:#475569}
+    code .num{color:#f9a8d4}
+    code .op{color:#fb923c}
+    .acc-btn{width:100%;text-align:left;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s;color:#e2e8f0;font-family:'Sora',sans-serif;font-weight:600;font-size:15px}
+    .acc-btn:hover{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.06)}
+    .acc-btn.open{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.06);border-radius:10px 10px 0 0}
+    .acc-body{display:none;padding:20px;border:1px solid rgba(245,158,11,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)}
+    .acc-body.open{display:block}
+    .stat-card{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.22);border-radius:14px;padding:22px 24px}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .55s ease,transform .55s ease}
+    .reveal.visible{opacity:1;transform:none}
+    .section{padding:80px 0}
+    .section-alt{background:rgba(255,255,255,.015)}
+    nav{position:sticky;top:0;z-index:50;background:rgba(11,17,32,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07)}
+    .nav-link{color:#94a3b8;font-size:13px;font-weight:500;padding:6px 10px;border-radius:6px;transition:all .2s;text-decoration:none;white-space:nowrap}
+    .nav-link:hover{color:#fbbf24;background:rgba(245,158,11,.1)}
+    #btt{position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:#f59e0b;color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:18px;z-index:99;box-shadow:0 4px 20px rgba(245,158,11,.4)}
+    #btt.show{display:flex}
+    .arch-card{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.18);border-radius:12px;padding:18px}
+    .step-num{width:34px;height:34px;border-radius:50%;background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.4);display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:#fbbf24;flex-shrink:0}
+    table{width:100%;border-collapse:collapse}
+    th{background:rgba(245,158,11,.12);color:#fbbf24;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;padding:11px 14px;text-align:left;text-transform:uppercase;letter-spacing:.5px}
+    td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:#cbd5e1;vertical-align:top}
+    tr:last-child td{border-bottom:none}
+    tr:nth-child(even) td{background:rgba(255,255,255,.018)}
+    #mobile-menu{display:none}
+    #mobile-menu.open{display:block}
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-14">
+        <div class="flex items-center gap-3">
+          <a href="index.html" class="flex items-center gap-2 text-slate-400 hover:text-amber-400 transition-colors text-sm font-medium" style="text-decoration:none">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Home
+          </a>
+          <span class="text-neutral-700">|</span>
+          <a href="index.html" class="flex items-center gap-2 text-white font-bold text-sm" style="font-family:'Sora',sans-serif;text-decoration:none">
+            <i class="fas fa-database text-amber-400"></i> Oracle DBA Simplified
+          </a>
+        </div>
+        <div class="hidden lg:flex items-center gap-1">
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#unified-audit" class="nav-link">Unified Auditing</a>
+          <a href="#policies" class="nav-link">Audit Policies</a>
+          <a href="#fga" class="nav-link">FGA</a>
+          <a href="#dbsat" class="nav-link">DBSAT</a>
+          <a href="#maintenance" class="nav-link">Audit Maintenance</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+        <button id="menu-btn" class="lg:hidden text-slate-400 hover:text-white p-2 bg-transparent border-none cursor-pointer"><i class="fas fa-bars"></i></button>
+      </div>
+      <div id="mobile-menu" class="pb-3 lg:hidden">
+        <div class="flex flex-col gap-1">
+          <a href="index.html" class="nav-link" style="color:#f59e0b"><i class="fas fa-arrow-left text-xs mr-1"></i> Back to Home</a>
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#unified-audit" class="nav-link">Unified Auditing</a>
+          <a href="#policies" class="nav-link">Audit Policies</a>
+          <a href="#fga" class="nav-link">FGA</a>
+          <a href="#dbsat" class="nav-link">DBSAT</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden" style="background:linear-gradient(135deg,#0b1120 0%,#1a1400 55%,#0b1120 100%);padding:80px 0 64px">
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 65% 50% at 50% 0%,rgba(245,158,11,.13),transparent)"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 relative">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.28)">
+          <i class="fas fa-eye text-amber-400 text-sm"></i>
+          <span class="text-amber-300 text-sm font-semibold" style="font-family:'Sora',sans-serif">Oracle 19c · Auditing & Compliance</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-3">Oracle Auditing</h1>
+        <p class="text-2xl font-bold mb-4" style="color:#fbbf24;font-family:'Sora',sans-serif">Unified Audit · FGA · DBSAT · Compliance</p>
+        <p class="text-slate-400 max-w-2xl mx-auto text-base">Track who accessed what data, when, and how. Oracle Unified Auditing, Fine-Grained Auditing, and DBSAT help meet SOX, PCI-DSS, HIPAA, and GDPR requirements.</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#fbbf24;font-family:'Sora',sans-serif">Unified</div>
+          <div class="text-slate-300 text-sm font-semibold">Single Audit Trail</div>
+          <div class="text-slate-500 text-xs mt-1">All audit records in AUDSYS schema</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#fbbf24;font-family:'Sora',sans-serif">FGA</div>
+          <div class="text-slate-300 text-sm font-semibold">Fine-Grained Audit</div>
+          <div class="text-slate-500 text-xs mt-1">Row/column-level auditing</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#fbbf24;font-family:'Sora',sans-serif">DBSAT</div>
+          <div class="text-slate-300 text-sm font-semibold">Security Assessment</div>
+          <div class="text-slate-500 text-xs mt-1">Identify security risks automatically</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#fbbf24;font-family:'Sora',sans-serif">PCI/SOX</div>
+          <div class="text-slate-300 text-sm font-semibold">Compliance</div>
+          <div class="text-slate-500 text-xs mt-1">Regulation-ready audit configurations</div>
+        </div>
+      </div>
+      <div class="max-w-3xl mx-auto">
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+            <span class="text-slate-500 text-xs ml-2">Quick: Check audit mode and policies</span>
+          </div>
+          <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Check current audit mode (UNIFIED, TRADITIONAL, or MIXED)</span>
+<span class="kw">SELECT</span> value <span class="kw">FROM</span> v$option <span class="kw">WHERE</span> parameter = <span class="str">'Unified Auditing'</span>;
+
+<span class="cm">-- List all audit policies</span>
+<span class="kw">SELECT</span> policy_name, enabled_option, user_name
+<span class="kw">FROM</span>   audit_unified_enabled_policies
+<span class="kw">ORDER BY</span> policy_name;
+
+<span class="cm">-- View recent audit records</span>
+<span class="kw">SELECT</span> event_timestamp, db_user, action_name,
+       object_name, sql_text
+<span class="kw">FROM</span>   unified_audit_trail
+<span class="kw">WHERE</span>  event_timestamp > <span class="fn">SYSDATE</span>-<span class="num">1</span>
+<span class="kw">ORDER BY</span> event_timestamp <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">20</span> <span class="kw">ROWS ONLY</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: Overview -->
+  <section id="overview" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-amber mb-4">Section 1</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Oracle Auditing Overview</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Oracle provides multiple auditing frameworks. Since 12c, Unified Auditing is the preferred single-trail approach.</p>
+      </div>
+      <div class="reveal overflow-x-auto rounded-xl border border-white/8 mb-8">
+        <table>
+          <thead><tr><th>Audit Type</th><th>Scope</th><th>Storage</th><th>Since</th></tr></thead>
+          <tbody>
+            <tr><td class="text-amber-300 font-semibold">Traditional Auditing</td><td>Statements, privileges, objects</td><td>SYS.AUD$ (DB) or OS file</td><td>Pre-12c (deprecated)</td></tr>
+            <tr><td class="text-amber-300 font-semibold">Unified Auditing</td><td>All audit sources — DB, RMAN, Datapump, Scheduler</td><td>AUDSYS.AUD$UNIFIED (encrypted)</td><td>12c (default 19c)</td></tr>
+            <tr><td class="text-amber-300 font-semibold">Fine-Grained Auditing (FGA)</td><td>Row/column-level with conditions</td><td>Unified trail (12c+)</td><td>9i</td></tr>
+            <tr><td class="text-amber-300 font-semibold">SYS Auditing (AUDIT_SYS_OPERATIONS)</td><td>SYS and SYSDBA connections</td><td>OS audit files (mandatory)</td><td>All versions</td></tr>
+            <tr><td class="text-amber-300 font-semibold">Value-Based Auditing</td><td>Old/new column values via triggers</td><td>Custom audit table</td><td>All versions</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Unified Auditing -->
+  <section id="unified-audit" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-amber mb-4">Section 2</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Unified Auditing (12c/19c)</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Unified Auditing consolidates all Oracle audit trails into a single, tamper-resistant location in the AUDSYS schema.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Key Advantages of Unified Auditing</h3>
+          <ul class="space-y-2 text-sm text-slate-400">
+            <li class="flex gap-2"><i class="fas fa-check text-amber-400 text-xs mt-1.5"></i><span><strong class="text-white">Single view:</strong> UNIFIED_AUDIT_TRAIL covers DB actions, RMAN, Datapump, Scheduler, Label Security</span></li>
+            <li class="flex gap-2"><i class="fas fa-check text-amber-400 text-xs mt-1.5"></i><span><strong class="text-white">Write-protected:</strong> Audit records in AUDSYS cannot be modified by DBAs (only purge with DBMS_AUDIT_MGMT)</span></li>
+            <li class="flex gap-2"><i class="fas fa-check text-amber-400 text-xs mt-1.5"></i><span><strong class="text-white">Policy-based:</strong> Named policies — enable/disable without restarting DB</span></li>
+            <li class="flex gap-2"><i class="fas fa-check text-amber-400 text-xs mt-1.5"></i><span><strong class="text-white">Conditional:</strong> Audit only when predicate matches (e.g., only failed logins)</span></li>
+            <li class="flex gap-2"><i class="fas fa-check text-amber-400 text-xs mt-1.5"></i><span><strong class="text-white">Buffered:</strong> Records buffered in SGA, written async — minimal performance impact</span></li>
+          </ul>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Enable Unified Auditing (Pure Mode)</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Check current mode</span>
+<span class="kw">SELECT</span> value <span class="kw">FROM</span> v$option
+<span class="kw">WHERE</span>  parameter = <span class="str">'Unified Auditing'</span>;
+<span class="cm">-- TRUE = Pure Unified, FALSE = Mixed mode</span>
+
+<span class="cm">-- Enable pure unified auditing (requires relink)</span>
+<span class="cm">-- 1. Shutdown DB</span>
+shutdown immediate;
+<span class="cm">-- 2. As oracle OS user, relink oracle binary</span>
+cd $ORACLE_HOME/rdbms/lib
+make -f ins_rdbms.mk uniaud_on ioracle
+<span class="cm">-- 3. Start DB — unified auditing now active</span>
+startup</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Audit Policies -->
+  <section id="policies" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-amber mb-4">Section 3</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Creating & Managing Audit Policies</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Audit policies are named, reusable rules. Create once, enable for specific users or all users.</p>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">Audit Policy — Create, Enable, Query</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Policy 1: Audit all failed logins</span>
+<span class="kw">CREATE AUDIT POLICY</span> failed_logins
+  <span class="kw">ACTIONS</span> LOGON
+  <span class="kw">WHEN</span> <span class="str">'SYS_CONTEXT(''USERENV'', ''AUTHENTICATED_IDENTITY'') IS NOT NULL'</span>
+  <span class="kw">EVALUATE PER</span> SESSION;
+<span class="kw">AUDIT POLICY</span> failed_logins <span class="kw">WHENEVER NOT</span> SUCCESSFUL;
+
+<span class="cm">-- Policy 2: Audit DDL on sensitive schemas</span>
+<span class="kw">CREATE AUDIT POLICY</span> ddl_changes
+  <span class="kw">ACTIONS</span> <span class="kw">CREATE TABLE</span>, <span class="kw">DROP TABLE</span>,
+           <span class="kw">ALTER TABLE</span>, <span class="kw">CREATE INDEX</span>, <span class="kw">DROP INDEX</span>
+  <span class="kw">ACTIONS COMPONENT</span> = DV
+  <span class="kw">CONTAINER</span> = <span class="kw">ALL</span>;
+<span class="kw">AUDIT POLICY</span> ddl_changes <span class="kw">BY</span> APP_USER, DEVELOPER;
+
+<span class="cm">-- Policy 3: Audit SYS privilege usage</span>
+<span class="kw">CREATE AUDIT POLICY</span> sys_privs
+  <span class="kw">PRIVILEGES</span> <span class="kw">DROP ANY TABLE</span>, <span class="kw">CREATE ANY TABLE</span>,
+              <span class="kw">GRANT ANY PRIVILEGE</span>, <span class="kw">ALTER SYSTEM</span>;
+<span class="kw">AUDIT POLICY</span> sys_privs;
+
+<span class="cm">-- Disable a policy</span>
+<span class="kw">NOAUDIT POLICY</span> ddl_changes;
+
+<span class="cm">-- View all enabled policies</span>
+<span class="kw">SELECT</span> policy_name, enabled_option, user_name, success, failure
+<span class="kw">FROM</span>   audit_unified_enabled_policies;</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: FGA -->
+  <section id="fga" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-amber mb-4">Section 4</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Fine-Grained Auditing (FGA)</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">FGA audits access at the row and column level — triggered only when specific data is accessed. Ideal for PCI-DSS card data or HIPAA patient records.</p>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">DBMS_FGA — Fine-Grained Audit Policy</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Audit SELECT on credit card column when accessed by non-finance users</span>
+<span class="kw">BEGIN</span>
+  <span class="fn">DBMS_FGA.ADD_POLICY</span>(
+    object_schema   => <span class="str">'PAYMENTS'</span>,
+    object_name     => <span class="str">'CARD_TRANSACTIONS'</span>,
+    policy_name     => <span class="str">'CARD_DATA_AUDIT'</span>,
+    audit_column    => <span class="str">'CARD_NUMBER,CVV,EXPIRY_DATE'</span>,
+    audit_condition => <span class="str">'SYS_CONTEXT(''USERENV'',''SESSION_USER'') NOT IN
+                        (SELECT grantee FROM dba_sys_privs WHERE privilege=''FINANCE_READ'')'</span>,
+    statement_types => <span class="str">'SELECT,UPDATE'</span>,
+    enable          => <span class="kw">TRUE</span>
+  );
+<span class="kw">END</span>;
+/
+
+<span class="cm">-- Query FGA audit trail</span>
+<span class="kw">SELECT</span> timestamp, db_user, object_name,
+       policy_name, sql_text
+<span class="kw">FROM</span>   dba_fga_audit_trail
+<span class="kw">WHERE</span>  object_name = <span class="str">'CARD_TRANSACTIONS'</span>
+<span class="kw">ORDER BY</span> timestamp <span class="kw">DESC</span>;
+
+<span class="cm">-- Remove FGA policy</span>
+<span class="kw">EXEC</span> <span class="fn">DBMS_FGA.DROP_POLICY</span>(<span class="str">'PAYMENTS'</span>,<span class="str">'CARD_TRANSACTIONS'</span>,<span class="str">'CARD_DATA_AUDIT'</span>);</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: DBSAT -->
+  <section id="dbsat" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-amber mb-4">Section 5</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Oracle Database Security Assessment Tool (DBSAT)</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">DBSAT is a free Oracle tool that scans your database for security misconfigurations, excessive privileges, and compliance gaps.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">What DBSAT Checks</h3>
+          <ul class="space-y-2 text-sm text-slate-400">
+            <li class="flex gap-2"><i class="fas fa-search text-amber-400 text-xs mt-1.5"></i><span>Basic Security Configuration (listener, audit, password policies)</span></li>
+            <li class="flex gap-2"><i class="fas fa-search text-amber-400 text-xs mt-1.5"></i><span>User accounts with default passwords or excessive privileges</span></li>
+            <li class="flex gap-2"><i class="fas fa-search text-amber-400 text-xs mt-1.5"></i><span>Audit trail configuration and gaps</span></li>
+            <li class="flex gap-2"><i class="fas fa-search text-amber-400 text-xs mt-1.5"></i><span>Network encryption and authentication settings</span></li>
+            <li class="flex gap-2"><i class="fas fa-search text-amber-400 text-xs mt-1.5"></i><span>Sensitive data discovery (credit cards, SSNs, email patterns)</span></li>
+            <li class="flex gap-2"><i class="fas fa-search text-amber-400 text-xs mt-1.5"></i><span>CIS Benchmark and Oracle security best practices compliance</span></li>
+          </ul>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Running DBSAT</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm"># 1. Download DBSAT from My Oracle Support (Doc 2138204.1)</span>
+<span class="cm"># 2. Unzip to /opt/dbsat</span>
+unzip dbsat.zip -d /opt/dbsat
+
+<span class="cm"># 3. Collect (reads DB data)</span>
+cd /opt/dbsat
+./dbsat collect dbsat_user@ORCL report_ORCL
+
+<span class="cm"># 4. Report (generates HTML/JSON/XLSX)</span>
+./dbsat report report_ORCL
+
+<span class="cm"># 5. Discover (sensitive data patterns)</span>
+./dbsat discover -p dbsat_discover.cfg \
+  dbsat_user@ORCL discover_ORCL
+
+<span class="cm"># Output: report_ORCL.html — open in browser</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Audit Maintenance -->
+  <section id="maintenance" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-amber mb-4">Section 6</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Audit Trail Maintenance</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Audit trails grow rapidly. Regular purging (with archival for compliance) is essential to prevent SYSAUX tablespace overflow.</p>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">DBMS_AUDIT_MGMT — Purge & Archive</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Check audit trail size</span>
+<span class="kw">SELECT</span> segment_name,
+       <span class="fn">ROUND</span>(bytes/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">1</span>) size_mb
+<span class="kw">FROM</span>   dba_segments
+<span class="kw">WHERE</span>  segment_name = <span class="str">'AUD$UNIFIED'</span>;
+
+<span class="cm">-- Initialize purge (required first time)</span>
+<span class="kw">BEGIN</span>
+  <span class="fn">DBMS_AUDIT_MGMT.INIT_CLEANUP</span>(
+    audit_trail_type => <span class="fn">DBMS_AUDIT_MGMT.AUDIT_TRAIL_UNIFIED</span>,
+    default_cleanup_interval => <span class="num">24</span>  <span class="cm">-- hours</span>
+  );
+<span class="kw">END</span>;
+/
+
+<span class="cm">-- Set last archive timestamp (keeps records after this date)</span>
+<span class="kw">BEGIN</span>
+  <span class="fn">DBMS_AUDIT_MGMT.SET_LAST_ARCHIVE_TIMESTAMP</span>(
+    audit_trail_type => <span class="fn">DBMS_AUDIT_MGMT.AUDIT_TRAIL_UNIFIED</span>,
+    last_archive_time => <span class="fn">SYSTIMESTAMP</span> - <span class="kw">INTERVAL</span> <span class="str">'90'</span> <span class="kw">DAY</span>
+  );
+<span class="kw">END</span>;
+/
+
+<span class="cm">-- Purge records older than last archive timestamp</span>
+<span class="kw">BEGIN</span>
+  <span class="fn">DBMS_AUDIT_MGMT.CLEAN_AUDIT_TRAIL</span>(
+    audit_trail_type => <span class="fn">DBMS_AUDIT_MGMT.AUDIT_TRAIL_UNIFIED</span>,
+    use_last_arch_timestamp => <span class="kw">TRUE</span>
+  );
+<span class="kw">END</span>;
+/</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 7: Interview Q&A -->
+  <section id="interview" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-amber mb-4">Section 7</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Oracle Auditing — Interview Q&amp;A</h2>
+      </div>
+      <div class="reveal max-w-3xl mx-auto space-y-3">
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is the difference between Traditional Auditing and Unified Auditing?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">Traditional Auditing stores records in SYS.AUD$ (DB) or OS files, has separate trails for different components, and DBAs can delete records directly. Unified Auditing (12c+) consolidates all audit records into AUDSYS.AUD$UNIFIED, covers DB actions plus RMAN/Datapump/Scheduler, uses write-protected storage (requires DBMS_AUDIT_MGMT to purge), and supports policy-based configuration without DB restarts.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is Fine-Grained Auditing and when would you use it?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">FGA (via DBMS_FGA) audits at the row/column level with conditions — unlike standard auditing which fires on every matching statement. Use it when you need: (1) PCI-DSS compliance for credit card column access; (2) HIPAA auditing of patient record access; (3) auditing only when a WHERE clause accesses sensitive rows; (4) capturing the actual SQL text that touched sensitive data. FGA records go into DBA_FGA_AUDIT_TRAIL (or UNIFIED_AUDIT_TRAIL in 12c+).</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            How would you prevent SYSAUX tablespace from filling up due to audit records?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <ul class="text-slate-400 text-sm space-y-1 list-disc pl-4">
+              <li>Set up automated purge using <code class="text-amber-300">DBMS_AUDIT_MGMT.CREATE_PURGE_JOB</code></li>
+              <li>Archive audit records to external storage before purging (for compliance retention)</li>
+              <li>Set LAST_ARCHIVE_TIMESTAMP so purge only removes records past retention period</li>
+              <li>Monitor AUDSYS segment size: query DBA_SEGMENTS for AUD$UNIFIED</li>
+              <li>Tune audit policies — avoid auditing high-frequency operations unnecessarily (e.g., every SELECT on an OLTP table)</li>
+            </ul>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            How do you audit SYSDBA connections in Oracle?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">SYSDBA connections bypass normal DB audit trails because they connect before the database is fully open. Set <code class="text-amber-300">AUDIT_SYS_OPERATIONS=TRUE</code> in init.ora — this writes SYSDBA activity to OS audit files (set by <code class="text-amber-300">AUDIT_FILE_DEST</code>). In Unified Auditing, OS-level SYSDBA records still go to OS files; use the mandatory audit policy <code class="text-amber-300">ORA_SECURECONFIG</code> which is enabled by default in 19c to capture SYS activity.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+  <footer class="py-8 border-t border-white/6 text-center text-slate-600 text-sm">
+    <a href="index.html" style="text-decoration:none;color:#f59e0b" class="hover:opacity-80">&larr; Back to Oracle DBA Simplified</a>
+  </footer>
+
+  <script>
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:0.1});
+    reveals.forEach(r => io.observe(r));
+    const btt = document.getElementById('btt');
+    window.addEventListener('scroll', () => btt.classList.toggle('show', window.scrollY > 400));
+    document.getElementById('menu-btn').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('open'));
+  </script>
+</body>
+</html>

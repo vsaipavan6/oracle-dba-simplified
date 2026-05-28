@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>DBA Scripts Library | Oracle DBA Simplified</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0b1120;color:#e2e8f0;font-family:'DM Sans',sans-serif;line-height:1.7}
+    h1,h2,h3,h4{font-family:'Sora',sans-serif}
+    .glass{background:rgba(255,255,255,.04);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.07);border-radius:16px}
+    .badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.5px}
+    .badge-red{background:rgba(239,68,68,.18);color:#f87171}
+    .badge-green{background:rgba(52,211,153,.18);color:#34d399}
+    .badge-yellow{background:rgba(251,191,36,.18);color:#fbbf24}
+    .badge-blue{background:rgba(96,165,250,.18);color:#60a5fa}
+    .badge-purple{background:rgba(167,139,250,.18);color:#a78bfa}
+    .terminal{background:#0a0f1e;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+    .terminal-bar{background:#1e293b;padding:8px 12px;display:flex;gap:6px;align-items:center}
+    .t-dot{width:10px;height:10px;border-radius:50%}
+    pre{overflow-x:auto}
+    code .kw{color:#f87171}
+    code .fn{color:#fbbf24}
+    code .str{color:#86efac}
+    code .cm{color:#475569}
+    code .num{color:#f9a8d4}
+    code .op{color:#fb923c}
+    .tab-btn{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;color:#64748b;background:transparent;border:none;white-space:nowrap}
+    .tab-btn.active,.tab-btn:hover{background:rgba(239,68,68,.15);color:#f87171}
+    .tab-pane{display:none}.tab-pane.active{display:block}
+    .stat-card{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:14px;padding:22px 24px}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .55s ease,transform .55s ease}
+    .reveal.visible{opacity:1;transform:none}
+    .section{padding:80px 0}
+    .section-alt{background:rgba(255,255,255,.015)}
+    nav{position:sticky;top:0;z-index:50;background:rgba(11,17,32,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07)}
+    .nav-link{color:#94a3b8;font-size:13px;font-weight:500;padding:6px 10px;border-radius:6px;transition:all .2s;text-decoration:none;white-space:nowrap}
+    .nav-link:hover{color:#f87171;background:rgba(239,68,68,.1)}
+    #btt{position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:#ef4444;color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:18px;z-index:99;box-shadow:0 4px 20px rgba(239,68,68,.4)}
+    #btt.show{display:flex}
+    #mobile-menu{display:none}
+    #mobile-menu.open{display:block}
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-14">
+        <div class="flex items-center gap-3">
+          <a href="index.html" class="flex items-center gap-2 text-slate-400 hover:text-red-400 transition-colors text-sm font-medium" style="text-decoration:none">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Home
+          </a>
+          <span class="text-neutral-700">|</span>
+          <a href="index.html" class="flex items-center gap-2 text-white font-bold text-sm" style="font-family:'Sora',sans-serif;text-decoration:none">
+            <i class="fas fa-database text-red-400"></i> Oracle DBA Simplified
+          </a>
+        </div>
+        <div class="hidden lg:flex items-center gap-1">
+          <a href="#health" class="nav-link">Health Check</a>
+          <a href="#space" class="nav-link">Space Reports</a>
+          <a href="#sessions" class="nav-link">Sessions</a>
+          <a href="#performance" class="nav-link">Performance</a>
+          <a href="#backup" class="nav-link">Backup</a>
+          <a href="#security" class="nav-link">Security</a>
+          <a href="#objects" class="nav-link">Objects</a>
+        </div>
+        <button id="menu-btn" class="lg:hidden text-slate-400 hover:text-white p-2 bg-transparent border-none cursor-pointer"><i class="fas fa-bars"></i></button>
+      </div>
+      <div id="mobile-menu" class="pb-3 lg:hidden">
+        <div class="flex flex-col gap-1">
+          <a href="index.html" class="nav-link" style="color:#ef4444"><i class="fas fa-arrow-left text-xs mr-1"></i> Back to Home</a>
+          <a href="#health" class="nav-link">Health Check</a>
+          <a href="#space" class="nav-link">Space Reports</a>
+          <a href="#sessions" class="nav-link">Sessions</a>
+          <a href="#performance" class="nav-link">Performance</a>
+          <a href="#backup" class="nav-link">Backup</a>
+          <a href="#security" class="nav-link">Security</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden" style="background:linear-gradient(135deg,#0b1120 0%,#1a0808 55%,#0b1120 100%);padding:80px 0 64px">
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 65% 50% at 50% 0%,rgba(239,68,68,.13),transparent)"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 relative">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.28)">
+          <i class="fas fa-file-code text-red-400 text-sm"></i>
+          <span class="text-red-300 text-sm font-semibold" style="font-family:'Sora',sans-serif">Oracle DBA · Ready-to-Use Scripts</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-3">DBA Scripts Library</h1>
+        <p class="text-2xl font-bold mb-4" style="color:#f87171;font-family:'Sora',sans-serif">Health · Space · Sessions · Performance · Backup</p>
+        <p class="text-slate-400 max-w-2xl mx-auto text-base">Production-tested Oracle SQL scripts organized by category. Copy, customize, and deploy. Each script targets a real DBA task you'll use regularly.</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#f87171;font-family:'Sora',sans-serif">50+</div>
+          <div class="text-slate-300 text-sm font-semibold">SQL Scripts</div>
+          <div class="text-slate-500 text-xs mt-1">Ready to run in production</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#f87171;font-family:'Sora',sans-serif">7</div>
+          <div class="text-slate-300 text-sm font-semibold">Categories</div>
+          <div class="text-slate-500 text-xs mt-1">Health, Space, Sessions, Perf...</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#f87171;font-family:'Sora',sans-serif">19c</div>
+          <div class="text-slate-300 text-sm font-semibold">Compatible</div>
+          <div class="text-slate-500 text-xs mt-1">Also works on 12c / 18c</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#f87171;font-family:'Sora',sans-serif">0</div>
+          <div class="text-slate-300 text-sm font-semibold">Schema Changes</div>
+          <div class="text-slate-500 text-xs mt-1">Read-only — safe to run anytime</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Health Check Scripts -->
+  <section id="health" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-red mb-4">Category 1</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Database Health Check Scripts</h2>
+        <p class="text-slate-400 max-w-xl mx-auto">Run these daily to confirm your database is healthy, components are valid, and no hidden issues exist.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Database Status & Mode</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> name, db_unique_name, open_mode,
+       log_mode, protection_mode,
+       database_role, flashback_on,
+       <span class="fn">TO_CHAR</span>(created,<span class="str">'YYYY-MM-DD'</span>) created
+<span class="kw">FROM</span>   v$database;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Invalid DB Components</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> comp_id, comp_name, version, status
+<span class="kw">FROM</span>   dba_registry
+<span class="kw">WHERE</span>  status != <span class="str">'VALID'</span>
+<span class="kw">ORDER BY</span> comp_id;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Invalid Objects (All Users)</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> owner, object_type,
+       <span class="fn">COUNT</span>(*) invalid_count
+<span class="kw">FROM</span>   dba_objects
+<span class="kw">WHERE</span>  status = <span class="str">'INVALID'</span>
+<span class="kw">AND</span>    owner <span class="kw">NOT IN</span> (<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>)
+<span class="kw">GROUP BY</span> owner, object_type
+<span class="kw">ORDER BY</span> invalid_count <span class="kw">DESC</span>;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Recent ORA- Errors from Alert Log</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- 19c+ External Table view of alert log</span>
+<span class="kw">SELECT</span> originating_timestamp, message_text
+<span class="kw">FROM</span>   x$dbgalertext
+<span class="kw">WHERE</span>  message_text <span class="kw">LIKE</span> <span class="str">'ORA-%'</span>
+<span class="kw">AND</span>    originating_timestamp > <span class="fn">SYSTIMESTAMP</span>-<span class="num">1</span>
+<span class="kw">ORDER BY</span> originating_timestamp <span class="kw">DESC</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Space Scripts -->
+  <section id="space" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-red mb-4">Category 2</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Space & Tablespace Reports</h2>
+        <p class="text-slate-400 max-w-xl mx-auto">Monitor disk usage before it becomes a problem. These scripts help prevent ORA-01653 (out of space) emergencies.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Tablespace Usage Summary</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span>
+  tablespace_name,
+  <span class="fn">ROUND</span>(used_space*<span class="num">8192</span>/<span class="num">1024</span>/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">2</span>) used_gb,
+  <span class="fn">ROUND</span>(tablespace_size*<span class="num">8192</span>/<span class="num">1024</span>/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">2</span>) total_gb,
+  <span class="fn">ROUND</span>(used_percent,<span class="num">1</span>) pct_used,
+  <span class="kw">CASE WHEN</span> used_percent > <span class="num">90</span> <span class="kw">THEN</span> <span class="str">'CRITICAL'</span>
+       <span class="kw">WHEN</span> used_percent > <span class="num">80</span> <span class="kw">THEN</span> <span class="str">'WARNING'</span>
+       <span class="kw">ELSE</span> <span class="str">'OK'</span> <span class="kw">END</span> status
+<span class="kw">FROM</span>   dba_tablespace_usage_metrics
+<span class="kw">ORDER BY</span> used_percent <span class="kw">DESC</span>;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Top Space Consumers by Segment</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> owner, segment_name, segment_type,
+       <span class="fn">ROUND</span>(bytes/<span class="num">1024</span>/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">2</span>) size_gb
+<span class="kw">FROM</span>   dba_segments
+<span class="kw">WHERE</span>  owner <span class="kw">NOT IN</span> (<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>,<span class="str">'SYSAUX'</span>)
+<span class="kw">ORDER BY</span> bytes <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">20</span> <span class="kw">ROWS ONLY</span>;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">FRA (Flash Recovery Area) Usage</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span>
+  name,
+  <span class="fn">ROUND</span>(space_limit/<span class="num">1024</span>/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">1</span>) limit_gb,
+  <span class="fn">ROUND</span>(space_used/<span class="num">1024</span>/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">1</span>) used_gb,
+  <span class="fn">ROUND</span>(space_used*<span class="num">100</span>/space_limit,<span class="num">1</span>) pct_used
+<span class="kw">FROM</span>   v$recovery_file_dest;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Datafiles & Autoextend Status</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> tablespace_name,
+       file_name,
+       <span class="fn">ROUND</span>(bytes/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">1</span>) size_mb,
+       autoextensible,
+       <span class="fn">ROUND</span>(maxbytes/<span class="num">1024</span>/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">1</span>) max_gb
+<span class="kw">FROM</span>   dba_data_files
+<span class="kw">ORDER BY</span> tablespace_name, file_name;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Session Scripts -->
+  <section id="sessions" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-red mb-4">Category 3</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Session & Locking Scripts</h2>
+        <p class="text-slate-400 max-w-xl mx-auto">Identify blocking sessions, find long-running queries, and monitor active connections.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Blocking Sessions</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span>
+  s.blocking_session blocker,
+  s.sid victim, s.serial#,
+  s.username, s.machine,
+  s.wait_class, s.event,
+  s.seconds_in_wait secs,
+  sq.sql_text
+<span class="kw">FROM</span>   v$session s
+<span class="kw">LEFT JOIN</span> v$sql sq <span class="kw">ON</span> s.sql_id = sq.sql_id
+<span class="kw">WHERE</span>  s.blocking_session <span class="kw">IS NOT NULL</span>
+<span class="kw">ORDER BY</span> s.seconds_in_wait <span class="kw">DESC</span>;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Long-Running Operations</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span>
+  sid, serial#, opname, target,
+  sofar, totalwork,
+  <span class="fn">ROUND</span>(<span class="num">100</span>*sofar/<span class="fn">DECODE</span>(totalwork,<span class="num">0</span>,<span class="num">1</span>,totalwork),<span class="num">1</span>) pct,
+  time_remaining secs_left,
+  elapsed_seconds
+<span class="kw">FROM</span>   v$session_longops
+<span class="kw">WHERE</span>  time_remaining > <span class="num">0</span>
+<span class="kw">ORDER BY</span> elapsed_seconds <span class="kw">DESC</span>;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Active Sessions by Wait Class</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span>
+  wait_class,
+  <span class="fn">COUNT</span>(*) session_count,
+  <span class="fn">ROUND</span>(<span class="fn">AVG</span>(seconds_in_wait),<span class="num">1</span>) avg_wait_secs
+<span class="kw">FROM</span>   v$session
+<span class="kw">WHERE</span>  status = <span class="str">'ACTIVE'</span>
+<span class="kw">AND</span>    type = <span class="str">'USER'</span>
+<span class="kw">GROUP BY</span> wait_class
+<span class="kw">ORDER BY</span> session_count <span class="kw">DESC</span>;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-yellow">Caution</span><h3 class="font-bold text-white text-sm">Kill a Session</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- First: identify the session</span>
+<span class="kw">SELECT</span> sid, serial#, username, status, sql_id
+<span class="kw">FROM</span>   v$session
+<span class="kw">WHERE</span>  username = <span class="str">'APP_USER'</span>;
+
+<span class="cm">-- Then: kill it (replace SID,SERIAL#)</span>
+<span class="kw">ALTER SYSTEM KILL SESSION</span> <span class="str">'123,456'</span> IMMEDIATE;
+
+<span class="cm">-- For OS-level kill (if ORA-00031):</span>
+<span class="cm">-- Get SPID from v$process, then OS kill -9 $SPID</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Performance Scripts -->
+  <section id="performance" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-red mb-4">Category 4</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Performance Monitoring Scripts</h2>
+        <p class="text-slate-400 max-w-xl mx-auto">Find high-resource SQL, check wait events, and identify performance bottlenecks in real time.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Top SQL by CPU</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> sql_id,
+       <span class="fn">ROUND</span>(cpu_time/<span class="num">1e6</span>/<span class="fn">DECODE</span>(executions,<span class="num">0</span>,<span class="num">1</span>,executions),<span class="num">2</span>) avg_cpu_sec,
+       executions,
+       <span class="fn">ROUND</span>(buffer_gets/<span class="fn">DECODE</span>(executions,<span class="num">0</span>,<span class="num">1</span>,executions)) avg_lio,
+       <span class="fn">SUBSTR</span>(sql_text,<span class="num">1</span>,<span class="num">60</span>) sql_preview
+<span class="kw">FROM</span>   v$sql
+<span class="kw">WHERE</span>  executions > <span class="num">0</span>
+<span class="kw">ORDER BY</span> cpu_time <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> <span class="kw">ROWS ONLY</span>;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">System-Wide Wait Events</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> event, wait_class,
+       total_waits,
+       <span class="fn">ROUND</span>(time_waited/<span class="num">100</span>,<span class="num">1</span>) time_waited_sec,
+       <span class="fn">ROUND</span>(average_wait/<span class="num">100</span>,<span class="num">4</span>) avg_wait_sec
+<span class="kw">FROM</span>   v$system_event
+<span class="kw">WHERE</span>  wait_class != <span class="str">'Idle'</span>
+<span class="kw">ORDER BY</span> time_waited <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">15</span> <span class="kw">ROWS ONLY</span>;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Buffer Cache Hit Ratio</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span>
+  <span class="fn">ROUND</span>((<span class="num">1</span> - (phy.value/(log.value+con.value)))*<span class="num">100</span>,<span class="num">2</span>) hit_ratio_pct
+<span class="kw">FROM</span>
+  (SELECT value <span class="kw">FROM</span> v$sysstat <span class="kw">WHERE</span> name=<span class="str">'physical reads'</span>) phy,
+  (SELECT value <span class="kw">FROM</span> v$sysstat <span class="kw">WHERE</span> name=<span class="str">'db block gets'</span>) log,
+  (SELECT value <span class="kw">FROM</span> v$sysstat <span class="kw">WHERE</span> name=<span class="str">'consistent gets'</span>) con;
+<span class="cm">-- Target: > 95% (OLTP), > 80% (DW)</span></code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">SGA Component Sizes</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span>
+  component,
+  <span class="fn">ROUND</span>(current_size/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">0</span>) current_mb,
+  <span class="fn">ROUND</span>(min_size/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">0</span>) min_mb,
+  <span class="fn">ROUND</span>(max_size/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">0</span>) max_mb
+<span class="kw">FROM</span>   v$sga_dynamic_components
+<span class="kw">WHERE</span>  current_size > <span class="num">0</span>
+<span class="kw">ORDER BY</span> current_size <span class="kw">DESC</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Backup Scripts -->
+  <section id="backup" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-red mb-4">Category 5</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Backup & Recovery Status Scripts</h2>
+        <p class="text-slate-400 max-w-xl mx-auto">Verify your backups succeeded, check archivelog status, and confirm recovery readiness.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">RMAN Backup Status (Last 7 Days)</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span>
+  session_key,
+  input_type,
+  status,
+  <span class="fn">TO_CHAR</span>(start_time,<span class="str">'YYYY-MM-DD HH24:MI'</span>) started,
+  <span class="fn">ROUND</span>(elapsed_seconds/<span class="num">60</span>,<span class="num">1</span>) elapsed_min,
+  <span class="fn">ROUND</span>(output_bytes/<span class="num">1024</span>/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">2</span>) output_gb
+<span class="kw">FROM</span>   v$rman_backup_job_details
+<span class="kw">WHERE</span>  start_time > <span class="fn">SYSDATE</span>-<span class="num">7</span>
+<span class="kw">ORDER BY</span> start_time <span class="kw">DESC</span>;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Archivelog Generation Rate</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span>
+  <span class="fn">TRUNC</span>(first_time,<span class="str">'HH'</span>) hour_bucket,
+  <span class="fn">COUNT</span>(*) archivelogs,
+  <span class="fn">ROUND</span>(<span class="fn">SUM</span>(blocks*block_size)/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">0</span>) mb_generated
+<span class="kw">FROM</span>   v$archived_log
+<span class="kw">WHERE</span>  first_time > <span class="fn">SYSDATE</span>-<span class="num">1</span>
+<span class="kw">AND</span>    standby_dest = <span class="str">'NO'</span>
+<span class="kw">GROUP BY</span> <span class="fn">TRUNC</span>(first_time,<span class="str">'HH'</span>)
+<span class="kw">ORDER BY</span> <span class="num">1</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security Scripts -->
+  <section id="security" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-red mb-4">Category 6</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Security Audit Scripts</h2>
+        <p class="text-slate-400 max-w-xl mx-auto">Check for security misconfigurations, excessive privileges, and default passwords.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Users with DBA Role</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> grantee, granted_role,
+       admin_option, default_role
+<span class="kw">FROM</span>   dba_role_privs
+<span class="kw">WHERE</span>  granted_role = <span class="str">'DBA'</span>
+<span class="kw">AND</span>    grantee <span class="kw">NOT IN</span> (<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>)
+<span class="kw">ORDER BY</span> grantee;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-red">Important</span><h3 class="font-bold text-white text-sm">Default Passwords Check</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> username, account_status,
+       expiry_date, default_tablespace
+<span class="kw">FROM</span>   dba_users
+<span class="kw">WHERE</span>  password_versions <span class="kw">LIKE</span> <span class="str">'%10G%'</span>
+<span class="kw">OR</span>     username <span class="kw">IN</span> (
+  <span class="kw">SELECT</span> username <span class="kw">FROM</span> dba_users_with_defpwd
+)
+<span class="kw">ORDER BY</span> username;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Objects Section -->
+  <section id="objects" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-red mb-4">Category 7</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Object Management Scripts</h2>
+        <p class="text-slate-400 max-w-xl mx-auto">Find large tables, check index status, identify fragmented objects, and analyze object growth.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Tables Without Primary Key</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> owner, table_name
+<span class="kw">FROM</span>   dba_tables
+<span class="kw">WHERE</span>  owner <span class="kw">NOT IN</span> (<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>,<span class="str">'SYSAUX'</span>)
+<span class="kw">MINUS</span>
+<span class="kw">SELECT</span> owner, table_name
+<span class="kw">FROM</span>   dba_constraints
+<span class="kw">WHERE</span>  constraint_type = <span class="str">'P'</span>
+<span class="kw">ORDER BY</span> <span class="num">1</span>,<span class="num">2</span>;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-5">
+          <div class="flex items-center gap-2 mb-3"><span class="badge badge-green">Safe</span><h3 class="font-bold text-white text-sm">Unusable Indexes</h3></div>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="kw">SELECT</span> owner, index_name, table_name,
+       status, partitioned
+<span class="kw">FROM</span>   dba_indexes
+<span class="kw">WHERE</span>  status = <span class="str">'UNUSABLE'</span>
+<span class="kw">AND</span>    owner <span class="kw">NOT IN</span> (<span class="str">'SYS'</span>,<span class="str">'SYSTEM'</span>)
+<span class="kw">ORDER BY</span> owner, table_name;
+<span class="cm">-- Fix: ALTER INDEX owner.idx_name REBUILD;</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+  <footer class="py-8 border-t border-white/6 text-center text-slate-600 text-sm">
+    <a href="index.html" style="text-decoration:none;color:#ef4444" class="hover:opacity-80">&larr; Back to Oracle DBA Simplified</a>
+  </footer>
+
+  <script>
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:0.1});
+    reveals.forEach(r => io.observe(r));
+    const btt = document.getElementById('btt');
+    window.addEventListener('scroll', () => btt.classList.toggle('show', window.scrollY > 400));
+    document.getElementById('menu-btn').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('open'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Shell Scripting for DBAs | Oracle DBA Simplified</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--color-primary:#14b8a6;--color-secondary:#2dd4bf;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0b1120;color:#e2e8f0;font-family:'DM Sans',sans-serif;line-height:1.7}
+    h1,h2,h3,h4{font-family:'Sora',sans-serif}
+    .glass{background:rgba(255,255,255,.04);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.07);border-radius:16px}
+    .badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.5px}
+    .badge-teal{background:rgba(20,184,166,.18);color:#2dd4bf}
+    .badge-green{background:rgba(52,211,153,.18);color:#34d399}
+    .badge-yellow{background:rgba(251,191,36,.18);color:#fbbf24}
+    .badge-red{background:rgba(248,113,113,.18);color:#f87171}
+    .badge-blue{background:rgba(96,165,250,.18);color:#60a5fa}
+    .terminal{background:#0a0f1e;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+    .terminal-bar{background:#1e293b;padding:8px 12px;display:flex;gap:6px;align-items:center}
+    .t-dot{width:10px;height:10px;border-radius:50%}
+    pre{overflow-x:auto}
+    code .kw{color:#2dd4bf}
+    code .fn{color:#fbbf24}
+    code .str{color:#86efac}
+    code .cm{color:#475569}
+    code .num{color:#f9a8d4}
+    code .op{color:#fb923c}
+    code .var{color:#c084fc}
+    .acc-btn{width:100%;text-align:left;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s;color:#e2e8f0;font-family:'Sora',sans-serif;font-weight:600;font-size:15px}
+    .acc-btn:hover{border-color:rgba(20,184,166,.4);background:rgba(20,184,166,.06)}
+    .acc-btn.open{border-color:rgba(20,184,166,.4);background:rgba(20,184,166,.06);border-radius:10px 10px 0 0}
+    .acc-body{display:none;padding:20px;border:1px solid rgba(20,184,166,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)}
+    .acc-body.open{display:block}
+    .stat-card{background:rgba(20,184,166,.08);border:1px solid rgba(20,184,166,.22);border-radius:14px;padding:22px 24px}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .55s ease,transform .55s ease}
+    .reveal.visible{opacity:1;transform:none}
+    .section{padding:80px 0}
+    .section-alt{background:rgba(255,255,255,.015)}
+    nav{position:sticky;top:0;z-index:50;background:rgba(11,17,32,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07)}
+    .nav-link{color:#94a3b8;font-size:13px;font-weight:500;padding:6px 10px;border-radius:6px;transition:all .2s;text-decoration:none;white-space:nowrap}
+    .nav-link:hover,.nav-link.active{color:#2dd4bf;background:rgba(20,184,166,.1)}
+    #btt{position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:#14b8a6;color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:18px;z-index:99;box-shadow:0 4px 20px rgba(20,184,166,.4)}
+    #btt.show{display:flex}
+    .arch-card{background:rgba(20,184,166,.07);border:1px solid rgba(20,184,166,.18);border-radius:12px;padding:18px}
+    .step-num{width:34px;height:34px;border-radius:50%;background:rgba(20,184,166,.2);border:1px solid rgba(20,184,166,.4);display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:#2dd4bf;flex-shrink:0}
+    table{width:100%;border-collapse:collapse}
+    th{background:rgba(20,184,166,.12);color:#2dd4bf;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;padding:11px 14px;text-align:left;text-transform:uppercase;letter-spacing:.5px}
+    td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:#cbd5e1;vertical-align:top}
+    tr:last-child td{border-bottom:none}
+    tr:nth-child(even) td{background:rgba(255,255,255,.018)}
+    #mobile-menu{display:none}
+    #mobile-menu.open{display:block}
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-14">
+        <div class="flex items-center gap-3">
+          <a href="index.html" class="flex items-center gap-2 text-slate-400 hover:text-teal-400 transition-colors text-sm font-medium" style="text-decoration:none">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Home
+          </a>
+          <span class="text-neutral-700">|</span>
+          <a href="index.html" class="flex items-center gap-2 text-white font-bold text-sm" style="font-family:'Sora',sans-serif;text-decoration:none">
+            <i class="fas fa-database text-teal-400"></i> Oracle DBA Simplified
+          </a>
+        </div>
+        <div class="hidden lg:flex items-center gap-1">
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#bash-basics" class="nav-link">Bash Basics</a>
+          <a href="#sqlplus" class="nav-link">SQL*Plus in Scripts</a>
+          <a href="#backup-scripts" class="nav-link">Backup Scripts</a>
+          <a href="#health-check" class="nav-link">Health Check</a>
+          <a href="#cron" class="nav-link">Cron Scheduling</a>
+          <a href="#alerts" class="nav-link">Alert Monitoring</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+        <button id="menu-btn" class="lg:hidden text-slate-400 hover:text-white p-2 bg-transparent border-none cursor-pointer"><i class="fas fa-bars"></i></button>
+      </div>
+      <div id="mobile-menu" class="pb-3 lg:hidden">
+        <div class="flex flex-col gap-1">
+          <a href="index.html" class="nav-link" style="color:#14b8a6"><i class="fas fa-arrow-left text-xs mr-1"></i> Back to Home</a>
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#bash-basics" class="nav-link">Bash Basics</a>
+          <a href="#sqlplus" class="nav-link">SQL*Plus in Scripts</a>
+          <a href="#backup-scripts" class="nav-link">Backup Scripts</a>
+          <a href="#health-check" class="nav-link">Health Check</a>
+          <a href="#cron" class="nav-link">Cron Scheduling</a>
+          <a href="#alerts" class="nav-link">Alert Monitoring</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden" style="background:linear-gradient(135deg,#0b1120 0%,#061a1a 55%,#0b1120 100%);padding:80px 0 64px">
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 65% 50% at 50% 0%,rgba(20,184,166,.13),transparent)"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 relative">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style="background:rgba(20,184,166,.12);border:1px solid rgba(20,184,166,.28)">
+          <i class="fas fa-terminal text-teal-400 text-sm"></i>
+          <span class="text-teal-300 text-sm font-semibold" style="font-family:'Sora',sans-serif">Bash Shell · Oracle DBA Automation</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-3">Shell Scripting for DBAs</h1>
+        <p class="text-2xl font-bold mb-4" style="color:#2dd4bf;font-family:'Sora',sans-serif">Automate · Monitor · Alert · Report</p>
+        <p class="text-slate-400 max-w-2xl mx-auto text-base">A production DBA's daily toolkit — automate RMAN backups, health checks, tablespace alerts, session monitoring, and custom reporting with robust Bash scripts.</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#2dd4bf;font-family:'Sora',sans-serif">Bash</div>
+          <div class="text-slate-300 text-sm font-semibold">Primary Shell</div>
+          <div class="text-slate-500 text-xs mt-1">Born Again Shell — default on Oracle Linux</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#2dd4bf;font-family:'Sora',sans-serif">SQL*Plus</div>
+          <div class="text-slate-300 text-sm font-semibold">DB Interface</div>
+          <div class="text-slate-500 text-xs mt-1">Embed SQL in shell for automation</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#2dd4bf;font-family:'Sora',sans-serif">Cron</div>
+          <div class="text-slate-300 text-sm font-semibold">Scheduling</div>
+          <div class="text-slate-500 text-xs mt-1">crontab -e for recurring DBA jobs</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#2dd4bf;font-family:'Sora',sans-serif">Mail</div>
+          <div class="text-slate-300 text-sm font-semibold">Alerting</div>
+          <div class="text-slate-500 text-xs mt-1">Email alerts on threshold breach</div>
+        </div>
+      </div>
+      <div class="max-w-3xl mx-auto">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+            <span class="text-slate-500 text-xs ml-2">Quick: Check tablespace usage from shell</span>
+          </div>
+          <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+<span class="cm"># Quick tablespace check from shell</span>
+. <span class="str">/home/oracle/.bash_profile</span>   <span class="cm"># Load Oracle env</span>
+
+<span class="fn">sqlplus</span> -s / <span class="kw">as</span> sysdba <span class="op">&lt;&lt;EOF</span>
+<span class="kw">SET</span> LINESIZE <span class="num">120</span> PAGESIZE <span class="num">50</span> FEEDBACK OFF
+<span class="kw">SELECT</span> tablespace_name,
+       <span class="fn">ROUND</span>(used_space*<span class="num">8192</span>/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">1</span>) used_mb,
+       <span class="fn">ROUND</span>(tablespace_size*<span class="num">8192</span>/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">1</span>) total_mb,
+       <span class="fn">ROUND</span>(<span class="num">100</span>*used_percent,<span class="num">1</span>) pct_used
+<span class="kw">FROM</span>   dba_tablespace_usage_metrics
+<span class="kw">ORDER BY</span> pct_used <span class="kw">DESC</span>;
+<span class="op">EOF</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: Bash Basics -->
+  <section id="bash-basics" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-teal mb-4">Section 1</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Bash Scripting Essentials for DBAs</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">The building blocks every DBA script needs — variables, conditionals, loops, functions, and error handling.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Script Structure Template</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+<span class="cm"># Script: rman_backup.sh</span>
+<span class="cm"># Purpose: Daily RMAN incremental backup</span>
+<span class="cm"># Author: DBA Team | Date: 2025-01</span>
+<span class="cm"># Usage: ./rman_backup.sh [0|1]</span>
+
+<span class="cm"># === STRICT MODE ===</span>
+<span class="kw">set</span> -euo pipefail
+<span class="kw">IFS</span>=$<span class="str">'\n\t'</span>
+
+<span class="cm"># === ENVIRONMENT ===</span>
+<span class="kw">export</span> <span class="var">ORACLE_SID</span>=ORCL
+<span class="kw">export</span> <span class="var">ORACLE_HOME</span>=/u01/app/oracle/product/19c/dbhome_1
+<span class="kw">export</span> <span class="var">PATH</span>=<span class="var">$ORACLE_HOME</span>/bin:<span class="var">$PATH</span>
+<span class="var">LOG_DIR</span>=/u01/logs/rman
+<span class="var">DATE</span>=$(<span class="fn">date</span> +%Y%m%d_%H%M%S)
+<span class="var">LOGFILE</span>=<span class="var">$LOG_DIR</span>/rman_<span class="var">$DATE</span>.log
+<span class="var">LEVEL</span>=<span class="var">${1:-1}</span>   <span class="cm"># Default level 1</span>
+
+<span class="cm"># === FUNCTIONS ===</span>
+<span class="fn">log</span>() { <span class="fn">echo</span> <span class="str">"[$(date '+%H:%M:%S')] $*"</span> | <span class="fn">tee</span> -a <span class="var">$LOGFILE</span>; }
+<span class="fn">die</span>() { <span class="fn">log</span> <span class="str">"ERROR: $*"</span>; <span class="fn">exit</span> <span class="num">1</span>; }
+
+<span class="cm"># === MAIN ===</span>
+<span class="fn">mkdir</span> -p <span class="var">$LOG_DIR</span>
+<span class="fn">log</span> <span class="str">"Starting Level $LEVEL backup for $ORACLE_SID"</span></code></pre>
+          </div>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Conditionals, Loops & Functions</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm"># === CONDITIONAL ===</span>
+<span class="kw">if</span> [[ <span class="var">$LEVEL</span> -eq <span class="num">0</span> ]]; <span class="kw">then</span>
+  <span class="fn">log</span> <span class="str">"Running Level 0 (full)"</span>
+<span class="kw">elif</span> [[ <span class="var">$LEVEL</span> -eq <span class="num">1</span> ]]; <span class="kw">then</span>
+  <span class="fn">log</span> <span class="str">"Running Level 1 (incremental)"</span>
+<span class="kw">else</span>
+  <span class="fn">die</span> <span class="str">"Invalid level: $LEVEL"</span>
+<span class="kw">fi</span>
+
+<span class="cm"># === LOOP: process multiple SIDs ===</span>
+<span class="kw">for</span> <span class="var">SID</span> <span class="kw">in</span> ORCL DEVDB TESTDB; <span class="kw">do</span>
+  <span class="kw">export</span> <span class="var">ORACLE_SID</span>=<span class="var">$SID</span>
+  <span class="fn">log</span> <span class="str">"Backing up $SID..."</span>
+  <span class="fn">run_backup</span>
+<span class="kw">done</span>
+
+<span class="cm"># === CHECK EXIT CODE ===</span>
+<span class="kw">if</span> [[ <span class="var">$?</span> -ne <span class="num">0</span> ]]; <span class="kw">then</span>
+  <span class="fn">send_alert</span> <span class="str">"Backup FAILED for $ORACLE_SID"</span>
+  <span class="fn">exit</span> <span class="num">1</span>
+<span class="kw">fi</span>
+
+<span class="cm"># === READ FILE LINE BY LINE ===</span>
+<span class="kw">while</span> <span class="fn">IFS</span>= <span class="fn">read</span> -r line; <span class="kw">do</span>
+  <span class="fn">echo</span> <span class="str">"Processing: $line"</span>
+<span class="kw">done</span> < /u01/config/db_list.txt</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: SQL*Plus in Scripts -->
+  <section id="sqlplus" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-teal mb-4">Section 2</span>
+        <h2 class="text-3xl font-bold text-white mb-3">SQL*Plus in Shell Scripts</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Embed SQL queries in shell scripts to capture output, check thresholds, and act on results automatically.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Capture SQL Output into Shell Variable</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+. /home/oracle/.bash_profile
+
+<span class="cm"># Capture a value from SQL query</span>
+<span class="var">DB_STATUS</span>=$(<span class="fn">sqlplus</span> -s / <span class="kw">as</span> sysdba <span class="op">&lt;&lt;EOF</span>
+<span class="kw">SET</span> HEADING OFF FEEDBACK OFF PAGESIZE <span class="num">0</span>
+<span class="kw">SELECT</span> open_mode <span class="kw">FROM</span> v\$database;
+<span class="op">EOF</span>)
+
+<span class="var">DB_STATUS</span>=$(<span class="fn">echo</span> <span class="var">$DB_STATUS</span> | <span class="fn">tr</span> -d <span class="str">' '</span>)
+
+<span class="kw">if</span> [[ <span class="var">$DB_STATUS</span> == <span class="str">"READWRITE"</span> ]]; <span class="kw">then</span>
+  <span class="fn">echo</span> <span class="str">"Database is OPEN and READ WRITE — OK"</span>
+<span class="kw">else</span>
+  <span class="fn">echo</span> <span class="str">"WARNING: DB status is $DB_STATUS"</span>
+  <span class="fn">send_alert</span> <span class="str">"$ORACLE_SID not in READ WRITE: $DB_STATUS"</span>
+<span class="kw">fi</span></code></pre>
+          </div>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Run SQL File & Check Exit Code</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+<span class="cm"># Run a SQL script and validate success</span>
+<span class="fn">sqlplus</span> -s / <span class="kw">as</span> sysdba <span class="op">&lt;&lt;EOF</span>
+  <span class="kw">WHENEVER SQLERROR EXIT</span> <span class="num">1</span>
+  <span class="kw">WHENEVER OSERROR EXIT</span> <span class="num">2</span>
+  @/u01/scripts/create_indexes.sql
+  <span class="kw">COMMIT</span>;
+  <span class="kw">EXIT</span> <span class="num">0</span>;
+<span class="op">EOF</span>
+
+<span class="var">RC</span>=<span class="var">$?</span>
+<span class="kw">if</span> [[ <span class="var">$RC</span> -ne <span class="num">0</span> ]]; <span class="kw">then</span>
+  <span class="fn">log</span> <span class="str">"SQL script failed with RC=$RC"</span>
+  <span class="fn">send_alert</span> <span class="str">"Index creation FAILED on $ORACLE_SID"</span>
+  <span class="fn">exit</span> <span class="num">1</span>
+<span class="kw">fi</span>
+<span class="fn">log</span> <span class="str">"SQL script completed successfully"</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Backup Script -->
+  <section id="backup-scripts" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-teal mb-4">Section 3</span>
+        <h2 class="text-3xl font-bold text-white mb-3">RMAN Backup Automation Script</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">A production-ready RMAN backup shell script with logging, alerting, and retention cleanup.</p>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">rman_backup.sh — Production Ready</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+<span class="cm"># rman_backup.sh — Run Level 0 or Level 1 RMAN backup</span>
+<span class="kw">set</span> -euo pipefail
+
+<span class="kw">export</span> <span class="var">ORACLE_SID</span>=ORCL
+<span class="kw">export</span> <span class="var">ORACLE_HOME</span>=/u01/app/oracle/product/19c/dbhome_1
+<span class="kw">export</span> <span class="var">PATH</span>=<span class="var">$ORACLE_HOME</span>/bin:<span class="var">$PATH</span>
+<span class="var">LOG</span>=/u01/logs/rman/rman_$(<span class="fn">date</span> +%Y%m%d).log
+<span class="var">LEVEL</span>=<span class="var">${1:-1}</span>
+<span class="var">EMAIL</span>=dba-alerts@company.com
+
+<span class="fn">log</span>() { <span class="fn">echo</span> <span class="str">"[$(date '+%F %T')] $*"</span> | <span class="fn">tee</span> -a <span class="var">$LOG</span>; }
+
+<span class="fn">send_alert</span>() {
+  <span class="fn">echo</span> <span class="str">"$1"</span> | <span class="fn">mail</span> -s <span class="str">"[RMAN ALERT] $ORACLE_SID"</span> <span class="var">$EMAIL</span>
+}
+
+<span class="fn">mkdir</span> -p /u01/logs/rman
+<span class="fn">log</span> <span class="str">"=== RMAN Backup Start: Level $LEVEL ==="</span>
+
+<span class="fn">rman</span> target / log=<span class="var">$LOG</span> append <span class="op">&lt;&lt;EOF</span>
+RUN {
+  ALLOCATE CHANNEL c1 DEVICE TYPE DISK FORMAT '/u02/backup/%U';
+  ALLOCATE CHANNEL c2 DEVICE TYPE DISK FORMAT '/u02/backup/%U';
+  BACKUP INCREMENTAL LEVEL <span class="var">$LEVEL</span>
+    DATABASE PLUS ARCHIVELOG DELETE INPUT;
+  DELETE NOPROMPT OBSOLETE;
+}
+<span class="op">EOF</span>
+
+<span class="var">RC</span>=<span class="var">$?</span>
+<span class="kw">if</span> [[ <span class="var">$RC</span> -ne <span class="num">0</span> ]]; <span class="kw">then</span>
+  <span class="fn">log</span> <span class="str">"RMAN backup FAILED (RC=$RC)"</span>
+  <span class="fn">send_alert</span> <span class="str">"RMAN backup FAILED on $ORACLE_SID. Check $LOG"</span>
+  <span class="fn">exit</span> <span class="num">1</span>
+<span class="kw">fi</span>
+
+<span class="fn">log</span> <span class="str">"=== RMAN Backup Completed Successfully ==="</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Health Check -->
+  <section id="health-check" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-teal mb-4">Section 4</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Daily Health Check Script</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Run every morning — database status, tablespace usage, failed jobs, blocking sessions, and archivelog space.</p>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">db_health_check.sh</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+. /home/oracle/.bash_profile
+<span class="var">REPORT</span>=/tmp/health_<span class="var">$ORACLE_SID</span>_$(<span class="fn">date</span> +%Y%m%d).txt
+<span class="fn">exec</span> > <span class="var">$REPORT</span> 2>&1
+
+<span class="fn">echo</span> <span class="str">"========================================="</span>
+<span class="fn">echo</span> <span class="str">"  Oracle DB Health Check — $ORACLE_SID"</span>
+<span class="fn">echo</span> <span class="str">"  $(date '+%F %T')"</span>
+<span class="fn">echo</span> <span class="str">"========================================="</span>
+
+<span class="fn">sqlplus</span> -s / <span class="kw">as</span> sysdba <span class="op">&lt;&lt;EOF</span>
+<span class="kw">SET</span> LINESIZE <span class="num">130</span> PAGESIZE <span class="num">60</span> FEEDBACK OFF
+
+<span class="fn">PROMPT</span> --- DATABASE STATUS ---
+<span class="kw">SELECT</span> name, db_unique_name, open_mode, log_mode, created
+<span class="kw">FROM</span>   v\$database;
+
+<span class="fn">PROMPT</span> --- TABLESPACE USAGE (>70%) ---
+<span class="kw">SELECT</span> tablespace_name,
+       <span class="fn">ROUND</span>(used_percent,<span class="num">1</span>)||<span class="str">'%'</span> pct_used
+<span class="kw">FROM</span>   dba_tablespace_usage_metrics
+<span class="kw">WHERE</span>  used_percent > <span class="num">70</span>
+<span class="kw">ORDER BY</span> used_percent <span class="kw">DESC</span>;
+
+<span class="fn">PROMPT</span> --- FAILED SCHEDULER JOBS (last 24h) ---
+<span class="kw">SELECT</span> job_name, status, run_duration, error#
+<span class="kw">FROM</span>   dba_scheduler_job_run_details
+<span class="kw">WHERE</span>  status != <span class="str">'SUCCEEDED'</span>
+<span class="kw">AND</span>    actual_start_date > <span class="fn">SYSDATE</span>-<span class="num">1</span>;
+
+<span class="fn">PROMPT</span> --- BLOCKING SESSIONS ---
+<span class="kw">SELECT</span> blocking_session, sid, wait_class,
+       seconds_in_wait, event
+<span class="kw">FROM</span>   v\$session
+<span class="kw">WHERE</span>  blocking_session <span class="kw">IS NOT NULL</span>;
+
+<span class="fn">PROMPT</span> --- FRA USAGE ---
+<span class="kw">SELECT</span> <span class="fn">ROUND</span>(space_used/space_limit*<span class="num">100</span>,<span class="num">1</span>)||<span class="str">'%'</span> fra_pct_used
+<span class="kw">FROM</span>   v\$recovery_file_dest;
+<span class="op">EOF</span>
+
+<span class="cm"># Email the report</span>
+<span class="fn">mail</span> -s <span class="str">"[$ORACLE_SID] Health Check $(date +%F)"</span> dba@company.com < <span class="var">$REPORT</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Cron -->
+  <section id="cron" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-teal mb-4">Section 5</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Cron Scheduling for DBAs</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Schedule DBA scripts with cron. Always redirect output to log files — cron has no terminal and emails stderr by default.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Cron Syntax Reference</h3>
+          <div class="terminal mb-4">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm"># ┌──── minute (0-59)</span>
+<span class="cm"># │ ┌─── hour (0-23)</span>
+<span class="cm"># │ │ ┌── day-of-month (1-31)</span>
+<span class="cm"># │ │ │ ┌─ month (1-12)</span>
+<span class="cm"># │ │ │ │ ┌ day-of-week (0=Sun)</span>
+<span class="cm"># │ │ │ │ │</span>
+<span class="cm"># * * * * *  command</span>
+
+<span class="cm"># Examples:</span>
+<span class="num">0</span>  <span class="num">2</span>  * * 0   /dba/scripts/rman_backup.sh <span class="num">0</span>   <span class="cm"># Level 0 Sunday 2am</span>
+<span class="num">0</span>  <span class="num">2</span>  * * <span class="num">1</span>-<span class="num">6</span> /dba/scripts/rman_backup.sh <span class="num">1</span>   <span class="cm"># Level 1 Mon-Sat 2am</span>
+<span class="num">0</span>  <span class="num">6</span>  * * *   /dba/scripts/health_check.sh    <span class="cm"># Daily health check 6am</span>
+<span class="num">*/</span><span class="num">15</span> * * * *  /dba/scripts/tbs_alert.sh       <span class="cm"># Tablespace alert every 15m</span>
+<span class="num">30</span> <span class="num">23</span>  * * 5   /dba/scripts/weekly_report.sh   <span class="cm"># Weekly report Friday 11:30pm</span></code></pre>
+          </div>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Setting Up Oracle Cron</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm"># Edit oracle user's crontab</span>
+<span class="fn">crontab</span> -e -u oracle
+
+<span class="cm"># CRITICAL: Set ORACLE env in crontab itself</span>
+<span class="cm"># Cron doesn't source .bash_profile!</span>
+<span class="kw">ORACLE_SID</span>=ORCL
+<span class="kw">ORACLE_HOME</span>=/u01/app/oracle/product/19c/dbhome_1
+<span class="kw">PATH</span>=<span class="var">$ORACLE_HOME</span>/bin:/usr/bin:/bin
+<span class="kw">MAILTO</span>=oracle@company.com
+
+<span class="num">0</span> <span class="num">2</span> * * * /dba/scripts/rman_backup.sh <span class="num">1</span> >> /u01/logs/cron.log <span class="num">2</span>&<span class="num">1</span>
+
+<span class="cm"># List current cron jobs</span>
+<span class="fn">crontab</span> -l -u oracle
+
+<span class="cm"># Check cron execution in syslog</span>
+<span class="fn">grep</span> CRON /var/log/cron | <span class="fn">tail</span> -<span class="num">20</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Alerting -->
+  <section id="alerts" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-teal mb-4">Section 6</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Tablespace Alert Monitoring Script</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Real-time alerting when tablespace crosses threshold. Run every 15 minutes via cron.</p>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">tbs_alert.sh — Tablespace Threshold Alerting</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+. /home/oracle/.bash_profile
+<span class="var">THRESHOLD</span>=<span class="num">85</span>
+<span class="var">EMAIL</span>=dba-alerts@company.com
+
+<span class="var">ALERTS</span>=$(<span class="fn">sqlplus</span> -s / <span class="kw">as</span> sysdba <span class="op">&lt;&lt;EOF</span>
+<span class="kw">SET</span> HEADING OFF FEEDBACK OFF PAGESIZE <span class="num">0</span> LINESIZE <span class="num">200</span>
+<span class="kw">SELECT</span> tablespace_name||<span class="str">'|'</span>||<span class="fn">ROUND</span>(used_percent,<span class="num">1</span>)
+<span class="kw">FROM</span>   dba_tablespace_usage_metrics
+<span class="kw">WHERE</span>  used_percent > <span class="var">$THRESHOLD</span>;
+<span class="op">EOF</span>)
+
+<span class="kw">if</span> [[ -n <span class="str">"$ALERTS"</span> ]]; <span class="kw">then</span>
+  <span class="var">MSG</span>=<span class="str">"TABLESPACE ALERT on $ORACLE_SID:\n\nTablespace|Pct_Used\n$ALERTS\n\nAction: Add datafile or extend existing."</span>
+  <span class="fn">echo</span> -e <span class="str">"$MSG"</span> | <span class="fn">mail</span> -s <span class="str">"[P2 ALERT] Tablespace > ${THRESHOLD}%"</span> <span class="var">$EMAIL</span>
+  <span class="fn">logger</span> -t ORA_TBS_ALERT <span class="str">"Tablespace alert: $ALERTS"</span>
+<span class="kw">fi</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 7: Interview Q&A -->
+  <section id="interview" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-teal mb-4">Section 7</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Shell Scripting — Interview Q&amp;A</h2>
+      </div>
+      <div class="reveal max-w-3xl mx-auto space-y-3">
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            Why do Oracle cron scripts often fail when they work fine manually?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">Cron runs with a minimal environment — it doesn't source <code class="text-teal-300">.bash_profile</code> or <code class="text-teal-300">.bashrc</code>. So ORACLE_HOME, ORACLE_SID, and PATH are not set. Fix: Either source the profile explicitly (<code class="text-teal-300">. /home/oracle/.bash_profile</code>) at the top of your script, or set the variables directly in the crontab file before the job entries.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            How do you capture SQL output into a shell variable?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">Use a here-document with sqlplus -s (silent mode) and command substitution: <code class="text-teal-300">VAR=$(sqlplus -s / as sysdba &lt;&lt;EOF ... EOF)</code>. Set <code class="text-teal-300">SET HEADING OFF FEEDBACK OFF PAGESIZE 0</code> in the SQL block so only the data value is returned. Then strip whitespace with <code class="text-teal-300">tr -d ' '</code> or <code class="text-teal-300">xargs</code> before comparing.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What does 'set -euo pipefail' do in a shell script?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <ul class="text-slate-400 text-sm space-y-1 list-disc pl-4">
+              <li><strong class="text-white">-e</strong> — Exit immediately if any command returns non-zero</li>
+              <li><strong class="text-white">-u</strong> — Treat unset variables as errors (prevents subtle bugs)</li>
+              <li><strong class="text-white">-o pipefail</strong> — Pipeline returns failure if any command in it fails (not just the last)</li>
+              <li>Together they make scripts fail loudly and fast rather than silently continuing after errors — critical for production DBA automation.</li>
+            </ul>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            How would you monitor alert log for ORA- errors continuously?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <div class="terminal mt-2">
+              <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">#!/bin/bash</span>
+<span class="cm"># Monitor alert log for ORA- errors</span>
+<span class="var">ALERT_LOG</span>=$(<span class="fn">find</span> <span class="var">$ORACLE_BASE</span>/diag -name <span class="str">"alert_${ORACLE_SID}.log"</span> <span class="num">2</span>/dev/null)
+<span class="fn">tail</span> -0f <span class="var">$ALERT_LOG</span> | <span class="kw">while</span> <span class="fn">read</span> line; <span class="kw">do</span>
+  <span class="kw">if</span> <span class="fn">echo</span> <span class="str">"$line"</span> | <span class="fn">grep</span> -qE <span class="str">"ORA-[0-9]+"</span>; <span class="kw">then</span>
+    <span class="fn">echo</span> <span class="str">"$line"</span> | <span class="fn">mail</span> -s <span class="str">"ORA- error on $ORACLE_SID"</span> <span class="var">$EMAIL</span>
+  <span class="kw">fi</span>
+<span class="kw">done</span></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+  <footer class="py-8 border-t border-white/6 text-center text-slate-600 text-sm">
+    <a href="index.html" style="text-decoration:none;color:#14b8a6" class="hover:opacity-80">&larr; Back to Oracle DBA Simplified</a>
+  </footer>
+
+  <script>
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:0.1});
+    reveals.forEach(r => io.observe(r));
+    const btt = document.getElementById('btt');
+    window.addEventListener('scroll', () => btt.classList.toggle('show', window.scrollY > 400));
+    document.getElementById('menu-btn').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('open'));
+  </script>
+</body>
+</html>

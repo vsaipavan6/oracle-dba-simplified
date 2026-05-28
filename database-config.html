@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Database Configuration | Oracle DBA Simplified</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0b1120;color:#e2e8f0;font-family:'DM Sans',sans-serif;line-height:1.7}
+    h1,h2,h3,h4{font-family:'Sora',sans-serif}
+    .glass{background:rgba(255,255,255,.04);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.07);border-radius:16px}
+    .badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.5px}
+    .badge-slate{background:rgba(148,163,184,.15);color:#94a3b8}
+    .badge-green{background:rgba(52,211,153,.18);color:#34d399}
+    .badge-yellow{background:rgba(251,191,36,.18);color:#fbbf24}
+    .badge-red{background:rgba(248,113,113,.18);color:#f87171}
+    .badge-blue{background:rgba(96,165,250,.18);color:#60a5fa}
+    .terminal{background:#0a0f1e;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+    .terminal-bar{background:#1e293b;padding:8px 12px;display:flex;gap:6px;align-items:center}
+    .t-dot{width:10px;height:10px;border-radius:50%}
+    pre{overflow-x:auto}
+    code .kw{color:#94a3b8}
+    code .fn{color:#fbbf24}
+    code .str{color:#86efac}
+    code .cm{color:#475569}
+    code .num{color:#f9a8d4}
+    code .op{color:#fb923c}
+    .acc-btn{width:100%;text-align:left;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s;color:#e2e8f0;font-family:'Sora',sans-serif;font-weight:600;font-size:15px}
+    .acc-btn:hover{border-color:rgba(148,163,184,.4);background:rgba(148,163,184,.06)}
+    .acc-btn.open{border-color:rgba(148,163,184,.4);background:rgba(148,163,184,.06);border-radius:10px 10px 0 0}
+    .acc-body{display:none;padding:20px;border:1px solid rgba(148,163,184,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)}
+    .acc-body.open{display:block}
+    .stat-card{background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.22);border-radius:14px;padding:22px 24px}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .55s ease,transform .55s ease}
+    .reveal.visible{opacity:1;transform:none}
+    .section{padding:80px 0}
+    .section-alt{background:rgba(255,255,255,.015)}
+    nav{position:sticky;top:0;z-index:50;background:rgba(11,17,32,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07)}
+    .nav-link{color:#94a3b8;font-size:13px;font-weight:500;padding:6px 10px;border-radius:6px;transition:all .2s;text-decoration:none;white-space:nowrap}
+    .nav-link:hover{color:#cbd5e1;background:rgba(148,163,184,.12)}
+    #btt{position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:#64748b;color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:18px;z-index:99;box-shadow:0 4px 20px rgba(100,116,139,.4)}
+    #btt.show{display:flex}
+    .arch-card{background:rgba(148,163,184,.07);border:1px solid rgba(148,163,184,.18);border-radius:12px;padding:18px}
+    table{width:100%;border-collapse:collapse}
+    th{background:rgba(148,163,184,.12);color:#94a3b8;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;padding:11px 14px;text-align:left;text-transform:uppercase;letter-spacing:.5px}
+    td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:#cbd5e1;vertical-align:top}
+    tr:last-child td{border-bottom:none}
+    tr:nth-child(even) td{background:rgba(255,255,255,.018)}
+    .yes{color:#34d399}.no{color:#f87171}
+    #mobile-menu{display:none}
+    #mobile-menu.open{display:block}
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-14">
+        <div class="flex items-center gap-3">
+          <a href="index.html" class="flex items-center gap-2 text-slate-400 hover:text-slate-300 transition-colors text-sm font-medium" style="text-decoration:none">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Home
+          </a>
+          <span class="text-neutral-700">|</span>
+          <a href="index.html" class="flex items-center gap-2 text-white font-bold text-sm" style="font-family:'Sora',sans-serif;text-decoration:none">
+            <i class="fas fa-database text-slate-400"></i> Oracle DBA Simplified
+          </a>
+        </div>
+        <div class="hidden lg:flex items-center gap-1">
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#spfile" class="nav-link">SPFILE vs PFILE</a>
+          <a href="#parameters" class="nav-link">Key Parameters</a>
+          <a href="#memory" class="nav-link">Memory</a>
+          <a href="#undo" class="nav-link">Undo</a>
+          <a href="#redo" class="nav-link">Redo Logs</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+        <button id="menu-btn" class="lg:hidden text-slate-400 hover:text-white p-2 bg-transparent border-none cursor-pointer"><i class="fas fa-bars"></i></button>
+      </div>
+      <div id="mobile-menu" class="pb-3 lg:hidden">
+        <div class="flex flex-col gap-1">
+          <a href="index.html" class="nav-link"><i class="fas fa-arrow-left text-xs mr-1"></i> Back to Home</a>
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#spfile" class="nav-link">SPFILE vs PFILE</a>
+          <a href="#parameters" class="nav-link">Key Parameters</a>
+          <a href="#memory" class="nav-link">Memory</a>
+          <a href="#undo" class="nav-link">Undo</a>
+          <a href="#redo" class="nav-link">Redo Logs</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden" style="background:linear-gradient(135deg,#0b1120 0%,#101520 55%,#0b1120 100%);padding:80px 0 64px">
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 65% 50% at 50% 0%,rgba(100,116,139,.13),transparent)"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 relative">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style="background:rgba(100,116,139,.12);border:1px solid rgba(100,116,139,.28)">
+          <i class="fas fa-sliders text-slate-400 text-sm"></i>
+          <span class="text-slate-300 text-sm font-semibold" style="font-family:'Sora',sans-serif">Oracle 19c · Init Parameters & Config</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-3">Database Configuration</h1>
+        <p class="text-2xl font-bold mb-4" style="color:#94a3b8;font-family:'Sora',sans-serif">SPFILE · Parameters · Memory · Undo · Redo</p>
+        <p class="text-slate-400 max-w-2xl mx-auto text-base">Configure Oracle Database correctly from day one — initialization parameters, memory settings, undo management, redo log sizing, and best practices for production environments.</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#94a3b8;font-family:'Sora',sans-serif">SPFILE</div>
+          <div class="text-slate-300 text-sm font-semibold">Server Parameter File</div>
+          <div class="text-slate-500 text-xs mt-1">Binary — persists ALTER SYSTEM</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#94a3b8;font-family:'Sora',sans-serif">AMM</div>
+          <div class="text-slate-300 text-sm font-semibold">Automatic Memory</div>
+          <div class="text-slate-500 text-xs mt-1">MEMORY_TARGET for SGA+PGA</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#94a3b8;font-family:'Sora',sans-serif">AUM</div>
+          <div class="text-slate-300 text-sm font-semibold">Automatic Undo Mgmt</div>
+          <div class="text-slate-500 text-xs mt-1">UNDO_MANAGEMENT=AUTO</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#94a3b8;font-family:'Sora',sans-serif">ORL</div>
+          <div class="text-slate-300 text-sm font-semibold">Online Redo Logs</div>
+          <div class="text-slate-500 text-xs mt-1">Min 3 groups, 200MB–1GB each</div>
+        </div>
+      </div>
+      <div class="max-w-3xl mx-auto">
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+            <span class="text-slate-500 text-xs ml-2">Quick: View key parameters</span>
+          </div>
+          <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- View current vs default parameters</span>
+<span class="kw">SELECT</span> name, value, default_value, description,
+       isdefault, ismodified
+<span class="kw">FROM</span>   v$parameter
+<span class="kw">WHERE</span>  isdefault = <span class="str">'FALSE'</span>
+<span class="kw">ORDER BY</span> name;
+
+<span class="cm">-- Show SPFILE location</span>
+<span class="kw">SELECT</span> value <span class="kw">FROM</span> v$parameter <span class="kw">WHERE</span> name = <span class="str">'spfile'</span>;
+
+<span class="cm">-- Find hidden (underscore) parameters that were changed</span>
+<span class="kw">SELECT</span> ksppinm name, ksppstvl value, ksppdesc description
+<span class="kw">FROM</span>   x$ksppi x <span class="kw">JOIN</span> x$ksppcv y <span class="kw">ON</span> x.indx = y.indx
+<span class="kw">WHERE</span>  ksppinm <span class="kw">LIKE</span> <span class="str">'\_%'</span> <span class="kw">ESCAPE</span> <span class="str">'\'</span>
+<span class="kw">AND</span>    ksppstdf = <span class="str">'FALSE'</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: SPFILE vs PFILE -->
+  <section id="spfile" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-slate mb-4">Section 1</span>
+        <h2 class="text-3xl font-bold text-white mb-3">SPFILE vs PFILE</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Always use SPFILE in production — it persists dynamic parameter changes and survives restarts without manual editing.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Key Differences</h3>
+          <div class="overflow-x-auto rounded-xl border border-white/8">
+            <table>
+              <thead><tr><th>Feature</th><th>SPFILE</th><th>PFILE</th></tr></thead>
+              <tbody>
+                <tr><td>Format</td><td>Binary</td><td>Text (editable)</td></tr>
+                <tr><td>ALTER SYSTEM SET</td><td class="yes">Persists</td><td class="no">Lost on restart</td></tr>
+                <tr><td>RAC Support</td><td class="yes">Yes (shared)</td><td class="no">Per-node only</td></tr>
+                <tr><td>Manual Edit</td><td class="no">Not directly</td><td class="yes">Yes (vi/notepad)</td></tr>
+                <tr><td>ASM Storage</td><td class="yes">Supported</td><td class="no">Local FS only</td></tr>
+                <tr><td>Production Use</td><td class="yes">Always</td><td class="no">Testing/recovery</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">SPFILE Management</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Create SPFILE from PFILE</span>
+<span class="kw">CREATE SPFILE FROM PFILE</span>=<span class="str">'/tmp/init.ora'</span>;
+
+<span class="cm">-- Create PFILE from SPFILE (for backup/editing)</span>
+<span class="kw">CREATE PFILE</span>=<span class="str">'/tmp/init_backup.ora'</span>
+<span class="kw">FROM SPFILE</span>;
+
+<span class="cm">-- Alter parameter — both memory and spfile</span>
+<span class="kw">ALTER SYSTEM SET</span> db_cache_size=<span class="num">2G</span> <span class="kw">SCOPE</span>=BOTH;
+
+<span class="cm">-- Scope options:</span>
+<span class="cm">-- MEMORY  — current instance only (no restart)</span>
+<span class="cm">-- SPFILE  — persists after restart (no immediate effect)</span>
+<span class="cm">-- BOTH    — now + persists (for dynamic parameters)</span>
+
+<span class="cm">-- Reset a parameter to default</span>
+<span class="kw">ALTER SYSTEM RESET</span> db_cache_size <span class="kw">SCOPE</span>=SPFILE;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Key Parameters -->
+  <section id="parameters" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-slate mb-4">Section 2</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Critical Initialization Parameters</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">These parameters have the greatest impact on database behavior, performance, and reliability.</p>
+      </div>
+      <div class="reveal overflow-x-auto rounded-xl border border-white/8 mb-8">
+        <table>
+          <thead><tr><th>Parameter</th><th>Recommended Value</th><th>Impact</th><th>Restart?</th></tr></thead>
+          <tbody>
+            <tr><td class="font-mono text-slate-300">db_name</td><td>ORCL (set at create)</td><td>Database name — immutable</td><td>N/A</td></tr>
+            <tr><td class="font-mono text-slate-300">db_block_size</td><td>8192 (8K) for OLTP</td><td>Fundamental I/O unit — immutable</td><td>N/A</td></tr>
+            <tr><td class="font-mono text-slate-300">memory_target</td><td>0 (use ASMM)</td><td>AMM: auto-manages SGA+PGA total</td><td class="no">Yes</td></tr>
+            <tr><td class="font-mono text-slate-300">sga_target</td><td>60-70% of total RAM</td><td>ASMM: auto-sizes SGA components</td><td class="yes">Dynamic</td></tr>
+            <tr><td class="font-mono text-slate-300">pga_aggregate_target</td><td>20-25% of total RAM</td><td>PGA total for all sessions</td><td class="yes">Dynamic</td></tr>
+            <tr><td class="font-mono text-slate-300">processes</td><td>500-3000</td><td>Max OS processes (sessions+backgrounds)</td><td class="no">Yes</td></tr>
+            <tr><td class="font-mono text-slate-300">sessions</td><td>Auto (~1.1*processes)</td><td>Max concurrent sessions</td><td class="no">Yes</td></tr>
+            <tr><td class="font-mono text-slate-300">undo_tablespace</td><td>UNDOTBS1</td><td>Which undo tablespace to use</td><td class="yes">Dynamic</td></tr>
+            <tr><td class="font-mono text-slate-300">undo_retention</td><td>900 (15 min) or higher</td><td>Seconds to retain undo for reads</td><td class="yes">Dynamic</td></tr>
+            <tr><td class="font-mono text-slate-300">log_buffer</td><td>16-64MB</td><td>Redo log buffer in SGA</td><td class="no">Yes</td></tr>
+            <tr><td class="font-mono text-slate-300">log_archive_dest_1</td><td>LOCATION=/u02/arch</td><td>Archivelog destination</td><td class="yes">Dynamic</td></tr>
+            <tr><td class="font-mono text-slate-300">audit_trail</td><td>DB or NONE (use Unified)</td><td>Traditional audit trail target</td><td class="no">Yes</td></tr>
+            <tr><td class="font-mono text-slate-300">optimizer_mode</td><td>ALL_ROWS (default)</td><td>CBO optimization goal</td><td class="yes">Dynamic</td></tr>
+            <tr><td class="font-mono text-slate-300">parallel_max_servers</td><td>2*CPU_count</td><td>Max parallel query processes</td><td class="yes">Dynamic</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Memory -->
+  <section id="memory" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-slate mb-4">Section 3</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Memory Configuration</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Oracle offers three memory management modes. ASMM (Automatic Shared Memory Management) is recommended for most production environments.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <div class="arch-card">
+          <h3 class="font-bold text-white mb-2">Manual Memory</h3>
+          <p class="text-slate-400 text-sm mb-2">Set each SGA component individually (db_cache_size, shared_pool_size, etc.). Full control but requires constant tuning.</p>
+          <span class="badge badge-yellow">Legacy</span>
+        </div>
+        <div class="arch-card" style="border-color:rgba(148,163,184,.4)">
+          <h3 class="font-bold text-white mb-2">ASMM (Recommended)</h3>
+          <p class="text-slate-400 text-sm mb-2">Set SGA_TARGET + PGA_AGGREGATE_TARGET. Oracle auto-resizes SGA components based on workload demand.</p>
+          <span class="badge badge-green">Best Practice</span>
+        </div>
+        <div class="arch-card">
+          <h3 class="font-bold text-white mb-2">AMM (MEMORY_TARGET)</h3>
+          <p class="text-slate-400 text-sm mb-2">Oracle manages total SGA+PGA automatically. Not recommended on Linux with HugePages (incompatible).</p>
+          <span class="badge badge-red">Avoid on Linux</span>
+        </div>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">ASMM Configuration</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Configure ASMM (recommended)</span>
+<span class="cm">-- Set SGA_TARGET — Oracle auto-sizes components</span>
+<span class="kw">ALTER SYSTEM SET</span> sga_target=<span class="num">8G</span> <span class="kw">SCOPE</span>=BOTH;
+
+<span class="cm">-- Set PGA_AGGREGATE_TARGET — workarea limit for all sessions</span>
+<span class="kw">ALTER SYSTEM SET</span> pga_aggregate_target=<span class="num">2G</span> <span class="kw">SCOPE</span>=BOTH;
+
+<span class="cm">-- Make sure MEMORY_TARGET=0 (disable AMM)</span>
+<span class="kw">ALTER SYSTEM SET</span> memory_target=<span class="num">0</span> <span class="kw">SCOPE</span>=SPFILE;
+
+<span class="cm">-- View current SGA component sizes</span>
+<span class="kw">SELECT</span> component,
+       <span class="fn">ROUND</span>(current_size/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">0</span>) current_mb,
+       <span class="fn">ROUND</span>(min_size/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">0</span>) min_mb,
+       <span class="fn">ROUND</span>(max_size/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">0</span>) max_mb,
+       last_oper_type, last_oper_mode
+<span class="kw">FROM</span>   v$sga_dynamic_components
+<span class="kw">WHERE</span>  current_size > <span class="num">0</span>;</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Undo -->
+  <section id="undo" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-slate mb-4">Section 4</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Undo Management</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Undo enables read consistency, flashback, and transaction rollback. Always use Automatic Undo Management (AUM) in production.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Undo Key Concepts</h3>
+          <ul class="space-y-3 text-sm text-slate-400">
+            <li><strong class="text-white">Read Consistency:</strong> Long-running queries see a consistent snapshot. Undo holds the before-image of modified rows.</li>
+            <li><strong class="text-white">ORA-01555 (Snapshot Too Old):</strong> Undo was overwritten before query could read it. Fix: increase UNDO_RETENTION or undo tablespace size.</li>
+            <li><strong class="text-white">UNDO_RETENTION:</strong> Minimum seconds Oracle tries to keep undo. Not guaranteed unless RETENTION GUARANTEE is set.</li>
+            <li><strong class="text-white">Retention Guarantee:</strong> ALTER TABLESPACE undotbs1 RETENTION GUARANTEE — never overwrites unexpired undo, may cause "can't extend" errors.</li>
+          </ul>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Undo Sizing & Monitoring</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Check undo retention and usage</span>
+<span class="kw">SELECT</span> tablespace_name,
+       status, retention,
+       <span class="fn">ROUND</span>(blocks*<span class="num">8192</span>/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">1</span>) size_mb
+<span class="kw">FROM</span>   dba_tablespaces
+<span class="kw">WHERE</span>  contents = <span class="str">'UNDO'</span>;
+
+<span class="cm">-- Monitor undo usage and expiry</span>
+<span class="kw">SELECT</span> status,
+       <span class="fn">SUM</span>(blocks)*<span class="num">8</span>/<span class="num">1024</span> mb,
+       <span class="fn">COUNT</span>(*) extents
+<span class="kw">FROM</span>   dba_undo_extents
+<span class="kw">GROUP BY</span> status;
+
+<span class="cm">-- Calculate recommended undo size</span>
+<span class="cm">-- Formula: (undo_retention * undo_block_rate * block_size) + overhead</span>
+<span class="kw">SELECT</span> <span class="fn">ROUND</span>((<span class="fn">MAX</span>(undoblks/<span class="fn">DECODE</span>(tuned_undoretention,<span class="num">0</span>,<span class="num">1</span>,tuned_undoretention))
+       * <span class="num">900</span> * <span class="num">8192</span>/<span class="num">1024</span>/<span class="num">1024</span>/<span class="num">1024</span>),<span class="num">2</span>) recommended_gb
+<span class="kw">FROM</span>   v$undostat;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Redo Logs -->
+  <section id="redo" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-slate mb-4">Section 5</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Online Redo Log Configuration</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Redo logs protect committed transactions. Proper sizing eliminates log switch contention — the #1 redo bottleneck.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Redo Log Best Practices</h3>
+          <ul class="space-y-2 text-sm text-slate-400">
+            <li class="flex gap-2"><i class="fas fa-check text-slate-400 text-xs mt-1.5"></i><span>Minimum <strong class="text-white">3 log groups</strong> — never fewer</span></li>
+            <li class="flex gap-2"><i class="fas fa-check text-slate-400 text-xs mt-1.5"></i><span><strong class="text-white">2 members per group</strong> (multiplexing) — on different disks for protection</span></li>
+            <li class="flex gap-2"><i class="fas fa-check text-slate-400 text-xs mt-1.5"></i><span>Target log switches every <strong class="text-white">15-30 minutes</strong> under normal load</span></li>
+            <li class="flex gap-2"><i class="fas fa-check text-slate-400 text-xs mt-1.5"></i><span>OLTP: <strong class="text-white">200MB-500MB</strong> per member; DW: <strong class="text-white">1-4GB</strong></span></li>
+            <li class="flex gap-2"><i class="fas fa-check text-slate-400 text-xs mt-1.5"></i><span>Watch for <strong class="text-white">checkpoint not complete</strong> in alert log — add groups or increase size</span></li>
+          </ul>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Redo Log Management</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- View current log groups and size</span>
+<span class="kw">SELECT</span> l.group#, l.members, l.status,
+       <span class="fn">ROUND</span>(l.bytes/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">0</span>) size_mb,
+       lf.member
+<span class="kw">FROM</span>   v$log l <span class="kw">JOIN</span> v$logfile lf <span class="kw">ON</span> l.group# = lf.group#;
+
+<span class="cm">-- Add a new log group (500MB)</span>
+<span class="kw">ALTER DATABASE ADD LOGFILE GROUP</span> <span class="num">4</span>
+  (<span class="str">'/u03/redo/redo04a.log'</span>, <span class="str">'/u04/redo/redo04b.log'</span>)
+  <span class="kw">SIZE</span> <span class="num">500</span>M;
+
+<span class="cm">-- Drop old (INACTIVE) group</span>
+<span class="kw">ALTER DATABASE DROP LOGFILE GROUP</span> <span class="num">1</span>;
+
+<span class="cm">-- Check log switch frequency</span>
+<span class="kw">SELECT</span> <span class="fn">TO_CHAR</span>(first_time,<span class="str">'YYYY-MM-DD HH24'</span>) hour,
+       <span class="fn">COUNT</span>(*) switches
+<span class="kw">FROM</span>   v$log_history
+<span class="kw">WHERE</span>  first_time > <span class="fn">SYSDATE</span>-<span class="num">1</span>
+<span class="kw">GROUP BY</span> <span class="fn">TO_CHAR</span>(first_time,<span class="str">'YYYY-MM-DD HH24'</span>)
+<span class="kw">ORDER BY</span> <span class="num">1</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Interview Q&A -->
+  <section id="interview" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-slate mb-4">Section 6</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Database Configuration — Interview Q&amp;A</h2>
+      </div>
+      <div class="reveal max-w-3xl mx-auto space-y-3">
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is the difference between SPFILE and PFILE?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">PFILE (init.ora) is a text file — readable and directly editable but changes made via ALTER SYSTEM are lost on restart. SPFILE (spfile.ora) is binary — not directly editable but persists all ALTER SYSTEM SET changes automatically. In production, always use SPFILE. If SPFILE is corrupted, create a new one from a PFILE backup using CREATE SPFILE FROM PFILE.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is ORA-01555 and how do you fix it?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">ORA-01555 "snapshot too old" means a long-running query could not reconstruct the read-consistent snapshot of a row because the undo data was overwritten. Fixes: (1) Increase UNDO_RETENTION (e.g., ALTER SYSTEM SET undo_retention=3600); (2) Add space to the undo tablespace so undo is retained longer; (3) Set RETENTION GUARANTEE on the undo tablespace; (4) Optimize the long-running query to complete faster; (5) Avoid fetching across commits in application code.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            How do you find and fix "log file sync" wait events?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">"Log file sync" means sessions are waiting for LGWR to write redo to the online redo log — triggered by COMMIT. Causes: (1) LGWR I/O is slow — move redo logs to faster storage (SSD/NVMe); (2) Too many commits — batch commits in application; (3) Redo log size too small causing frequent switches — increase log size; (4) LGWR competing with other I/O — dedicate storage. Monitor with: <code class="text-slate-300">SELECT event, total_waits, time_waited FROM v$system_event WHERE event='log file sync'</code>.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What does SCOPE=BOTH mean in ALTER SYSTEM SET?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <ul class="text-slate-400 text-sm space-y-1 list-disc pl-4">
+              <li><strong class="text-white">SCOPE=MEMORY:</strong> Takes effect immediately in current instance but not saved to SPFILE — lost on restart</li>
+              <li><strong class="text-white">SCOPE=SPFILE:</strong> Saved to SPFILE (persists across restarts) but doesn't take effect until next startup — used for static parameters</li>
+              <li><strong class="text-white">SCOPE=BOTH:</strong> Takes effect immediately AND saved to SPFILE — use for dynamic parameters you want to persist</li>
+              <li>If using PFILE (no SPFILE), only SCOPE=MEMORY is valid</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+  <footer class="py-8 border-t border-white/6 text-center text-slate-600 text-sm">
+    <a href="index.html" style="text-decoration:none;color:#64748b" class="hover:opacity-80">&larr; Back to Oracle DBA Simplified</a>
+  </footer>
+
+  <script>
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:0.1});
+    reveals.forEach(r => io.observe(r));
+    const btt = document.getElementById('btt');
+    window.addEventListener('scroll', () => btt.classList.toggle('show', window.scrollY > 400));
+    document.getElementById('menu-btn').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('open'));
+  </script>
+</body>
+</html>

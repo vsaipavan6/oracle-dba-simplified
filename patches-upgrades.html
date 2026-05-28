@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Oracle Patches & Upgrades | Oracle DBA Simplified</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0b1120;color:#e2e8f0;font-family:'DM Sans',sans-serif;line-height:1.7}
+    h1,h2,h3,h4{font-family:'Sora',sans-serif}
+    .glass{background:rgba(255,255,255,.04);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.07);border-radius:16px}
+    .badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.5px}
+    .badge-rose{background:rgba(244,63,94,.18);color:#fb7185}
+    .badge-green{background:rgba(52,211,153,.18);color:#34d399}
+    .badge-yellow{background:rgba(251,191,36,.18);color:#fbbf24}
+    .badge-red{background:rgba(248,113,113,.18);color:#f87171}
+    .badge-blue{background:rgba(96,165,250,.18);color:#60a5fa}
+    .terminal{background:#0a0f1e;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+    .terminal-bar{background:#1e293b;padding:8px 12px;display:flex;gap:6px;align-items:center}
+    .t-dot{width:10px;height:10px;border-radius:50%}
+    pre{overflow-x:auto}
+    code .kw{color:#fb7185}
+    code .fn{color:#fbbf24}
+    code .str{color:#86efac}
+    code .cm{color:#475569}
+    code .num{color:#f9a8d4}
+    code .op{color:#fb923c}
+    .acc-btn{width:100%;text-align:left;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s;color:#e2e8f0;font-family:'Sora',sans-serif;font-weight:600;font-size:15px}
+    .acc-btn:hover{border-color:rgba(244,63,94,.4);background:rgba(244,63,94,.06)}
+    .acc-btn.open{border-color:rgba(244,63,94,.4);background:rgba(244,63,94,.06);border-radius:10px 10px 0 0}
+    .acc-body{display:none;padding:20px;border:1px solid rgba(244,63,94,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)}
+    .acc-body.open{display:block}
+    .stat-card{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.22);border-radius:14px;padding:22px 24px}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .55s ease,transform .55s ease}
+    .reveal.visible{opacity:1;transform:none}
+    .section{padding:80px 0}
+    .section-alt{background:rgba(255,255,255,.015)}
+    nav{position:sticky;top:0;z-index:50;background:rgba(11,17,32,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07)}
+    .nav-link{color:#94a3b8;font-size:13px;font-weight:500;padding:6px 10px;border-radius:6px;transition:all .2s;text-decoration:none;white-space:nowrap}
+    .nav-link:hover{color:#fb7185;background:rgba(244,63,94,.1)}
+    #btt{position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:#f43f5e;color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:18px;z-index:99;box-shadow:0 4px 20px rgba(244,63,94,.4)}
+    #btt.show{display:flex}
+    .arch-card{background:rgba(244,63,94,.07);border:1px solid rgba(244,63,94,.18);border-radius:12px;padding:18px}
+    .step-num{width:34px;height:34px;border-radius:50%;background:rgba(244,63,94,.2);border:1px solid rgba(244,63,94,.4);display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:#fb7185;flex-shrink:0}
+    table{width:100%;border-collapse:collapse}
+    th{background:rgba(244,63,94,.12);color:#fb7185;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;padding:11px 14px;text-align:left;text-transform:uppercase;letter-spacing:.5px}
+    td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:#cbd5e1;vertical-align:top}
+    tr:last-child td{border-bottom:none}
+    tr:nth-child(even) td{background:rgba(255,255,255,.018)}
+    #mobile-menu{display:none}
+    #mobile-menu.open{display:block}
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-14">
+        <div class="flex items-center gap-3">
+          <a href="index.html" class="flex items-center gap-2 text-slate-400 hover:text-rose-400 transition-colors text-sm font-medium" style="text-decoration:none">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Home
+          </a>
+          <span class="text-neutral-700">|</span>
+          <a href="index.html" class="flex items-center gap-2 text-white font-bold text-sm" style="font-family:'Sora',sans-serif;text-decoration:none">
+            <i class="fas fa-database text-rose-400"></i> Oracle DBA Simplified
+          </a>
+        </div>
+        <div class="hidden lg:flex items-center gap-1">
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#patch-types" class="nav-link">Patch Types</a>
+          <a href="#opatch" class="nav-link">OPatch</a>
+          <a href="#apply-patch" class="nav-link">Apply a Patch</a>
+          <a href="#upgrade" class="nav-link">DB Upgrade</a>
+          <a href="#dbua" class="nav-link">DBUA / AutoUpgrade</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+        <button id="menu-btn" class="lg:hidden text-slate-400 hover:text-white p-2 bg-transparent border-none cursor-pointer"><i class="fas fa-bars"></i></button>
+      </div>
+      <div id="mobile-menu" class="pb-3 lg:hidden">
+        <div class="flex flex-col gap-1">
+          <a href="index.html" class="nav-link" style="color:#f43f5e"><i class="fas fa-arrow-left text-xs mr-1"></i> Back to Home</a>
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#patch-types" class="nav-link">Patch Types</a>
+          <a href="#opatch" class="nav-link">OPatch</a>
+          <a href="#apply-patch" class="nav-link">Apply a Patch</a>
+          <a href="#upgrade" class="nav-link">DB Upgrade</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden" style="background:linear-gradient(135deg,#0b1120 0%,#1a0812 55%,#0b1120 100%);padding:80px 0 64px">
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 65% 50% at 50% 0%,rgba(244,63,94,.13),transparent)"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 relative">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style="background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.28)">
+          <i class="fas fa-arrow-up-right-dots text-rose-400 text-sm"></i>
+          <span class="text-rose-300 text-sm font-semibold" style="font-family:'Sora',sans-serif">Oracle 19c · Patching & Upgrades</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-3">Oracle Patches & Upgrades</h1>
+        <p class="text-2xl font-bold mb-4" style="color:#fb7185;font-family:'Sora',sans-serif">OPatch · RU/RUR · AutoUpgrade · DBUA</p>
+        <p class="text-slate-400 max-w-2xl mx-auto text-base">Keep Oracle databases current — apply security patches, Release Updates, and perform in-place major version upgrades with zero data loss using proven methodologies.</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#fb7185;font-family:'Sora',sans-serif">RU</div>
+          <div class="text-slate-300 text-sm font-semibold">Release Update</div>
+          <div class="text-slate-500 text-xs mt-1">Quarterly cumulative patches</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#fb7185;font-family:'Sora',sans-serif">OPatch</div>
+          <div class="text-slate-300 text-sm font-semibold">Patch Tool</div>
+          <div class="text-slate-500 text-xs mt-1">Apply / rollback / list patches</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#fb7185;font-family:'Sora',sans-serif">DBUA</div>
+          <div class="text-slate-300 text-sm font-semibold">DB Upgrade Assistant</div>
+          <div class="text-slate-500 text-xs mt-1">GUI-based major version upgrade</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#fb7185;font-family:'Sora',sans-serif">AutoUpgrade</div>
+          <div class="text-slate-300 text-sm font-semibold">Automated Upgrade</div>
+          <div class="text-slate-500 text-xs mt-1">Unattended, multi-DB upgrade tool</div>
+        </div>
+      </div>
+      <div class="max-w-3xl mx-auto">
+        <div class="terminal">
+          <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+            <span class="text-slate-500 text-xs ml-2">Quick: Check installed patches</span>
+          </div>
+          <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm"># Check OPatch version (must be ≥ 12.2.0.1.36 for 19c RU)</span>
+$ORACLE_HOME/OPatch/opatch version
+
+<span class="cm"># List all installed patches</span>
+$ORACLE_HOME/OPatch/opatch lspatches
+
+<span class="cm"># Check installed patches from SQL</span>
+<span class="kw">SELECT</span> patch_id, patch_uid, description, action_time
+<span class="kw">FROM</span>   sys.registry$sqlpatch
+<span class="kw">ORDER BY</span> action_time <span class="kw">DESC</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: Patch Types -->
+  <section id="patch-types" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-rose mb-4">Section 1</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Oracle Patch Types</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Oracle releases different patch types on different schedules. Understanding them is essential for planning maintenance windows.</p>
+      </div>
+      <div class="reveal overflow-x-auto rounded-xl border border-white/8 mb-8">
+        <table>
+          <thead><tr><th>Patch Type</th><th>Frequency</th><th>Scope</th><th>Requires Downtime</th></tr></thead>
+          <tbody>
+            <tr><td class="text-rose-300 font-semibold">Release Update (RU)</td><td>Quarterly (Jan/Apr/Jul/Oct)</td><td>Bug fixes + security + PSE</td><td>Yes — ORACLE_HOME outage</td></tr>
+            <tr><td class="text-rose-300 font-semibold">Release Update Revision (RUR)</td><td>Between RUs</td><td>Security-only subset of RU</td><td>Yes — smaller patch</td></tr>
+            <tr><td class="text-rose-300 font-semibold">One-off Patch</td><td>On demand</td><td>Single bug fix</td><td>Yes — may conflict with RU</td></tr>
+            <tr><td class="text-rose-300 font-semibold">Critical Patch Update (CPU)</td><td>Quarterly</td><td>Security fixes only</td><td>Yes</td></tr>
+            <tr><td class="text-rose-300 font-semibold">Diagnostic Patch</td><td>On demand</td><td>Tracing/diagnosability only</td><td>Sometimes</td></tr>
+            <tr><td class="text-rose-300 font-semibold">Data Patch (datapatch)</td><td>After RU apply</td><td>Dictionary SQL changes</td><td>DB must be open</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="reveal grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="arch-card">
+          <h3 class="font-bold text-white mb-2"><i class="fas fa-calendar-check text-rose-400 mr-2"></i>Oracle Quarterly Patch Schedule</h3>
+          <p class="text-slate-400 text-sm">Release Updates (RUs) are released on the third Tuesday of January, April, July, and October. Known as the "Critical Patch Update (CPU) calendar." Most production shops apply RUs 1-2 quarters behind latest to allow stabilization.</p>
+        </div>
+        <div class="arch-card">
+          <h3 class="font-bold text-white mb-2"><i class="fas fa-shield-alt text-yellow-400 mr-2"></i>Patch Conflict Resolution</h3>
+          <p class="text-slate-400 text-sm">Before applying, run <code class="text-rose-300 text-xs">opatch prereq CheckConflictAgainstOHWithDetail</code> to detect conflicts. Use Patch Conflict Matrix on My Oracle Support or merge conflicting patches via a Custom Patch Set (contact Oracle Support).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: OPatch -->
+  <section id="opatch" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-rose mb-4">Section 2</span>
+        <h2 class="text-3xl font-bold text-white mb-3">OPatch Utility — Complete Reference</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">OPatch is Oracle's patch management tool. Always use the latest OPatch compatible with your Oracle version.</p>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">OPatch Command Reference</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm"># Verify OPatch installation</span>
+$ORACLE_HOME/OPatch/opatch version
+
+<span class="cm"># List all installed patches (patch IDs)</span>
+$ORACLE_HOME/OPatch/opatch lspatches
+
+<span class="cm"># Check inventory for a specific patch ID</span>
+$ORACLE_HOME/OPatch/opatch lsinventory -patch_id 35648110
+
+<span class="cm"># Pre-check before applying (must pass before patching)</span>
+$ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail \
+  -phBaseDir /tmp/patch/35648110
+
+<span class="cm"># Apply a patch (ORACLE_HOME must be down for binary patches)</span>
+$ORACLE_HOME/OPatch/opatch apply /tmp/patch/35648110
+
+<span class="cm"># Rollback a specific patch</span>
+$ORACLE_HOME/OPatch/opatch rollback -id 35648110
+
+<span class="cm"># Apply RU using OPatch auto (handles complex bundles)</span>
+$ORACLE_HOME/OPatch/opatch auto /tmp/patch/35648110 \
+  -oh $ORACLE_HOME -ocmrf /tmp/ocm.rsp</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Apply a Patch Step-by-Step -->
+  <section id="apply-patch" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-rose mb-4">Section 3</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Applying a Release Update — Step by Step</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">The complete patching procedure: from pre-checks to post-validation. Never skip steps in production.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><div class="step-num">1</div><h3 class="font-bold text-white text-sm">Download & Stage Patch</h3></div>
+          <p class="text-slate-400 text-xs">Download from My Oracle Support. Unzip to /tmp/patch. Verify checksum with <code class="text-rose-300">md5sum</code>.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><div class="step-num">2</div><h3 class="font-bold text-white text-sm">Backup ORACLE_HOME</h3></div>
+          <p class="text-slate-400 text-xs"><code class="text-rose-300">cp -rp $ORACLE_HOME $ORACLE_HOME.bak</code> — essential for quick rollback if patch fails.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><div class="step-num">3</div><h3 class="font-bold text-white text-sm">RMAN Backup</h3></div>
+          <p class="text-slate-400 text-xs">Full RMAN backup before any patching. Non-negotiable for production.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><div class="step-num">4</div><h3 class="font-bold text-white text-sm">Stop Database & Listener</h3></div>
+          <p class="text-slate-400 text-xs"><code class="text-rose-300">shutdown immediate</code> + <code class="text-rose-300">lsnrctl stop</code>. Verify no processes remain: <code class="text-rose-300">ps -ef | grep pmon</code>.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><div class="step-num">5</div><h3 class="font-bold text-white text-sm">Apply OPatch</h3></div>
+          <p class="text-slate-400 text-xs"><code class="text-rose-300">opatch apply</code> or <code class="text-rose-300">opatch auto</code>. Capture full output to log file.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><div class="step-num">6</div><h3 class="font-bold text-white text-sm">Run Datapatch</h3></div>
+          <p class="text-slate-400 text-xs">Start DB, then <code class="text-rose-300">$ORACLE_HOME/OPatch/datapatch -verbose</code> to apply data dictionary changes.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><div class="step-num">7</div><h3 class="font-bold text-white text-sm">Run utlrp.sql</h3></div>
+          <p class="text-slate-400 text-xs">Recompile invalid objects: <code class="text-rose-300">@?/rdbms/admin/utlrp.sql</code>. Check count of INVALID objects before/after.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><div class="step-num">8</div><h3 class="font-bold text-white text-sm">Validate Patch</h3></div>
+          <p class="text-slate-400 text-xs"><code class="text-rose-300">opatch lspatches</code> + query registry$sqlpatch. Check alert log for ORA- errors.</p>
+        </div>
+        <div class="arch-card">
+          <div class="flex items-center gap-3 mb-2"><div class="step-num">9</div><h3 class="font-bold text-white text-sm">Run Post-Patch Tests</h3></div>
+          <p class="text-slate-400 text-xs">Execute application smoke tests, check critical query plans, verify connections, confirm no new ORA- errors.</p>
+        </div>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">Post-patch validation queries</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Verify patch in registry</span>
+<span class="kw">SELECT</span> patch_id, patch_uid, version, action,
+       status, action_time, description
+<span class="kw">FROM</span>   sys.registry$sqlpatch
+<span class="kw">ORDER BY</span> action_time <span class="kw">DESC</span>;
+
+<span class="cm">-- Check for invalid objects (should be 0 after utlrp)</span>
+<span class="kw">SELECT</span> owner, object_type, <span class="fn">COUNT</span>(*)
+<span class="kw">FROM</span>   dba_objects
+<span class="kw">WHERE</span>  status = <span class="str">'INVALID'</span>
+<span class="kw">GROUP BY</span> owner, object_type
+<span class="kw">ORDER BY</span> <span class="num">1</span>;
+
+<span class="cm">-- Verify DB component status</span>
+<span class="kw">SELECT</span> comp_id, comp_name, version, status
+<span class="kw">FROM</span>   dba_registry
+<span class="kw">ORDER BY</span> comp_id;</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: DB Upgrade -->
+  <section id="upgrade" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-rose mb-4">Section 4</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Oracle Database Version Upgrade</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Upgrading from 11g/12c/18c to 19c — the most common upgrade path. 19c is the Long Term Support Release (LTS) through 2030.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Pre-Upgrade Checklist</h3>
+          <ul class="space-y-2 text-sm text-slate-400">
+            <li class="flex gap-2"><i class="fas fa-check-circle text-green-400 text-xs mt-1.5"></i><span>Run <strong class="text-white">Pre-Upgrade Information Tool</strong> (preupgrade.jar) on source DB</span></li>
+            <li class="flex gap-2"><i class="fas fa-check-circle text-green-400 text-xs mt-1.5"></i><span>Fix all fixup scripts generated by preupgrade.jar</span></li>
+            <li class="flex gap-2"><i class="fas fa-check-circle text-green-400 text-xs mt-1.5"></i><span>Gather fresh statistics (DBMS_STATS.GATHER_DATABASE_STATS)</span></li>
+            <li class="flex gap-2"><i class="fas fa-check-circle text-green-400 text-xs mt-1.5"></i><span>Take full RMAN backup of source database</span></li>
+            <li class="flex gap-2"><i class="fas fa-check-circle text-green-400 text-xs mt-1.5"></i><span>Capture SQL Plan Baselines for critical SQL</span></li>
+            <li class="flex gap-2"><i class="fas fa-check-circle text-green-400 text-xs mt-1.5"></i><span>Document current init.ora parameters</span></li>
+            <li class="flex gap-2"><i class="fas fa-check-circle text-green-400 text-xs mt-1.5"></i><span>Verify minimum SYSTEM/SYSAUX tablespace free space (≥1GB)</span></li>
+            <li class="flex gap-2"><i class="fas fa-check-circle text-green-400 text-xs mt-1.5"></i><span>Test upgrade on non-production database first</span></li>
+          </ul>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Pre-Upgrade Tool (preupgrade.jar)</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm"># Run pre-upgrade checks (target ORACLE_HOME)</span>
+java -jar $NEW_ORACLE_HOME/rdbms/admin/preupgrade.jar \
+  TERMINAL TEXT
+
+<span class="cm"># This generates:</span>
+<span class="cm"># preupgrade.log  — issues and fixups</span>
+<span class="cm"># preupgrade_fixups.sql — run on SOURCE DB</span>
+<span class="cm"># postupgrade_fixups.sql — run AFTER upgrade</span>
+
+<span class="cm"># Run fixups on source (old ORACLE_HOME)</span>
+sqlplus / as sysdba
+SQL> @preupgrade_fixups.sql
+
+<span class="cm"># Check invalid objects before upgrade</span>
+<span class="kw">SELECT</span> <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> dba_objects <span class="kw">WHERE</span> status=<span class="str">'INVALID'</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: AutoUpgrade -->
+  <section id="dbua" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-rose mb-4">Section 5</span>
+        <h2 class="text-3xl font-bold text-white mb-3">AutoUpgrade Tool (Recommended for 19c)</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">AutoUpgrade is Oracle's preferred upgrade method for 19c. It handles pre-checks, upgrade, post-fixups, and rollback — all automated.</p>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">AutoUpgrade — Analyze, Deploy, Rollback</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm"># 1. Create config file (config.cfg)</span>
+upg1.log_dir=/u01/autoupgrade_logs
+upg1.sid=ORCL
+upg1.source_home=/u01/app/oracle/product/12.2.0/dbhome_1
+upg1.target_home=/u01/app/oracle/product/19c/dbhome_1
+
+<span class="cm"># 2. Analyze mode — checks only, no changes</span>
+java -jar $ORACLE_HOME/rdbms/admin/autoupgrade.jar \
+  -config config.cfg -mode analyze
+
+<span class="cm"># 3. Fixup mode — apply pre-upgrade fixups</span>
+java -jar $ORACLE_HOME/rdbms/admin/autoupgrade.jar \
+  -config config.cfg -mode fixup
+
+<span class="cm"># 4. Deploy mode — full upgrade</span>
+java -jar $ORACLE_HOME/rdbms/admin/autoupgrade.jar \
+  -config config.cfg -mode deploy
+
+<span class="cm"># 5. Monitor upgrade from interactive console</span>
+<span class="cm"># Inside autoupgrade: lsj (list jobs), status -job 100</span>
+<span class="cm"># Resume after failure: resume -job 100</span>
+
+<span class="cm"># If upgrade fails — rollback to source</span>
+<span class="cm"># Inside console: abort -job 100, then restore from RMAN</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Interview Q&A -->
+  <section id="interview" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-rose mb-4">Section 6</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Patches & Upgrades — Interview Q&amp;A</h2>
+      </div>
+      <div class="reveal max-w-3xl mx-auto space-y-3">
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is the difference between a Release Update (RU) and a one-off patch?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">A Release Update (RU) is a cumulative quarterly patch containing hundreds of bug fixes, security patches, and recommended fixes. It supersedes all previous one-off patches. A one-off (interim) patch targets a single specific bug fix and is applied between RUs. Best practice: apply RUs regularly and avoid one-off patches unless you hit a specific production bug, as one-offs may not be included in the next RU and can cause conflicts.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is datapatch and when must you run it?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">datapatch applies SQL changes to the data dictionary after binary patches (OPatch) are installed. OPatch updates ORACLE_HOME files (binaries, libraries). datapatch updates the database internals (SYS objects, packages, views). You MUST run datapatch after every RU or one-off patch that includes SQL changes. Run it while the database is open: <code class="text-rose-300">$ORACLE_HOME/OPatch/datapatch -verbose</code>.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is the difference between DBUA and AutoUpgrade?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">DBUA (Database Upgrade Assistant) is a GUI tool that guides DBAs through an upgrade interactively. AutoUpgrade is a command-line Java tool that automates the entire lifecycle: analyze → fixup → upgrade → postupgrade → optionally time-zone upgrade. AutoUpgrade is Oracle's recommended approach for 19c and later, supports unattended upgrades of multiple databases, provides built-in rollback capability, and handles all pre/post-fixup scripts automatically.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            How do you roll back a failed patch in production?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <ul class="text-slate-400 text-sm space-y-1 list-disc pl-4">
+              <li>If OPatch step failed: <code class="text-rose-300">opatch rollback -id PATCH_ID</code> — reverses binary changes to ORACLE_HOME</li>
+              <li>If datapatch failed: restore ORACLE_HOME backup, restore database from RMAN pre-patch backup</li>
+              <li>If DB won't start after patch: restore ORACLE_HOME from backup (<code class="text-rose-300">cp -rp $ORACLE_HOME.bak $ORACLE_HOME</code>)</li>
+              <li>Always have a full RMAN backup and ORACLE_HOME tar backup before patching</li>
+              <li>With AutoUpgrade: the tool creates a guaranteed restore point — use <code class="text-rose-300">abort -job N</code> for rollback</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+  <footer class="py-8 border-t border-white/6 text-center text-slate-600 text-sm">
+    <a href="index.html" style="text-decoration:none;color:#f43f5e" class="hover:opacity-80">&larr; Back to Oracle DBA Simplified</a>
+  </footer>
+
+  <script>
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:0.1});
+    reveals.forEach(r => io.observe(r));
+    const btt = document.getElementById('btt');
+    window.addEventListener('scroll', () => btt.classList.toggle('show', window.scrollY > 400));
+    document.getElementById('menu-btn').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('open'));
+  </script>
+</body>
+</html>

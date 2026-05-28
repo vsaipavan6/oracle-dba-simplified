@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>PostgreSQL for Oracle DBAs | Oracle DBA Simplified</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0b1120;color:#e2e8f0;font-family:'DM Sans',sans-serif;line-height:1.7}
+    h1,h2,h3,h4{font-family:'Sora',sans-serif}
+    .glass{background:rgba(255,255,255,.04);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.07);border-radius:16px}
+    .badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.5px}
+    .badge-indigo{background:rgba(99,102,241,.18);color:#a5b4fc}
+    .badge-green{background:rgba(52,211,153,.18);color:#34d399}
+    .badge-yellow{background:rgba(251,191,36,.18);color:#fbbf24}
+    .badge-red{background:rgba(248,113,113,.18);color:#f87171}
+    .badge-blue{background:rgba(96,165,250,.18);color:#60a5fa}
+    .badge-orange{background:rgba(251,146,60,.18);color:#fb923c}
+    .terminal{background:#0a0f1e;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+    .terminal-bar{background:#1e293b;padding:8px 12px;display:flex;gap:6px;align-items:center}
+    .t-dot{width:10px;height:10px;border-radius:50%}
+    pre{overflow-x:auto}
+    code .kw{color:#a5b4fc}
+    code .fn{color:#fbbf24}
+    code .str{color:#86efac}
+    code .cm{color:#475569}
+    code .num{color:#f9a8d4}
+    code .op{color:#fb923c}
+    .acc-btn{width:100%;text-align:left;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s;color:#e2e8f0;font-family:'Sora',sans-serif;font-weight:600;font-size:15px}
+    .acc-btn:hover{border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.06)}
+    .acc-btn.open{border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.06);border-radius:10px 10px 0 0}
+    .acc-body{display:none;padding:20px;border:1px solid rgba(99,102,241,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)}
+    .acc-body.open{display:block}
+    .stat-card{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.22);border-radius:14px;padding:22px 24px}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .55s ease,transform .55s ease}
+    .reveal.visible{opacity:1;transform:none}
+    .section{padding:80px 0}
+    .section-alt{background:rgba(255,255,255,.015)}
+    nav{position:sticky;top:0;z-index:50;background:rgba(11,17,32,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07)}
+    .nav-link{color:#94a3b8;font-size:13px;font-weight:500;padding:6px 10px;border-radius:6px;transition:all .2s;text-decoration:none;white-space:nowrap}
+    .nav-link:hover{color:#a5b4fc;background:rgba(99,102,241,.1)}
+    #btt{position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:#6366f1;color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:18px;z-index:99;box-shadow:0 4px 20px rgba(99,102,241,.4)}
+    #btt.show{display:flex}
+    .arch-card{background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.18);border-radius:12px;padding:18px}
+    table{width:100%;border-collapse:collapse}
+    th{background:rgba(99,102,241,.12);color:#a5b4fc;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;padding:11px 14px;text-align:left;text-transform:uppercase;letter-spacing:.5px}
+    td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:#cbd5e1;vertical-align:top}
+    tr:last-child td{border-bottom:none}
+    tr:nth-child(even) td{background:rgba(255,255,255,.018)}
+    .ora{color:#fb923c;font-weight:600}
+    .pg{color:#a5b4fc;font-weight:600}
+    #mobile-menu{display:none}
+    #mobile-menu.open{display:block}
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-14">
+        <div class="flex items-center gap-3">
+          <a href="index.html" class="flex items-center gap-2 text-slate-400 hover:text-indigo-400 transition-colors text-sm font-medium" style="text-decoration:none">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Home
+          </a>
+          <span class="text-neutral-700">|</span>
+          <a href="index.html" class="flex items-center gap-2 text-white font-bold text-sm" style="font-family:'Sora',sans-serif;text-decoration:none">
+            <i class="fas fa-database text-indigo-400"></i> Oracle DBA Simplified
+          </a>
+        </div>
+        <div class="hidden lg:flex items-center gap-1">
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#architecture" class="nav-link">Architecture</a>
+          <a href="#sql-diff" class="nav-link">SQL Differences</a>
+          <a href="#admin" class="nav-link">Administration</a>
+          <a href="#migration" class="nav-link">Migration</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+        <button id="menu-btn" class="lg:hidden text-slate-400 hover:text-white p-2 bg-transparent border-none cursor-pointer"><i class="fas fa-bars"></i></button>
+      </div>
+      <div id="mobile-menu" class="pb-3 lg:hidden">
+        <div class="flex flex-col gap-1">
+          <a href="index.html" class="nav-link" style="color:#6366f1"><i class="fas fa-arrow-left text-xs mr-1"></i> Back to Home</a>
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#architecture" class="nav-link">Architecture</a>
+          <a href="#sql-diff" class="nav-link">SQL Differences</a>
+          <a href="#admin" class="nav-link">Administration</a>
+          <a href="#migration" class="nav-link">Migration</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden" style="background:linear-gradient(135deg,#0b1120 0%,#0d0a20 55%,#0b1120 100%);padding:80px 0 64px">
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 65% 50% at 50% 0%,rgba(99,102,241,.13),transparent)"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 relative">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.28)">
+          <i class="fas fa-elephant text-indigo-400 text-sm"></i>
+          <span class="text-indigo-300 text-sm font-semibold" style="font-family:'Sora',sans-serif">PostgreSQL · For Oracle DBAs</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-3">PostgreSQL for Oracle DBAs</h1>
+        <p class="text-2xl font-bold mb-4" style="color:#a5b4fc;font-family:'Sora',sans-serif">Key Differences · Migration · Parallel Skills</p>
+        <p class="text-slate-400 max-w-2xl mx-auto text-base">PostgreSQL is the most popular open-source database and increasingly appears in Oracle DBA interviews. Learn the key differences, translate your Oracle skills, and understand migration paths.</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#a5b4fc;font-family:'Sora',sans-serif">Free</div>
+          <div class="text-slate-300 text-sm font-semibold">Open Source</div>
+          <div class="text-slate-500 text-xs mt-1">PostgreSQL License (permissive)</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#a5b4fc;font-family:'Sora',sans-serif">MVCC</div>
+          <div class="text-slate-300 text-sm font-semibold">Concurrency Model</div>
+          <div class="text-slate-500 text-xs mt-1">Similar to Oracle's read consistency</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#a5b4fc;font-family:'Sora',sans-serif">ORA2PG</div>
+          <div class="text-slate-300 text-sm font-semibold">Migration Tool</div>
+          <div class="text-slate-500 text-xs mt-1">Convert Oracle schema to PostgreSQL</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#a5b4fc;font-family:'Sora',sans-serif">AWS RDS</div>
+          <div class="text-slate-300 text-sm font-semibold">Cloud Options</div>
+          <div class="text-slate-500 text-xs mt-1">RDS, Aurora, Cloud SQL, Azure</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: Architecture Comparison -->
+  <section id="architecture" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-indigo mb-4">Section 1</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Architecture Comparison</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Oracle and PostgreSQL share many concepts but use different terminology and architecture. Map what you know.</p>
+      </div>
+      <div class="reveal overflow-x-auto rounded-xl border border-white/8 mb-8">
+        <table>
+          <thead><tr><th>Concept</th><th><span class="ora">Oracle</span></th><th><span class="pg">PostgreSQL</span></th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Database instance</td><td class="ora">ORACLE_SID + ORACLE_HOME</td><td class="pg">PostgreSQL cluster</td><td>PG "cluster" = one data directory</td></tr>
+            <tr><td>User namespace</td><td class="ora">Schema = User</td><td class="pg">Database → Schema → User</td><td>PG separates databases and schemas</td></tr>
+            <tr><td>SGA equivalent</td><td class="ora">SGA (shared memory)</td><td class="pg">shared_buffers</td><td>PG uses shared_buffers for buffer cache</td></tr>
+            <tr><td>Background processes</td><td class="ora">LGWR, DBWn, PMON, SMON</td><td class="pg">bgwriter, checkpointer, autovacuum</td><td>Similar functions, different names</td></tr>
+            <tr><td>Redo logs</td><td class="ora">Online Redo Logs</td><td class="pg">WAL (Write-Ahead Log)</td><td>WAL = pg_wal directory</td></tr>
+            <tr><td>Undo</td><td class="ora">Undo tablespace (AUM)</td><td class="pg">Dead tuples in heap (MVCC)</td><td>PG keeps old versions in same table</td></tr>
+            <tr><td>VACUUM equivalent</td><td class="ora">Automatic (undo cleanup)</td><td class="pg">VACUUM / autovacuum</td><td>PG must vacuum to reclaim dead tuples</td></tr>
+            <tr><td>Partitioning</td><td class="ora">Range, List, Hash, Interval</td><td class="pg">Range, List, Hash (10+)</td><td>PG declarative partitioning since v10</td></tr>
+            <tr><td>Listener</td><td class="ora">Oracle Net Listener</td><td class="pg">postmaster (pg_hba.conf)</td><td>pg_hba.conf controls client auth</td></tr>
+            <tr><td>AWR/ASH equivalent</td><td class="ora">AWR, ASH, ADDM</td><td class="pg">pg_stat_* views, pg_activity</td><td>No built-in AWR; use pgBadger/pganalyze</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: SQL Differences -->
+  <section id="sql-diff" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-indigo mb-4">Section 2</span>
+        <h2 class="text-3xl font-bold text-white mb-3">SQL Syntax Differences</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Most SQL is compatible but key syntax differs. These are the most common gotchas when migrating Oracle SQL to PostgreSQL.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4"><span class="ora">Oracle</span> vs <span class="pg">PostgreSQL</span> — Common SQL</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Sequence / Auto-increment</span>
+<span class="ora">Oracle:</span>  CREATE SEQUENCE seq START WITH 1;
+          INSERT ... VALUES (seq.NEXTVAL, ...);
+<span class="pg">PG:</span>      id BIGSERIAL PRIMARY KEY;  <span class="cm">-- auto</span>
+          <span class="kw">OR</span> id INT DEFAULT nextval('seq');
+
+<span class="cm">-- String concatenation</span>
+<span class="ora">Oracle:</span>  <span class="str">'Hello'</span> || <span class="str">' World'</span>
+<span class="pg">PG:</span>      <span class="str">'Hello'</span> || <span class="str">' World'</span>  <span class="cm">-- same!</span>
+
+<span class="cm">-- Current date/time</span>
+<span class="ora">Oracle:</span>  SYSDATE,  SYSTIMESTAMP
+<span class="pg">PG:</span>      CURRENT_DATE, NOW(), CURRENT_TIMESTAMP
+
+<span class="cm">-- NULL handling</span>
+<span class="ora">Oracle:</span>  NVL(col, 'default')
+<span class="pg">PG:</span>      COALESCE(col, 'default')
+
+<span class="cm">-- ROWNUM (limit rows)</span>
+<span class="ora">Oracle:</span>  WHERE ROWNUM <= 10
+<span class="pg">PG:</span>      LIMIT 10
+
+<span class="cm">-- Dual table</span>
+<span class="ora">Oracle:</span>  SELECT SYSDATE FROM DUAL
+<span class="pg">PG:</span>      SELECT NOW()  <span class="cm">-- no FROM needed</span>
+
+<span class="cm">-- DECODE</span>
+<span class="ora">Oracle:</span>  DECODE(col, 'A', 1, 'B', 2, 0)
+<span class="pg">PG:</span>      CASE WHEN col='A' THEN 1 WHEN col='B' THEN 2 ELSE 0 END</code></pre>
+          </div>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">PL/SQL vs PL/pgSQL</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Oracle PL/SQL block</span>
+<span class="kw">DECLARE</span>
+  v_count NUMBER;
+<span class="kw">BEGIN</span>
+  <span class="kw">SELECT</span> <span class="fn">COUNT</span>(*) <span class="kw">INTO</span> v_count
+  <span class="kw">FROM</span>   employees;
+  <span class="fn">DBMS_OUTPUT.PUT_LINE</span>(v_count);
+<span class="kw">END</span>;
+/
+
+<span class="cm">-- PostgreSQL PL/pgSQL equivalent</span>
+<span class="kw">DO</span> $$
+<span class="kw">DECLARE</span>
+  v_count <span class="fn">INTEGER</span>;
+<span class="kw">BEGIN</span>
+  <span class="kw">SELECT</span> <span class="fn">COUNT</span>(*) <span class="kw">INTO</span> v_count
+  <span class="kw">FROM</span>   employees;
+  <span class="fn">RAISE NOTICE</span> <span class="str">'Count: %'</span>, v_count;
+<span class="kw">END</span>;
+$$ <span class="kw">LANGUAGE</span> plpgsql;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Admin -->
+  <section id="admin" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-indigo mb-4">Section 3</span>
+        <h2 class="text-3xl font-bold text-white mb-3">PostgreSQL Administration for Oracle DBAs</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Common DBA tasks in PostgreSQL — starting, monitoring, and managing the database.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Essential psql Commands</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm"># Connect (equivalent to sqlplus / as sysdba)</span>
+psql -U postgres -d mydb
+
+<span class="cm"># psql meta-commands (like SQL*Plus commands)</span>
+\l          <span class="cm">-- list databases (like v$database)</span>
+\c mydb     <span class="cm">-- connect to database</span>
+\dt         <span class="cm">-- list tables in current schema</span>
+\d tablename  <span class="cm">-- describe a table (like DESC)</span>
+\du         <span class="cm">-- list users/roles</span>
+\dn         <span class="cm">-- list schemas</span>
+\timing     <span class="cm">-- show query elapsed time</span>
+\x          <span class="cm">-- expanded output (vertical)</span>
+\i file.sql <span class="cm">-- run a SQL file (like @file.sql)</span>
+\q          <span class="cm">-- quit</span>
+
+<span class="cm"># Service management (Oracle Linux / systemd)</span>
+systemctl start postgresql-16
+systemctl status postgresql-16</code></pre>
+          </div>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">PostgreSQL Monitoring Views</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Active sessions (like v$session)</span>
+<span class="kw">SELECT</span> pid, usename, application_name,
+       state, query, wait_event_type,
+       now() - query_start as duration
+<span class="kw">FROM</span>   pg_stat_activity
+<span class="kw">WHERE</span>  state = <span class="str">'active'</span>
+<span class="kw">ORDER BY</span> duration <span class="kw">DESC</span>;
+
+<span class="cm">-- Table bloat / dead tuples (VACUUM needed)</span>
+<span class="kw">SELECT</span> schemaname, relname,
+       n_live_tup, n_dead_tup,
+       last_autovacuum, last_analyze
+<span class="kw">FROM</span>   pg_stat_user_tables
+<span class="kw">ORDER BY</span> n_dead_tup <span class="kw">DESC</span>;
+
+<span class="cm">-- Database sizes</span>
+<span class="kw">SELECT</span> datname, <span class="fn">pg_size_pretty</span>(<span class="fn">pg_database_size</span>(datname))
+<span class="kw">FROM</span>   pg_database <span class="kw">ORDER BY</span> <span class="fn">pg_database_size</span>(datname) <span class="kw">DESC</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Migration -->
+  <section id="migration" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-indigo mb-4">Section 4</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Oracle to PostgreSQL Migration</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Common tools and strategies for migrating from Oracle to PostgreSQL — a growing requirement in cloud-first organizations.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+        <div class="arch-card">
+          <h3 class="font-bold text-white mb-2"><i class="fas fa-tools text-indigo-400 mr-2"></i>ora2pg</h3>
+          <p class="text-slate-400 text-sm">Open-source Perl tool. Migrates schema (tables, indexes, constraints, views, packages) from Oracle to PostgreSQL format. Generates conversion report. Free.</p>
+          <span class="badge badge-green mt-2">Free &amp; Popular</span>
+        </div>
+        <div class="arch-card">
+          <h3 class="font-bold text-white mb-2"><i class="fas fa-cloud text-indigo-400 mr-2"></i>AWS SCT / DMS</h3>
+          <p class="text-slate-400 text-sm">AWS Schema Conversion Tool converts schema + code. AWS DMS (Database Migration Service) moves data continuously. Ideal for Oracle → Aurora PostgreSQL migrations.</p>
+          <span class="badge badge-blue mt-2">Cloud Migration</span>
+        </div>
+        <div class="arch-card">
+          <h3 class="font-bold text-white mb-2"><i class="fas fa-sync-alt text-indigo-400 mr-2"></i>GoldenGate / Debezium</h3>
+          <p class="text-slate-400 text-sm">For zero-downtime migrations — stream Oracle changes to PostgreSQL in real time using CDC (Change Data Capture). Cutover with minimal downtime.</p>
+          <span class="badge badge-orange mt-2">Zero-Downtime</span>
+        </div>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">ora2pg — Schema Analysis & Export</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm"># Install ora2pg (requires DBI::Oracle Perl module)</span>
+cpan install DBD::Oracle
+cpan install ora2pg
+
+<span class="cm"># Generate migration report (assess complexity)</span>
+ora2pg -c ora2pg.conf -t SHOW_REPORT --estimate_cost
+
+<span class="cm"># Export Oracle schema to PostgreSQL SQL file</span>
+ora2pg -c ora2pg.conf -t TABLE -o tables.sql
+ora2pg -c ora2pg.conf -t SEQUENCE -o sequences.sql
+ora2pg -c ora2pg.conf -t VIEW -o views.sql
+ora2pg -c ora2pg.conf -t PROCEDURE -o procedures.sql
+
+<span class="cm"># Export data</span>
+ora2pg -c ora2pg.conf -t COPY -o data.sql
+
+<span class="cm"># Key ora2pg.conf settings:</span>
+<span class="cm"># ORACLE_DSN = dbi:Oracle:host=dbserver;sid=ORCL;port=1521</span>
+<span class="cm"># ORACLE_USER = myuser</span>
+<span class="cm"># ORACLE_PWD = mypassword</span>
+<span class="cm"># SCHEMA = MYSCHEMA</span>
+<span class="cm"># PG_DSN = dbi:Pg:dbname=mydb;host=pgserver;port=5432</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Interview Q&A -->
+  <section id="interview" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-indigo mb-4">Section 5</span>
+        <h2 class="text-3xl font-bold text-white mb-3">PostgreSQL — Interview Q&amp;A</h2>
+        <p class="text-slate-400 max-w-xl mx-auto">Questions asked when Oracle DBAs are evaluated for PostgreSQL skills or migration projects.</p>
+      </div>
+      <div class="reveal max-w-3xl mx-auto space-y-3">
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is VACUUM in PostgreSQL and why does it not exist in Oracle?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">Oracle uses an undo tablespace to store old row versions — when a transaction commits, the live row is updated in-place and undo space is reclaimed automatically. PostgreSQL uses MVCC with dead tuples — old versions of rows are stored in the same heap file as "dead tuples." VACUUM physically removes dead tuples and reclaims space. Without regular VACUUM (or autovacuum), tables grow indefinitely and performance degrades. PostgreSQL 14+ added improvements to make autovacuum more aggressive by default.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            How does PostgreSQL's MVCC compare to Oracle's read consistency?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">Both use MVCC (Multi-Version Concurrency Control) — readers never block writers and writers never block readers. The difference is WHERE old versions live: Oracle stores them in a separate undo tablespace; PostgreSQL keeps them inline in the same heap page as dead tuples. Oracle's model allows instant reclaim (undo overwrites after retention); PostgreSQL requires explicit VACUUM to clean dead tuples. The user-visible behavior (read consistency, isolation levels) is nearly identical.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What are the main challenges when migrating Oracle PL/SQL to PostgreSQL?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <ul class="text-slate-400 text-sm space-y-1 list-disc pl-4">
+              <li>Oracle PACKAGE concept doesn't exist in PG — split into schemas + functions</li>
+              <li>DBMS_* packages (DBMS_OUTPUT, DBMS_SCHEDULER, etc.) have no direct equivalents</li>
+              <li>PL/SQL-specific syntax: PRAGMA, TYPE ... IS TABLE, BULK COLLECT, FORALL</li>
+              <li>Oracle-specific functions: NVL, DECODE, TO_DATE formats differ</li>
+              <li>Implicit transactions — Oracle commits on DDL; PG DDL is transactional</li>
+              <li>CONNECT BY hierarchical queries → PostgreSQL uses WITH RECURSIVE</li>
+              <li>Oracle hints (/*+ INDEX, PARALLEL */) don't work in PG</li>
+            </ul>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is pg_hba.conf and what does it control?
+            <i class="fas fa-chevron-down text-sm"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">pg_hba.conf (host-based authentication) is PostgreSQL's equivalent of Oracle's sqlnet.ora + listener security config. It controls WHO can connect, FROM WHERE, to WHICH database, and HOW (authentication method: md5, scram-sha-256, trust, peer, ldap, cert). Entries are matched top-to-bottom — the first matching rule applies. After editing, run <code class="text-indigo-300">pg_ctl reload</code> or <code class="text-indigo-300">SELECT pg_reload_conf()</code> — no restart needed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+  <footer class="py-8 border-t border-white/6 text-center text-slate-600 text-sm">
+    <a href="index.html" style="text-decoration:none;color:#6366f1" class="hover:opacity-80">&larr; Back to Oracle DBA Simplified</a>
+  </footer>
+
+  <script>
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:0.1});
+    reveals.forEach(r => io.observe(r));
+    const btt = document.getElementById('btt');
+    window.addEventListener('scroll', () => btt.classList.toggle('show', window.scrollY > 400));
+    document.getElementById('menu-btn').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('open'));
+  </script>
+</body>
+</html>

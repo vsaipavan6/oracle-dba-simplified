@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SQL Optimization | Oracle DBA Simplified</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--color-primary:#ec4899;--color-secondary:#f472b6;--color-accent:#fbcfe8;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0b1120;color:#e2e8f0;font-family:'DM Sans',sans-serif;line-height:1.7}
+    h1,h2,h3,h4{font-family:'Sora',sans-serif}
+    .glass{background:rgba(255,255,255,.04);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.07);border-radius:16px}
+    .badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.5px}
+    .badge-pink{background:rgba(236,72,153,.18);color:#f472b6}
+    .badge-green{background:rgba(52,211,153,.18);color:#34d399}
+    .badge-yellow{background:rgba(251,191,36,.18);color:#fbbf24}
+    .badge-red{background:rgba(248,113,113,.18);color:#f87171}
+    .badge-slate{background:rgba(148,163,184,.12);color:#94a3b8}
+    .badge-blue{background:rgba(96,165,250,.18);color:#60a5fa}
+    .terminal{background:#0a0f1e;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+    .terminal-bar{background:#1e293b;padding:8px 12px;display:flex;gap:6px;align-items:center}
+    .t-dot{width:10px;height:10px;border-radius:50%}
+    pre{overflow-x:auto}
+    code .kw{color:#f472b6}
+    code .fn{color:#fbbf24}
+    code .str{color:#86efac}
+    code .cm{color:#475569}
+    code .num{color:#f9a8d4}
+    code .op{color:#fb923c}
+    code .kv{color:#c084fc}
+    .tab-btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;color:#64748b;background:transparent;border:none;white-space:nowrap}
+    .tab-btn.active,.tab-btn:hover{background:rgba(236,72,153,.15);color:#f472b6}
+    .tab-pane{display:none}.tab-pane.active{display:block}
+    .acc-btn{width:100%;text-align:left;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s;color:#e2e8f0;font-family:'Sora',sans-serif;font-weight:600;font-size:15px}
+    .acc-btn:hover{border-color:rgba(236,72,153,.4);background:rgba(236,72,153,.06)}
+    .acc-btn.open{border-color:rgba(236,72,153,.4);background:rgba(236,72,153,.06);border-radius:10px 10px 0 0}
+    .acc-body{display:none;padding:20px;border:1px solid rgba(236,72,153,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)}
+    .acc-body.open{display:block}
+    .stat-card{background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.22);border-radius:14px;padding:22px 24px}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .55s ease,transform .55s ease}
+    .reveal.visible{opacity:1;transform:none}
+    .section{padding:80px 0}
+    .section-alt{background:rgba(255,255,255,.015)}
+    nav{position:sticky;top:0;z-index:50;background:rgba(11,17,32,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07)}
+    .nav-link{color:#94a3b8;font-size:13px;font-weight:500;padding:6px 10px;border-radius:6px;transition:all .2s;text-decoration:none;white-space:nowrap}
+    .nav-link:hover,.nav-link.active{color:#f472b6;background:rgba(236,72,153,.1)}
+    #btt{position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:#ec4899;color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:18px;z-index:99;box-shadow:0 4px 20px rgba(236,72,153,.4)}
+    #btt.show{display:flex}
+    .arch-card{background:rgba(236,72,153,.07);border:1px solid rgba(236,72,153,.18);border-radius:12px;padding:18px}
+    .step-num{width:34px;height:34px;border-radius:50%;background:rgba(236,72,153,.2);border:1px solid rgba(236,72,153,.4);display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:#f472b6;flex-shrink:0}
+    table{width:100%;border-collapse:collapse}
+    th{background:rgba(236,72,153,.12);color:#f472b6;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;padding:11px 14px;text-align:left;text-transform:uppercase;letter-spacing:.5px}
+    td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:#cbd5e1;vertical-align:top}
+    tr:last-child td{border-bottom:none}
+    tr:nth-child(even) td{background:rgba(255,255,255,.018)}
+    .yes{color:#34d399}.no{color:#f87171}
+    #mobile-menu{display:none}
+    #mobile-menu.open{display:block}
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-14">
+        <div class="flex items-center gap-3">
+          <a href="index.html" class="flex items-center gap-2 text-slate-400 hover:text-pink-400 transition-colors text-sm font-medium" style="text-decoration:none">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Home
+          </a>
+          <span class="text-neutral-700">|</span>
+          <a href="index.html" class="flex items-center gap-2 text-white font-bold text-sm" style="font-family:'Sora',sans-serif;text-decoration:none">
+            <i class="fas fa-database text-pink-400"></i> Oracle DBA Simplified
+          </a>
+        </div>
+        <div class="hidden lg:flex items-center gap-1">
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#cbo" class="nav-link">CBO & Stats</a>
+          <a href="#execution-plans" class="nav-link">Execution Plans</a>
+          <a href="#hints" class="nav-link">Hints</a>
+          <a href="#indexes" class="nav-link">Indexing</a>
+          <a href="#bind-variables" class="nav-link">Bind Variables</a>
+          <a href="#spm" class="nav-link">Plan Stability</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+        <button id="menu-btn" class="lg:hidden text-slate-400 hover:text-white p-2 bg-transparent border-none cursor-pointer"><i class="fas fa-bars"></i></button>
+      </div>
+      <div id="mobile-menu" class="pb-3 lg:hidden">
+        <div class="flex flex-col gap-1">
+          <a href="index.html" class="nav-link" style="color:#ec4899"><i class="fas fa-arrow-left text-xs mr-1"></i> Back to Home</a>
+          <a href="#overview" class="nav-link">Overview</a>
+          <a href="#cbo" class="nav-link">CBO & Stats</a>
+          <a href="#execution-plans" class="nav-link">Execution Plans</a>
+          <a href="#hints" class="nav-link">Hints</a>
+          <a href="#indexes" class="nav-link">Indexing</a>
+          <a href="#bind-variables" class="nav-link">Bind Variables</a>
+          <a href="#spm" class="nav-link">Plan Stability</a>
+          <a href="#interview" class="nav-link">Interview Q&A</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden" style="background:linear-gradient(135deg,#0b1120 0%,#1a0a1e 55%,#0b1120 100%);padding:80px 0 64px">
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 65% 50% at 50% 0%,rgba(236,72,153,.13),transparent)"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 relative">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6" style="background:rgba(236,72,153,.12);border:1px solid rgba(236,72,153,.28)">
+          <i class="fas fa-code text-pink-400 text-sm"></i>
+          <span class="text-pink-300 text-sm font-semibold" style="font-family:'Sora',sans-serif">Oracle 19c · SQL Tuning</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-3">SQL Optimization</h1>
+        <p class="text-2xl font-bold mb-4" style="color:#f472b6;font-family:'Sora',sans-serif">Query Tuning · CBO · Plan Stability</p>
+        <p class="text-slate-400 max-w-2xl mx-auto text-base">Master Oracle SQL optimization — understand the Cost-Based Optimizer, read execution plans, write smarter SQL, use hints strategically, and lock plans to prevent performance regression.</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#f472b6;font-family:'Sora',sans-serif">CBO</div>
+          <div class="text-slate-300 text-sm font-semibold">Cost-Based Optimizer</div>
+          <div class="text-slate-500 text-xs mt-1">Uses stats, histograms & bind peeking</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#f472b6;font-family:'Sora',sans-serif">EXPLAIN</div>
+          <div class="text-slate-300 text-sm font-semibold">Execution Plan</div>
+          <div class="text-slate-500 text-xs mt-1">EXPLAIN PLAN + DBMS_XPLAN</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#f472b6;font-family:'Sora',sans-serif">SPM</div>
+          <div class="text-slate-300 text-sm font-semibold">SQL Plan Management</div>
+          <div class="text-slate-500 text-xs mt-1">Baselines · Evolve · Capture</div>
+        </div>
+        <div class="stat-card text-center">
+          <div class="text-3xl font-extrabold mb-1" style="color:#f472b6;font-family:'Sora',sans-serif">STA</div>
+          <div class="text-slate-300 text-sm font-semibold">SQL Tuning Advisor</div>
+          <div class="text-slate-500 text-xs mt-1">DBMS_SQLTUNE automated analysis</div>
+        </div>
+      </div>
+      <div class="max-w-3xl mx-auto">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+            <span class="text-slate-500 text-xs ml-2">Quick: Explain Plan + DBMS_XPLAN</span>
+          </div>
+          <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Step 1: Generate the execution plan</span>
+<span class="kw">EXPLAIN PLAN FOR</span>
+  <span class="kw">SELECT</span> e.employee_id, e.last_name, d.department_name
+  <span class="kw">FROM</span>   employees e <span class="kw">JOIN</span> departments d <span class="kw">ON</span> e.department_id = d.department_id
+  <span class="kw">WHERE</span>  e.salary > <span class="num">10000</span>;
+
+<span class="cm">-- Step 2: Display the plan with row estimates and cost</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">TABLE</span>(<span class="fn">DBMS_XPLAN.DISPLAY</span>(<span class="str">'PLAN_TABLE'</span>,<span class="kw">NULL</span>,<span class="str">'ALLSTATS LAST'</span>));
+
+<span class="cm">-- Step 3: Check the real plan from cursor cache</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">TABLE</span>(<span class="fn">DBMS_XPLAN.DISPLAY_CURSOR</span>(<span class="str">'&sql_id'</span>,<span class="num">0</span>,<span class="str">'ALLSTATS LAST +PEEKED_BINDS'</span>));</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: Overview -->
+  <section id="overview" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-pink mb-4">Section 1</span>
+        <h2 class="text-3xl font-bold text-white mb-3">SQL Tuning Methodology</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Follow a systematic approach: identify → understand → diagnose → fix → validate. Never tune blindly.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+        <div class="glass p-6">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="step-num">1</div>
+            <h3 class="font-bold text-white">Identify the Bad SQL</h3>
+          </div>
+          <p class="text-slate-400 text-sm">Use AWR Top SQL, ASH, or V$SQL to find the highest-impact statements by elapsed time, CPU, logical reads, or executions.</p>
+          <div class="terminal mt-3">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Top 10 SQL by elapsed time</span>
+<span class="kw">SELECT</span> sql_id, elapsed_time/<span class="fn">executions</span>/1e6 avg_sec,
+       executions, sql_text
+<span class="kw">FROM</span>   v$sql
+<span class="kw">WHERE</span>  executions > <span class="num">0</span>
+<span class="kw">ORDER BY</span> elapsed_time/<span class="fn">DECODE</span>(executions,<span class="num">0</span>,<span class="num">1</span>,executions) <span class="kw">DESC</span>
+<span class="kw">FETCH FIRST</span> <span class="num">10</span> <span class="kw">ROWS ONLY</span>;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-6">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="step-num">2</div>
+            <h3 class="font-bold text-white">Understand the Execution Plan</h3>
+          </div>
+          <p class="text-slate-400 text-sm">Read the plan from bottom-up, left-to-right. Look for full table scans on large tables, Cartesian joins, high cardinality estimates vs. actuals.</p>
+          <div class="terminal mt-3">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Real plan from library cache</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">TABLE</span>(
+  <span class="fn">DBMS_XPLAN.DISPLAY_CURSOR</span>(
+    <span class="str">'&sql_id'</span>, <span class="num">0</span>,
+    <span class="str">'ALLSTATS LAST'</span>
+  )
+);</code></pre>
+          </div>
+        </div>
+        <div class="glass p-6">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="step-num">3</div>
+            <h3 class="font-bold text-white">Fix & Validate</h3>
+          </div>
+          <p class="text-slate-400 text-sm">Apply fix (index, rewrite, hint, stat refresh). Measure before/after: compare elapsed time, logical reads, and row source operations.</p>
+          <div class="terminal mt-3">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Compare two SQL IDs</span>
+<span class="kw">SELECT</span> sql_id, elapsed_time,
+       buffer_gets, disk_reads,
+       executions
+<span class="kw">FROM</span>   v$sql
+<span class="kw">WHERE</span>  sql_id <span class="kw">IN</span> (<span class="str">'&old'</span>,<span class="str">'&new'</span>);</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: CBO & Stats -->
+  <section id="cbo" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-pink mb-4">Section 2</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Cost-Based Optimizer & Statistics</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">The CBO chooses the execution plan using statistics. Stale or missing stats are the #1 cause of bad plans.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4"><i class="fas fa-brain text-pink-400 mr-2"></i>How CBO Picks a Plan</h3>
+          <ul class="space-y-3 text-sm text-slate-400">
+            <li class="flex gap-3"><span class="text-pink-400 font-bold mt-0.5">1.</span><span><strong class="text-white">Parse:</strong> SQL is parsed, transformed (view merging, subquery unnesting, predicate pushdown).</span></li>
+            <li class="flex gap-3"><span class="text-pink-400 font-bold mt-0.5">2.</span><span><strong class="text-white">Statistics lookup:</strong> CBO reads table/column/index stats from the data dictionary.</span></li>
+            <li class="flex gap-3"><span class="text-pink-400 font-bold mt-0.5">3.</span><span><strong class="text-white">Cardinality estimation:</strong> CBO estimates rows for each operation using selectivity formulas and histograms.</span></li>
+            <li class="flex gap-3"><span class="text-pink-400 font-bold mt-0.5">4.</span><span><strong class="text-white">Cost calculation:</strong> Each candidate plan gets a cost score (I/O + CPU + network). Lowest cost wins.</span></li>
+            <li class="flex gap-3"><span class="text-pink-400 font-bold mt-0.5">5.</span><span><strong class="text-white">Plan generation:</strong> Winning plan stored in library cache. Reused on soft parse.</span></li>
+          </ul>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4"><i class="fas fa-chart-bar text-pink-400 mr-2"></i>Statistics Collection Best Practices</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Gather schema stats (auto sample size)</span>
+<span class="kw">EXEC</span> <span class="fn">DBMS_STATS.GATHER_SCHEMA_STATS</span>(
+  ownname     => <span class="str">'MYSCHEMA'</span>,
+  estimate_percent => <span class="fn">DBMS_STATS.AUTO_SAMPLE_SIZE</span>,
+  method_opt  => <span class="str">'FOR ALL COLUMNS SIZE AUTO'</span>,
+  cascade     => <span class="kw">TRUE</span>
+);
+
+<span class="cm">-- Check stale objects</span>
+<span class="kw">SELECT</span> owner, table_name, stale_stats, last_analyzed
+<span class="kw">FROM</span>   dba_tab_statistics
+<span class="kw">WHERE</span>  stale_stats = <span class="str">'YES'</span>
+<span class="kw">ORDER BY</span> last_analyzed;
+
+<span class="cm">-- Lock stats on staging/volatile tables</span>
+<span class="kw">EXEC</span> <span class="fn">DBMS_STATS.LOCK_TABLE_STATS</span>(<span class="str">'MYSCHEMA'</span>,<span class="str">'BIG_TABLE'</span>);</code></pre>
+          </div>
+        </div>
+      </div>
+      <div class="reveal">
+        <h3 class="text-xl font-bold text-white mb-4">Histogram Types</h3>
+        <div class="overflow-x-auto rounded-xl border border-white/8">
+          <table>
+            <thead><tr><th>Type</th><th>When Used</th><th>Best For</th></tr></thead>
+            <tbody>
+              <tr><td class="text-pink-300 font-semibold">NONE</td><td>Uniform distribution, low NDV</td><td>Columns used only with equality on small tables</td></tr>
+              <tr><td class="text-pink-300 font-semibold">FREQUENCY</td><td>NDV ≤ 254 buckets</td><td>Status codes, flag columns (Y/N, ACTIVE/INACTIVE)</td></tr>
+              <tr><td class="text-pink-300 font-semibold">TOP-FREQUENCY</td><td>NDV > 254, top values cover >99%</td><td>Skewed data where a few values dominate</td></tr>
+              <tr><td class="text-pink-300 font-semibold">HEIGHT-BALANCED</td><td>NDV > 254 (deprecated 12c+)</td><td>Legacy — replaced by Hybrid</td></tr>
+              <tr><td class="text-pink-300 font-semibold">HYBRID</td><td>NDV > 254, mixed distribution</td><td>Default AUTO in 12c+ — best general purpose</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Execution Plans -->
+  <section id="execution-plans" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-pink mb-4">Section 3</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Reading Execution Plans</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Reading plans is the core skill of SQL tuning. Read bottom-up, left-to-right. Compare E-Rows vs A-Rows for cardinality errors.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div>
+          <h3 class="text-lg font-bold text-white mb-4">Key Plan Operations</h3>
+          <div class="space-y-3">
+            <div class="arch-card">
+              <div class="flex items-center gap-3 mb-1"><i class="fas fa-table text-pink-400"></i><span class="font-bold text-white text-sm">TABLE ACCESS FULL</span><span class="badge badge-red ml-2">Watch out</span></div>
+              <p class="text-slate-400 text-xs">Full scan — acceptable for small tables or when >10-15% rows returned. Bad on large tables with selective predicates.</p>
+            </div>
+            <div class="arch-card">
+              <div class="flex items-center gap-3 mb-1"><i class="fas fa-search text-green-400"></i><span class="font-bold text-white text-sm">INDEX RANGE SCAN</span><span class="badge badge-green ml-2">Good</span></div>
+              <p class="text-slate-400 text-xs">Reads a range of index entries. Efficient for selective predicates returning <5% of rows.</p>
+            </div>
+            <div class="arch-card">
+              <div class="flex items-center gap-3 mb-1"><i class="fas fa-key text-green-400"></i><span class="font-bold text-white text-sm">INDEX UNIQUE SCAN</span><span class="badge badge-green ml-2">Best</span></div>
+              <p class="text-slate-400 text-xs">Single-row lookup via primary key or unique index. Most efficient access path.</p>
+            </div>
+            <div class="arch-card">
+              <div class="flex items-center gap-3 mb-1"><i class="fas fa-link text-yellow-400"></i><span class="font-bold text-white text-sm">NESTED LOOPS</span><span class="badge badge-yellow ml-2">Context</span></div>
+              <p class="text-slate-400 text-xs">Good for OLTP — small outer row set + indexed inner table. Bad for large data sets (use HASH JOIN instead).</p>
+            </div>
+            <div class="arch-card">
+              <div class="flex items-center gap-3 mb-1"><i class="fas fa-hashtag text-blue-400"></i><span class="font-bold text-white text-sm">HASH JOIN</span><span class="badge badge-blue ml-2">DW/Batch</span></div>
+              <p class="text-slate-400 text-xs">Builds hash table from smaller side, probes with larger side. Best for large-table equi-joins in data warehouse queries.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white mb-4">Cardinality Feedback & Adaptive Plans</h3>
+          <div class="terminal mb-4">
+            <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+              <span class="text-slate-500 text-xs ml-2">Spot cardinality misestimates</span>
+            </div>
+            <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- E-Rows vs A-Rows tells the whole story</span>
+<span class="cm">-- Use /*+ GATHER_PLAN_STATISTICS */ hint</span>
+<span class="kw">SELECT</span> <span class="cm">/*+ GATHER_PLAN_STATISTICS */</span>
+       e.employee_id, d.department_name
+<span class="kw">FROM</span>   employees e, departments d
+<span class="kw">WHERE</span>  e.department_id = d.department_id
+<span class="kw">AND</span>    e.job_id = <span class="str">'SA_REP'</span>;
+
+<span class="cm">-- Then display with actual rows</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">TABLE</span>(
+  <span class="fn">DBMS_XPLAN.DISPLAY_CURSOR</span>(<span class="kw">NULL</span>,<span class="kw">NULL</span>,
+    <span class="str">'ALLSTATS LAST'</span>));
+
+<span class="cm">-- Look for huge E-Rows vs A-Rows gaps</span>
+<span class="cm">-- E-Rows=1000, A-Rows=1 → bad index skip</span>
+<span class="cm">-- E-Rows=1, A-Rows=50000 → missing histogram</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Hints -->
+  <section id="hints" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-pink mb-4">Section 4</span>
+        <h2 class="text-3xl font-bold text-white mb-3">SQL Hints</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Hints are directives to the optimizer. Use sparingly — fix root cause first (stats, indexes). Hints are last resort or testing tools.</p>
+      </div>
+      <div class="reveal overflow-x-auto rounded-xl border border-white/8 mb-8">
+        <table>
+          <thead><tr><th>Hint</th><th>Purpose</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td class="text-pink-300 font-mono">/*+ FULL(t) */</td><td>Force full table scan</td><td>When index is slower (bulk load queries)</td></tr>
+            <tr><td class="text-pink-300 font-mono">/*+ INDEX(t idx_name) */</td><td>Force specific index</td><td>When CBO chooses wrong index</td></tr>
+            <tr><td class="text-pink-300 font-mono">/*+ NO_INDEX(t) */</td><td>Suppress index use</td><td>Force FTS for large % row access</td></tr>
+            <tr><td class="text-pink-300 font-mono">/*+ USE_NL(t) */</td><td>Force nested loops join</td><td>OLTP, small result sets with indexed lookups</td></tr>
+            <tr><td class="text-pink-300 font-mono">/*+ USE_HASH(t) */</td><td>Force hash join</td><td>Large table equi-joins, DW queries</td></tr>
+            <tr><td class="text-pink-300 font-mono">/*+ LEADING(a b c) */</td><td>Control join order</td><td>Force CBO to start with smallest table</td></tr>
+            <tr><td class="text-pink-300 font-mono">/*+ PARALLEL(t 4) */</td><td>Enable parallel query</td><td>Large table scans, DW aggregations</td></tr>
+            <tr><td class="text-pink-300 font-mono">/*+ APPEND */</td><td>Direct-path INSERT</td><td>Bulk inserts — bypasses buffer cache</td></tr>
+            <tr><td class="text-pink-300 font-mono">/*+ CARDINALITY(t 500) */</td><td>Override cardinality</td><td>Fix bad estimates without stat change</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">Hint Usage Examples</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Force index + hash join</span>
+<span class="kw">SELECT</span> <span class="cm">/*+ INDEX(e EMP_DEPT_IDX) USE_HASH(d) */</span>
+       e.employee_id, d.department_name
+<span class="kw">FROM</span>   employees e, departments d
+<span class="kw">WHERE</span>  e.department_id = d.department_id;
+
+<span class="cm">-- Parallel aggregation</span>
+<span class="kw">SELECT</span> <span class="cm">/*+ PARALLEL(s 8) */</span>
+       region, <span class="fn">SUM</span>(sales_amount)
+<span class="kw">FROM</span>   sales_fact s
+<span class="kw">GROUP BY</span> region;
+
+<span class="cm">-- Direct-path bulk insert</span>
+<span class="kw">INSERT</span> <span class="cm">/*+ APPEND */</span> <span class="kw">INTO</span> sales_archive
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> sales <span class="kw">WHERE</span> sale_date < <span class="fn">ADD_MONTHS</span>(<span class="fn">SYSDATE</span>,-<span class="num">12</span>);</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Indexing -->
+  <section id="indexes" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-pink mb-4">Section 5</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Indexing Strategies</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Correct indexing solves 80% of SQL performance problems. Know when to add, when to drop, and how to choose index type.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-3"><i class="fas fa-list-ol text-pink-400 mr-2"></i>Index Types</h3>
+          <ul class="space-y-3 text-sm text-slate-400">
+            <li><strong class="text-white">B-Tree (default):</strong> Balanced tree. Best for high-cardinality columns, range scans, OLTP equality lookups.</li>
+            <li><strong class="text-white">Bitmap:</strong> Compressed bitmaps per value. Best for low-cardinality (gender, status) DW columns. Never use in OLTP (row-level lock contention).</li>
+            <li><strong class="text-white">Function-Based:</strong> Index on UPPER(name), TO_CHAR(date). Query must match expression exactly.</li>
+            <li><strong class="text-white">Composite:</strong> Multi-column. Column order matters — most selective or equality first. Cover leading-edge prefix queries.</li>
+            <li><strong class="text-white">Partial (12c+):</strong> <code class="text-pink-300 text-xs">WHERE status='ACTIVE'</code> — indexes only matching rows. Smaller, faster.</li>
+          </ul>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-3"><i class="fas fa-exclamation-triangle text-yellow-400 mr-2"></i>Index Anti-Patterns</h3>
+          <ul class="space-y-3 text-sm text-slate-400">
+            <li><strong class="text-white">Leading wildcard:</strong> <code class="text-pink-300 text-xs">LIKE '%Smith'</code> — cannot use B-Tree index. Use Oracle Text.</li>
+            <li><strong class="text-white">Function on indexed column:</strong> <code class="text-pink-300 text-xs">UPPER(name) = 'JOHN'</code> — use FBI instead.</li>
+            <li><strong class="text-white">Implicit type conversion:</strong> <code class="text-pink-300 text-xs">WHERE number_col = '100'</code> — forces conversion, suppresses index.</li>
+            <li><strong class="text-white">OR on multiple indexed columns:</strong> CBO may skip both indexes. Rewrite as UNION ALL.</li>
+            <li><strong class="text-white">NOT NULL or NOT IN:</strong> B-Tree index doesn't store NULL — predicates may force FTS.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="reveal terminal">
+        <div class="terminal-bar"><div class="t-dot bg-red-400"></div><div class="t-dot bg-yellow-400"></div><div class="t-dot bg-green-400"></div>
+          <span class="text-slate-500 text-xs ml-2">Index Creation Examples</span>
+        </div>
+        <pre class="p-4 text-xs font-mono leading-6 overflow-x-auto"><code><span class="cm">-- Composite index (department_id leading for range, salary for filter)</span>
+<span class="kw">CREATE INDEX</span> emp_dept_sal_idx <span class="kw">ON</span> employees(department_id, salary);
+
+<span class="cm">-- Function-based index for case-insensitive search</span>
+<span class="kw">CREATE INDEX</span> emp_name_upper_idx <span class="kw">ON</span> employees(<span class="fn">UPPER</span>(last_name));
+
+<span class="cm">-- Partial index (12c+): only active employees</span>
+<span class="kw">CREATE INDEX</span> emp_active_idx <span class="kw">ON</span> employees(hire_date)
+  <span class="kw">WHERE</span> status = <span class="str">'ACTIVE'</span>;
+
+<span class="cm">-- Find unused indexes (candidates for removal)</span>
+<span class="kw">SELECT</span> object_name, object_type
+<span class="kw">FROM</span>   v$object_usage
+<span class="kw">WHERE</span>  used = <span class="str">'NO'</span>
+<span class="kw">AND</span>    monitoring = <span class="str">'YES'</span>;</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Bind Variables -->
+  <section id="bind-variables" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-pink mb-4">Section 6</span>
+        <h2 class="text-3xl font-bold text-white mb-3">Bind Variables & Cursor Sharing</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Bind variables are the single biggest scalability improvement for OLTP applications. Literal SQL causes hard parses and library cache contention.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Literals vs. Bind Variables</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- BAD: Literal SQL — hard parse every time</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> orders <span class="kw">WHERE</span> order_id = <span class="num">1001</span>;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> orders <span class="kw">WHERE</span> order_id = <span class="num">1002</span>;
+<span class="cm">-- Each is a unique SQL_ID → library cache bloat</span>
+
+<span class="cm">-- GOOD: Bind variable — soft parse every time</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> orders <span class="kw">WHERE</span> order_id = :order_id;
+<span class="cm">-- Same SQL_ID, plan reused → zero hard parse cost</span>
+
+<span class="cm">-- Check bind variable usage in library cache</span>
+<span class="kw">SELECT</span> sql_id, executions, parse_calls, sql_text
+<span class="kw">FROM</span>   v$sql
+<span class="kw">WHERE</span>  sql_text <span class="kw">LIKE</span> <span class="str">'%orders%'</span>
+<span class="kw">ORDER BY</span> executions <span class="kw">DESC</span>;</code></pre>
+          </div>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-4">Bind Peeking & Adaptive Cursor Sharing</h3>
+          <p class="text-slate-400 text-sm mb-3">Oracle peeks at bind values on first execution to choose a plan. If data is skewed, the initial plan may be wrong for other values.</p>
+          <p class="text-slate-400 text-sm mb-3"><strong class="text-white">Adaptive Cursor Sharing (11g+)</strong> solves this: Oracle detects bind-sensitive plans, creates multiple child cursors for different value ranges, and picks the right one per execution.</p>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Check if cursor is bind-sensitive/aware</span>
+<span class="kw">SELECT</span> sql_id, child_number,
+       is_bind_sensitive, is_bind_aware,
+       executions, rows_processed
+<span class="kw">FROM</span>   v$sql
+<span class="kw">WHERE</span>  sql_id = <span class="str">'&sql_id'</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 7: SQL Plan Management -->
+  <section id="spm" class="section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-pink mb-4">Section 7</span>
+        <h2 class="text-3xl font-bold text-white mb-3">SQL Plan Management (SPM)</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">SPM prevents plan regressions after upgrades, stat refreshes, or parameter changes. Plans only change when you approve a better alternative.</p>
+      </div>
+      <div class="reveal grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-3">SPM Workflow</h3>
+          <ul class="space-y-2 text-sm text-slate-400">
+            <li class="flex gap-2"><i class="fas fa-circle text-pink-400 text-xs mt-1.5"></i><span><strong class="text-white">Capture:</strong> Oracle records plans into SQL Plan Baselines (enabled or auto-capture).</span></li>
+            <li class="flex gap-2"><i class="fas fa-circle text-pink-400 text-xs mt-1.5"></i><span><strong class="text-white">Select:</strong> Only accepted baseline plans are used. New plans go to "not accepted" state.</span></li>
+            <li class="flex gap-2"><i class="fas fa-circle text-pink-400 text-xs mt-1.5"></i><span><strong class="text-white">Evolve:</strong> SPM Evolve Advisor tests new plans. If better, promotes to accepted.</span></li>
+            <li class="flex gap-2"><i class="fas fa-circle text-pink-400 text-xs mt-1.5"></i><span><strong class="text-white">Protect:</strong> Upgrade-safe — baselines survive across Oracle version upgrades.</span></li>
+          </ul>
+        </div>
+        <div class="glass p-6">
+          <h3 class="font-bold text-white mb-3">SPM Commands</h3>
+          <div class="terminal">
+            <pre class="p-3 text-xs font-mono leading-5 overflow-x-auto"><code><span class="cm">-- Enable automatic capture</span>
+<span class="kw">ALTER SYSTEM SET</span> optimizer_capture_sql_plan_baselines=<span class="kw">TRUE</span>;
+
+<span class="cm">-- Load baseline from cursor cache</span>
+<span class="fn">DBMS_SPM.LOAD_PLANS_FROM_CURSOR_CACHE</span>(
+  sql_id => <span class="str">'&sql_id'</span>
+);
+
+<span class="cm">-- View existing baselines</span>
+<span class="kw">SELECT</span> sql_handle, plan_name, accepted,
+       enabled, executions, elapsed_time
+<span class="kw">FROM</span>   dba_sql_plan_baselines
+<span class="kw">WHERE</span>  sql_text <span class="kw">LIKE</span> <span class="str">'%orders%'</span>;
+
+<span class="cm">-- Run SPM Evolve (auto-promote better plans)</span>
+<span class="kw">SELECT</span> <span class="fn">DBMS_SPM.EVOLVE_SQL_PLAN_BASELINE</span>(
+  sql_handle => <span class="str">'SQL_xxxxx'</span>,
+  verify     => <span class="str">'YES'</span>,
+  commit     => <span class="str">'YES'</span>
+) <span class="kw">FROM</span> dual;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 8: Interview Q&A -->
+  <section id="interview" class="section section-alt">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="reveal text-center mb-12">
+        <span class="badge badge-pink mb-4">Section 8</span>
+        <h2 class="text-3xl font-bold text-white mb-3">SQL Optimization — Interview Q&amp;A</h2>
+        <p class="text-slate-400 max-w-xl mx-auto">Top questions asked in Oracle DBA / developer interviews on SQL tuning topics.</p>
+      </div>
+      <div class="reveal max-w-3xl mx-auto space-y-3">
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is the difference between EXPLAIN PLAN and DBMS_XPLAN.DISPLAY_CURSOR?
+            <i class="fas fa-chevron-down text-sm" style="transition:transform .3s"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">EXPLAIN PLAN generates the estimated plan <em>before</em> execution and stores it in PLAN_TABLE. DBMS_XPLAN.DISPLAY_CURSOR retrieves the <em>actual</em> plan that was used during execution from the library cache (V$SQL_PLAN). The cursor cache version shows actual row counts (A-Rows) vs estimates (E-Rows), revealing cardinality errors. Always prefer DISPLAY_CURSOR for tuning real performance problems.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            Why does a query sometimes ignore an existing index?
+            <i class="fas fa-chevron-down text-sm" style="transition:transform .3s"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm mb-2">Common reasons the CBO skips an index:</p>
+            <ul class="text-slate-400 text-sm space-y-1 list-disc pl-4">
+              <li>Query returns too many rows (>15%) — FTS is cheaper</li>
+              <li>Stale statistics — CBO underestimates selectivity</li>
+              <li>Function applied to indexed column without FBI</li>
+              <li>Implicit data type conversion on the predicate column</li>
+              <li>Missing or wrong histogram (skewed data)</li>
+              <li>Index not covering leading edge of composite key</li>
+            </ul>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is bind variable peeking and when does it cause problems?
+            <i class="fas fa-chevron-down text-sm" style="transition:transform .3s"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">Oracle peeks at the actual bind value on the <em>first</em> hard parse to generate a plan. The same plan is then reused for all subsequent executions with different bind values. If the data is skewed (e.g., status='ACTIVE' returns 90% of rows but status='CLOSED' returns 0.1%), the plan chosen for the first value may be terrible for others. Adaptive Cursor Sharing (11g+) partially solves this by generating multiple child cursors for different bind value ranges.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            What is SQL Plan Management and when should you use it?
+            <i class="fas fa-chevron-down text-sm" style="transition:transform .3s"></i>
+          </button>
+          <div class="acc-body">
+            <p class="text-slate-400 text-sm">SPM captures accepted execution plans as SQL Plan Baselines. New plans (after upgrades, stat refreshes, or parameter changes) are only used after they're verified as equal or better. Use SPM: (1) before Oracle upgrades to capture known-good plans; (2) for critical OLTP SQL that cannot afford plan regressions; (3) after tuning to lock in an improved plan permanently.</p>
+          </div>
+        </div>
+        <div>
+          <button class="acc-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+            How do you tune a SQL query in production without application changes?
+            <i class="fas fa-chevron-down text-sm" style="transition:transform .3s"></i>
+          </button>
+          <div class="acc-body">
+            <ul class="text-slate-400 text-sm space-y-1 list-disc pl-4">
+              <li>Refresh statistics (DBMS_STATS.GATHER_TABLE_STATS)</li>
+              <li>Create a new index matching the query's predicate/join columns</li>
+              <li>Create a SQL Patch (DBMS_SQLDIAG) to inject hints without source changes</li>
+              <li>Use SQL Plan Management to load a better plan baseline</li>
+              <li>Create a Function-Based Index if expression is blocking index use</li>
+              <li>Adjust optimizer parameters at session/system level</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+
+  <footer class="py-8 border-t border-white/6 text-center text-slate-600 text-sm">
+    <a href="index.html" style="text-decoration:none;color:#ec4899" class="hover:opacity-80">&larr; Back to Oracle DBA Simplified</a>
+  </footer>
+
+  <script>
+    // Reveal on scroll
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:0.1});
+    reveals.forEach(r => io.observe(r));
+
+    // Back to top
+    const btt = document.getElementById('btt');
+    window.addEventListener('scroll', () => btt.classList.toggle('show', window.scrollY > 400));
+
+    // Mobile menu
+    document.getElementById('menu-btn').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('open'));
+  </script>
+</body>
+</html>
