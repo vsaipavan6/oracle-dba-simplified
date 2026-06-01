@@ -2309,6 +2309,117 @@
   </div>
 </footer>
 
+<!-- ═══════════════ INTERVIEW Q&A ═══════════════ -->
+<section id="interview" class="py-20 relative bg-gradient-to-b from-transparent to-black/20">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="badge badge-purple">Interview Q&amp;A</span>
+      <h2 class="text-3xl font-display font-bold text-white mt-3 mb-2">User &amp; Security Management — Interview Questions</h2>
+      <p class="text-neutral-400 max-w-xl mx-auto">Top Oracle security and user management questions asked in DBA interviews covering schemas, profiles, privileges, and VPD.</p>
+    </div>
+    <div class="space-y-4 reveal">
+
+      <!-- Q1 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-violet-400 text-xs">Q1</span></div>
+            <span class="font-semibold text-white text-sm">What is the difference between a schema and a user in Oracle?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">In Oracle, a <strong class="text-white">user</strong> and a <strong class="text-white">schema</strong> are tightly coupled — when you create a user, Oracle automatically creates a schema of the same name. However, they represent different concepts:</p>
+          <ul class="text-neutral-400 text-sm mt-2 space-y-1.5 list-disc pl-4 leading-relaxed">
+            <li>A <strong class="text-white">user</strong> is a database account with credentials (password, profile, default tablespace) that can connect to the database.</li>
+            <li>A <strong class="text-white">schema</strong> is the logical namespace that owns database objects (tables, indexes, views, procedures). It has the same name as its owner user.</li>
+          </ul>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed">You can have a schema without a live user (if the account is locked) — the objects still exist. In some organizations, schema owners are locked accounts used only for object ownership, while separate application users (with limited privileges) do the actual connecting. This is a security best practice.</p>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-violet-400 text-xs">Q2</span></div>
+            <span class="font-semibold text-white text-sm">How do you implement password complexity policies in Oracle 12c+?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">Oracle implements password policies through <strong class="text-white">Profiles</strong> assigned to users. The <code class="text-violet-400 font-mono text-xs">PASSWORD_VERIFY_FUNCTION</code> in the profile points to a PL/SQL function that validates password complexity.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Oracle provides built-in functions: <code class="text-violet-400 font-mono text-xs">ORA12C_STRONG_PASSWORD_VERIFY_FUNCTION</code> (12c+) enforces: minimum 9 characters, mixed case, at least 1 digit, at least 1 special character, cannot contain username or DB name. Profile also controls:</p>
+          <ul class="text-neutral-400 text-sm mt-1.5 space-y-1 list-disc pl-4 text-sm">
+            <li><code class="text-violet-400 font-mono text-xs">PASSWORD_LIFE_TIME</code> — days before expiry</li>
+            <li><code class="text-violet-400 font-mono text-xs">FAILED_LOGIN_ATTEMPTS</code> — lock after N failures</li>
+            <li><code class="text-violet-400 font-mono text-xs">PASSWORD_REUSE_TIME / PASSWORD_REUSE_MAX</code> — prevent reuse</li>
+            <li><code class="text-violet-400 font-mono text-xs">PASSWORD_LOCK_TIME</code> — how long account stays locked</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-violet-400 text-xs">Q3</span></div>
+            <span class="font-semibold text-white text-sm">What is the difference between system privileges and object privileges?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed"><strong class="text-white">System privileges</strong> grant the ability to perform database-wide operations: <code class="text-violet-400 font-mono text-xs">CREATE SESSION</code>, <code class="text-violet-400 font-mono text-xs">CREATE TABLE</code>, <code class="text-violet-400 font-mono text-xs">CREATE ANY TABLE</code>, <code class="text-violet-400 font-mono text-xs">ALTER DATABASE</code>. The <code class="text-violet-400 font-mono text-xs">ANY</code> variants (e.g., <code class="text-violet-400 font-mono text-xs">SELECT ANY TABLE</code>) are dangerous — grant sparingly. Tracked in <code class="text-violet-400 font-mono text-xs">DBA_SYS_PRIVS</code>.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed"><strong class="text-white">Object privileges</strong> grant specific access to individual objects: <code class="text-violet-400 font-mono text-xs">SELECT ON hr.employees</code>, <code class="text-violet-400 font-mono text-xs">EXECUTE ON dbms_stats</code>. Tracked in <code class="text-violet-400 font-mono text-xs">DBA_TAB_PRIVS</code>. The <code class="text-violet-400 font-mono text-xs">WITH GRANT OPTION</code> allows the grantee to further grant the privilege — use carefully.</p>
+          <p class="text-neutral-400 text-sm mt-2"><strong class="text-violet-400">Best practice:</strong> Use roles to group related privileges. Grant roles rather than direct system privileges. Follow principle of least privilege — grant only what the application needs.</p>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-violet-400 text-xs">Q4</span></div>
+            <span class="font-semibold text-white text-sm">What is Virtual Private Database (VPD) and how does it implement row-level security?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">Virtual Private Database (VPD), also called Fine-Grained Access Control (FGAC), allows Oracle to transparently append a WHERE clause predicate to every query against a protected table — based on the session context (e.g., user's department, region, or role).</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed">You implement VPD by creating a PL/SQL policy function that returns a predicate string, then attaching it to a table via <code class="text-violet-400 font-mono text-xs">DBMS_RLS.ADD_POLICY</code>. For example:</p>
+          <div class="bg-neutral-900/50 rounded-lg p-3 mt-2 font-mono text-xs text-violet-400">
+            FUNCTION dept_filter(p_schema IN VARCHAR2, p_object IN VARCHAR2)<br>
+            RETURN VARCHAR2 IS<br>
+            BEGIN<br>
+            &nbsp;&nbsp;RETURN 'department_id = SYS_CONTEXT(''USERENV'',''CLIENT_INFO'')';<br>
+            END;<br>
+            -- Every SELECT on employees auto-gets: WHERE department_id = :user_dept
+          </div>
+          <p class="text-neutral-400 text-sm mt-2">VPD is transparent to the application — users cannot see or bypass the predicate. The filtering happens in the kernel before results are returned.</p>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-violet-400 text-xs">Q5</span></div>
+            <span class="font-semibold text-white text-sm">Why should default Oracle accounts (SYS, SYSTEM, DBSNMP) be secured immediately after installation?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">Oracle ships with dozens of pre-created accounts for its built-in components (XDB, APEX, SYSMAN, etc.) — many with well-known default passwords. If an attacker can reach your listener port, they may connect using default credentials and gain DBA or schema access.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Security hardening steps: (1) Change passwords for SYS, SYSTEM, DBSNMP immediately; (2) Lock all unused accounts with <code class="text-violet-400 font-mono text-xs">ALTER USER &lt;user&gt; ACCOUNT LOCK PASSWORD EXPIRE</code>; (3) Check for accounts with default passwords:</p>
+          <div class="bg-neutral-900/50 rounded-lg p-3 mt-2 font-mono text-xs text-violet-400">SELECT username, account_status FROM dba_users_with_defpwd<br>WHERE account_status NOT LIKE '%LOCKED%';</div>
+          <p class="text-neutral-400 text-sm mt-2">Run the Oracle <strong class="text-white">DBSAT</strong> (Database Security Assessment Tool) after installation to get a full security checklist.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- Back to top -->
 <button id="back-top" class="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-violet-600 text-white flex items-center justify-center shadow-lg opacity-0 transition-all duration-300 hover:bg-violet-500 z-40">
   <i class="fas fa-chevron-up text-xs"></i>

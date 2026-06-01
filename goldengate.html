@@ -2560,6 +2560,55 @@ EOF</pre>
   </div>
 </footer>
 
+<!-- ═══════════════ INTERVIEW Q&A ═══════════════ -->
+<section id="interview" style="padding:5rem 1.5rem;background:linear-gradient(to bottom,transparent,rgba(0,0,0,.15))">
+  <div style="max-width:900px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:3rem">
+      <span style="background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.25);font-size:.75rem;padding:3px 12px;border-radius:100px;font-weight:700;letter-spacing:.1em;text-transform:uppercase">Interview Q&amp;A</span>
+      <h2 style="color:#fff;font-size:1.875rem;font-weight:700;margin:.75rem 0 .5rem;font-family:'DM Sans',sans-serif">Oracle GoldenGate — Interview Questions</h2>
+      <p style="color:#94a3b8;max-width:32rem;margin:0 auto;font-size:.95rem">Commonly asked GoldenGate interview questions covering architecture, trail files, parameter files, and replication best practices.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+
+      <button class="acc-btn" onclick="toggleAcc(this)"><span><span style="background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q1</span>What is the difference between the EXTRACT and REPLICAT processes?</span><span class="acc-icon">+</span></button>
+      <div class="acc-body">
+        <p><strong style="color:#fff">EXTRACT</strong> runs on the <em>source</em> database system. It mines the Oracle redo/archive logs (or supplemental log data) to capture all committed DML and DDL changes. It writes these changes in GoldenGate's proprietary binary format to Trail files on the local filesystem.</p>
+        <p style="margin-top:.75rem"><strong style="color:#fff">REPLICAT</strong> runs on the <em>target</em> system. It reads the Trail files (either local or received from a Data Pump) and applies the changes to the target database using standard SQL (or batch apply for performance). Replicat maintains its own checkpoint so it can restart exactly where it left off after a failure.</p>
+        <p style="margin-top:.75rem"><strong style="color:var(--color-primary)">Key distinction:</strong> Extract captures; Replicat applies. The Data Pump process (optional) transports trail files between Extract and Replicat.</p>
+      </div>
+
+      <button class="acc-btn" onclick="toggleAcc(this)"><span><span style="background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q2</span>What is a Trail file and why is it important?</span><span class="acc-icon">+</span></button>
+      <div class="acc-body">
+        <p>Trail files are the backbone of GoldenGate replication — they are sequential binary files that store captured change records (insert/update/delete/DDL). Each record includes the table name, operation type, before/after images, and timestamp.</p>
+        <p style="margin-top:.75rem">Trail files serve as the <strong style="color:#fff">persistence and buffer layer</strong> between Extract and Replicat. If Replicat falls behind or the target is temporarily unavailable, trail files accumulate changes without blocking the source. They also enable multiple Replicat processes to consume the same trail for fan-out replication to multiple targets.</p>
+        <p style="margin-top:.75rem">Trail files are created in segments (typically 100MB each) with a 2-character prefix (e.g., <code style="color:var(--color-primary);font-size:.85rem">lt</code>). Older trails are purged via the <code style="color:var(--color-primary);font-size:.85rem">PURGEOLDEXTRACTS</code> parameter in the Manager's prm file.</p>
+      </div>
+
+      <button class="acc-btn" onclick="toggleAcc(this)"><span><span style="background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q3</span>What is the purpose of the Data Pump process in GoldenGate?</span><span class="acc-icon">+</span></button>
+      <div class="acc-body">
+        <p>The GoldenGate Data Pump (not to be confused with Oracle Data Pump expdp/impdp) is a secondary Extract group that reads local trail files and sends them to a remote trail on the target server.</p>
+        <p style="margin-top:.75rem">Benefits of using a Data Pump: (1) <strong style="color:#fff">Decoupling</strong> — network issues don't impact the primary Extract; Extract writes to local trail and Data Pump picks up when the network recovers. (2) <strong style="color:#fff">Fan-out</strong> — one Data Pump can send to multiple remote trails simultaneously. (3) <strong style="color:#fff">Filtering &amp; transformation</strong> — can apply column mappings or filtering between source and target trail.</p>
+        <p style="margin-top:.75rem">Without a Data Pump, EXTRACT would write directly to the remote trail — meaning a network failure would stall Extract and potentially impact source database performance.</p>
+      </div>
+
+      <button class="acc-btn" onclick="toggleAcc(this)"><span><span style="background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q4</span>What is HANDLECOLLISIONS and when should you use it?</span><span class="acc-icon">+</span></button>
+      <div class="acc-body">
+        <p><code style="color:var(--color-primary);font-size:.9rem">HANDLECOLLISIONS</code> is a Replicat parameter that tells GoldenGate to ignore or resolve conflicts that arise during the initial load phase when both source changes and the initial data load are being applied simultaneously.</p>
+        <p style="margin-top:.75rem">Specifically: duplicate-key errors on INSERT are handled by converting to UPDATE, and "row not found" errors on UPDATE or DELETE are silently ignored. This allows replication to start while data is still being loaded, without errors stopping the Replicat.</p>
+        <p style="margin-top:.75rem"><strong style="color:var(--color-primary)">Important:</strong> HANDLECOLLISIONS should only be used during the initial load period. Once all data is synchronized and replication is confirmed current, remove this parameter. Leaving it on permanently will silently mask legitimate replication errors.</p>
+      </div>
+
+      <button class="acc-btn" onclick="toggleAcc(this)"><span><span style="background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q5</span>Why is Supplemental Logging required for GoldenGate?</span><span class="acc-icon">+</span></button>
+      <div class="acc-body">
+        <p>Oracle's redo logs, by default, only record the minimal information needed for instance recovery — typically just the rowid and changed column values. GoldenGate's Extract needs more: the <strong style="color:#fff">before image</strong> (original column values) to identify the row on the target and to detect conflicts.</p>
+        <p style="margin-top:.75rem">Supplemental logging adds additional column data to the redo records. Minimum supplemental logging (<code style="color:var(--color-primary);font-size:.85rem">ALTER DATABASE ADD SUPPLEMENTAL LOG DATA</code>) adds primary key columns to every redo entry. ALL COLUMNS supplemental logging adds all columns — required when the target schema has different key structures.</p>
+        <p style="margin-top:.75rem">For bi-directional (active-active) replication, you typically need ALL COLUMNS supplemental logging plus a <code style="color:var(--color-primary);font-size:.85rem">LOGALLSUPCOLS</code> parameter to ensure sufficient data is available for conflict detection and resolution.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <button id="backToTop" style="display:none;position:fixed;bottom:2rem;right:2rem;background:var(--color-primary);color:#fff;border:none;border-radius:50%;width:44px;height:44px;font-size:1.2rem;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(249,115,22,.4);z-index:99;transition:opacity .2s">↑</button>
 
 <script>

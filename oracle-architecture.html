@@ -1312,6 +1312,101 @@ FROM   v$recovery_file_dest;</code></pre>
   </div>
 </footer>
 
+<!-- ═══════════════ INTERVIEW Q&A ═══════════════ -->
+<section id="interview" class="py-20 relative bg-gradient-to-b from-transparent to-black/20">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="badge badge-red">Interview Q&amp;A</span>
+      <h2 class="text-3xl font-display font-bold text-white mt-3 mb-2">Oracle Architecture — Interview Questions</h2>
+      <p class="text-neutral-400 max-w-xl mx-auto">Most-asked questions in Oracle DBA interviews covering instance memory, background processes, and SQL execution.</p>
+    </div>
+    <div class="space-y-4 reveal">
+
+      <!-- Q1 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/[.02] transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q1</span></div>
+            <span class="font-semibold text-white text-sm">What is the difference between the SGA and PGA?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content px-5 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">The <strong class="text-white">SGA (System Global Area)</strong> is shared memory allocated at instance startup that all server processes and background processes can access. It contains the Buffer Cache, Shared Pool, Redo Log Buffer, Large Pool, Java Pool, and Streams Pool.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed">The <strong class="text-white">PGA (Program Global Area)</strong> is private memory exclusive to each individual server or background process — no sharing occurs. It contains the private SQL area (bind variables, cursor state), SQL work areas (sort, hash join, bitmap merge), and session information. If the PGA work area is too small, sort or hash operations spill to temp disk, causing a dramatic slowdown.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed"><strong class="text-oracle-red">Key distinction:</strong> SGA survives across connections; PGA is created when a server process starts and freed when it ends.</p>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/[.02] transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q2</span></div>
+            <span class="font-semibold text-white text-sm">What happens step-by-step when you execute a SELECT statement?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content px-5 pb-5">
+          <ol class="text-neutral-400 text-sm space-y-1.5 pt-2 list-decimal pl-4 leading-relaxed">
+            <li><strong class="text-white">Parse:</strong> Server process checks Shared Pool for an identical SQL hash (soft parse). If not found, performs a hard parse — syntax check, semantic check (does the table exist?), privilege check, then generates an execution plan via the CBO.</li>
+            <li><strong class="text-white">Execute:</strong> Server process identifies data blocks needed. Checks the Buffer Cache; if not present (cache miss), issues a physical read from the data file into the buffer cache.</li>
+            <li><strong class="text-white">Fetch:</strong> Server process retrieves rows from the buffer cache and transmits them back to the client in batches (array fetch). For consistent reads, it may need to reconstruct older versions of blocks using UNDO data.</li>
+          </ol>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed"><strong class="text-oracle-red">Key point:</strong> DML adds a Fetch step after Execute only for queries. SELECT never touches redo; only DML generates redo log entries.</p>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/[.02] transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q3</span></div>
+            <span class="font-semibold text-white text-sm">What is the role of DBWn and why doesn't Oracle write changes immediately?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content px-5 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">DBWn (Database Writer) writes modified ("dirty") buffer cache blocks to data files. Oracle uses a <strong class="text-white">write-ahead logging</strong> strategy: LGWR must first flush the corresponding redo to the online redo log before DBWn can write the block. This ensures recovery is always possible even if DBWn's write is interrupted.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed">DBWn writes are triggered by: (1) the buffer cache reaching its dirty threshold, (2) a checkpoint, (3) a tablespace going offline, or (4) a datafile going read-only. DBWn intentionally delays writes so that multiple logical changes to the same block are batched into one physical I/O — this is called <strong class="text-white">write batching</strong> and is far more efficient than writing on every COMMIT.</p>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/[.02] transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q4</span></div>
+            <span class="font-semibold text-white text-sm">What is the difference between an Oracle Instance and an Oracle Database?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content px-5 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">An <strong class="text-white">Instance</strong> is memory + processes — specifically the SGA (shared memory) and the background processes (SMON, PMON, DBWn, LGWR, CKPT, etc.). An instance is ephemeral; it exists only while the database is mounted/open.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed">A <strong class="text-white">Database</strong> is the physical set of files on disk: data files (.dbf), online redo log files, and the control file. The database persists independently of whether an instance is running.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed"><strong class="text-oracle-red">Real-world example:</strong> In Oracle RAC, multiple instances share a single database — each node runs its own instance (SGA + processes), but all instances read and write the same physical database files on shared storage.</p>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/[.02] transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q5</span></div>
+            <span class="font-semibold text-white text-sm">Why does Oracle use online redo logs and what happens when they fill up?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content px-5 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">Online redo logs record every change made to the database (before-and-after images). They serve two purposes: (1) <strong class="text-white">Instance recovery</strong> — if the database crashes, Oracle replays the redo log from the last checkpoint to bring data files up-to-date, then rolls back uncommitted transactions using UNDO. (2) <strong class="text-white">Data Guard replication</strong> — redo is shipped to standby databases for real-time apply.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Redo logs work in a circular group fashion. When the current group fills, LGWR performs a <strong class="text-white">log switch</strong> to the next group. If <code class="text-oracle-red font-mono text-xs">ARCHIVELOG</code> mode is enabled, the ARCn process archives the filled group before it can be reused. If all groups are full and archiving is behind, LGWR will stall — causing all users to hang with a "log file switch" wait event.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <button id="back-top" class="fixed bottom-8 right-8 w-10 h-10 bg-oracle-red rounded-lg flex items-center justify-center shadow-lg hover:bg-oracle-dark transition-colors opacity-0 translate-y-4 transition-all duration-300 z-50" onclick="window.scrollTo({top:0,behavior:'smooth'})">
   <i class="fas fa-arrow-up text-white text-sm"></i>
 </button>
@@ -1339,6 +1434,17 @@ window.addEventListener('scroll',()=>{
 // Scroll reveal
 const ro=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
 document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+// Accordion (Interview Q&A)
+document.querySelectorAll('.acc-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const c=btn.nextElementSibling;
+    const isOpen=c.classList.contains('open');
+    document.querySelectorAll('.acc-content').forEach(x=>x.classList.remove('open'));
+    document.querySelectorAll('.acc-btn').forEach(b=>b.classList.remove('open'));
+    if(!isOpen){c.classList.add('open');btn.classList.add('open');}
+  });
+});
 
 // SGA tabs
 document.querySelectorAll('#sga-tabs .tab-btn').forEach(btn=>{

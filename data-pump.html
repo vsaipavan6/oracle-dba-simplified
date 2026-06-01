@@ -1928,6 +1928,84 @@ expdp ... <span class="kv">PARALLEL</span>=<span class="num">1</span></code></pr
     </div>
   </footer>
 
+  <!-- ═══════════════ INTERVIEW Q&A ═══════════════ -->
+  <section id="interview" class="py-20 relative" style="background:linear-gradient(to bottom,transparent,rgba(0,0,0,.15))">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 reveal">
+        <span class="badge badge-blue">Interview Q&amp;A</span>
+        <h2 class="text-3xl font-display font-bold text-white mt-3 mb-2">Data Pump — Interview Questions</h2>
+        <p class="text-neutral-400 max-w-xl mx-auto">Top Data Pump interview questions covering expdp/impdp options, performance, and migration scenarios.</p>
+      </div>
+      <div class="space-y-3 reveal">
+
+        <button class="acc-btn" onclick="toggleAcc(this)">
+          <span><span style="background:rgba(14,165,233,.15);color:#38bdf8;border:1px solid rgba(14,165,233,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q1</span>What is the main difference between Data Pump (expdp/impdp) and legacy exp/imp?</span>
+          <i class="fas fa-chevron-down text-sky-400 transition-transform duration-200"></i>
+        </button>
+        <div class="acc-body">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0">The legacy <code style="color:#38bdf8;font-size:.85rem">exp/imp</code> tools run entirely on the <em>client side</em>, processing data through SQL*Net to/from the client machine. They are single-threaded and limited in performance and restart capability.</p>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0"><code style="color:#38bdf8;font-size:.85rem">expdp/impdp</code> (Data Pump) runs entirely on the <strong style="color:#fff">server side</strong> using a master table and worker processes in the database. Key advantages: (1) <strong style="color:#fff">PARALLEL</strong> — multiple worker processes write simultaneously to multiple dump files; (2) <strong style="color:#fff">Restart</strong> — can be paused/detached and reattached; (3) <strong style="color:#fff">Faster</strong> — direct path reads bypass SQL layer; (4) <strong style="color:#fff">Network link imports</strong> — can import directly from remote database without a dump file; (5) <strong style="color:#fff">Richer filtering</strong> — INCLUDE/EXCLUDE, CONTENT=DATA_ONLY, query filters per table. Legacy exp/imp is deprecated since Oracle 10g.</p>
+        </div>
+
+        <button class="acc-btn" onclick="toggleAcc(this)">
+          <span><span style="background:rgba(14,165,233,.15);color:#38bdf8;border:1px solid rgba(14,165,233,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q2</span>How do you remap a schema and tablespace during an impdp operation?</span>
+          <i class="fas fa-chevron-down text-sky-400 transition-transform duration-200"></i>
+        </button>
+        <div class="acc-body">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0">Data Pump provides two key remapping parameters:</p>
+          <ul style="color:#94a3b8;font-size:.9rem;line-height:1.8;margin:.5rem 0 0 1rem">
+            <li><code style="color:#38bdf8;font-size:.85rem">REMAP_SCHEMA=source_schema:target_schema</code> — imports all objects from the source schema into a different target schema. Useful when migrating from PROD to DEV with different schema names.</li>
+            <li><code style="color:#38bdf8;font-size:.85rem">REMAP_TABLESPACE=source_ts:target_ts</code> — relocates all objects from one tablespace to another during import. Use when the target database has different tablespace names.</li>
+          </ul>
+          <div style="background:#0f172a;border-radius:8px;padding:12px;margin-top:.75rem;font-family:monospace;font-size:.8rem;color:#38bdf8">
+            impdp system/pwd DIRECTORY=dpump_dir DUMPFILE=prod_exp.dmp<br>
+            &nbsp;&nbsp;REMAP_SCHEMA=PRODUSER:DEVUSER<br>
+            &nbsp;&nbsp;REMAP_TABLESPACE=PROD_DATA:DEV_DATA<br>
+            &nbsp;&nbsp;LOGFILE=import.log
+          </div>
+        </div>
+
+        <button class="acc-btn" onclick="toggleAcc(this)">
+          <span><span style="background:rgba(14,165,233,.15);color:#38bdf8;border:1px solid rgba(14,165,233,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q3</span>What is the PARALLEL parameter in Data Pump and when should you use it?</span>
+          <i class="fas fa-chevron-down text-sky-400 transition-transform duration-200"></i>
+        </button>
+        <div class="acc-body">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0">The <code style="color:#38bdf8;font-size:.85rem">PARALLEL</code> parameter specifies how many worker processes simultaneously export or import data. For PARALLEL to be effective, you must specify multiple dump files with a <code style="color:#38bdf8;font-size:.85rem">%U</code> substitution variable: <code style="color:#38bdf8;font-size:.85rem">DUMPFILE=exp_%U.dmp PARALLEL=4</code> creates up to 4 dump files written simultaneously.</p>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0"><strong style="color:#fff">When to use:</strong> Large databases (&gt;50GB) where export/import time is critical. Parallel degree should match the number of large tables, CPUs available, and I/O throughput. Setting PARALLEL higher than CPU cores or I/O bandwidth can cause contention. For small exports or a single-table export, PARALLEL=1 is sufficient.</p>
+        </div>
+
+        <button class="acc-btn" onclick="toggleAcc(this)">
+          <span><span style="background:rgba(14,165,233,.15);color:#38bdf8;border:1px solid rgba(14,165,233,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q4</span>How do you perform a network-link import with no dump file?</span>
+          <i class="fas fa-chevron-down text-sky-400 transition-transform duration-200"></i>
+        </button>
+        <div class="acc-body">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0">Data Pump supports importing directly from a source database over a database link — no intermediate dump file is needed. This is efficient for migrations between databases on the same network.</p>
+          <div style="background:#0f172a;border-radius:8px;padding:12px;margin-top:.75rem;font-family:monospace;font-size:.8rem;color:#38bdf8">
+            <span style="color:#64748b">-- Step 1: Create db link to source (on target db)</span><br>
+            CREATE DATABASE LINK prod_link<br>
+            &nbsp;&nbsp;CONNECT TO SYSTEM IDENTIFIED BY &lt;pwd&gt;<br>
+            &nbsp;&nbsp;USING '&lt;tns_alias_to_source&gt;';<br><br>
+            <span style="color:#64748b">-- Step 2: Import via network link</span><br>
+            impdp system/pwd NETWORK_LINK=prod_link<br>
+            &nbsp;&nbsp;SCHEMAS=HRSCHEMA REMAP_SCHEMA=HRSCHEMA:HRDEV<br>
+            &nbsp;&nbsp;LOGFILE=net_import.log
+          </div>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0">The source user referenced in the DB link must have the EXP_FULL_DATABASE role or DATAPUMP_EXP_FULL_DATABASE privilege. Network link imports are slower than file-based imports but eliminate the intermediate storage requirement.</p>
+        </div>
+
+        <button class="acc-btn" onclick="toggleAcc(this)">
+          <span><span style="background:rgba(14,165,233,.15);color:#38bdf8;border:1px solid rgba(14,165,233,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q5</span>What is ESTIMATE_ONLY mode and how do you monitor an active Data Pump job?</span>
+          <i class="fas fa-chevron-down text-sky-400 transition-transform duration-200"></i>
+        </button>
+        <div class="acc-body">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0"><code style="color:#38bdf8;font-size:.85rem">ESTIMATE_ONLY=YES</code> performs a dry run — Data Pump estimates the dump file size based on segment sizes without actually exporting any data. Useful before a migration to plan storage requirements: <code style="color:#38bdf8;font-size:.85rem">expdp system/pwd FULL=YES ESTIMATE_ONLY=YES ESTIMATE=BLOCKS</code>.</p>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0">To monitor an active Data Pump job: (1) Attach to the running job: <code style="color:#38bdf8;font-size:.85rem">expdp ATTACH=&lt;job_name&gt;</code>, then type <code style="color:#38bdf8;font-size:.85rem">STATUS</code>; (2) Query the database: <code style="color:#38bdf8;font-size:.85rem">SELECT job_name, operation, state, degree FROM dba_datapump_jobs;</code>; (3) Check the master table: <code style="color:#38bdf8;font-size:.85rem">SELECT owner_name, job_name, percent_done FROM v$datapump_job;</code>. To pause and resume: use the STOP_JOB and START_JOB commands from the attach prompt.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- Back to top -->
   <button id="btt" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
     <i class="fas fa-arrow-up"></i>

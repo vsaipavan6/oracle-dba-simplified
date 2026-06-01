@@ -2373,6 +2373,74 @@ use_large_pages = AUTO</code></pre>
     </div>
   </footer>
 
+  <!-- ═══════════════ INTERVIEW Q&A ═══════════════ -->
+  <section id="interview" class="py-20 relative" style="background:linear-gradient(to bottom, transparent, rgba(0,0,0,.15))">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 reveal">
+        <span class="badge badge-green">Interview Q&amp;A</span>
+        <h2 class="text-3xl font-display font-bold text-white mt-3 mb-2">Oracle RAC — Interview Questions</h2>
+        <p class="text-neutral-400 max-w-xl mx-auto">Frequently asked RAC interview questions covering Cache Fusion, cluster services, and high-availability design.</p>
+      </div>
+      <div class="space-y-3 reveal">
+
+        <!-- Q1 -->
+        <div class="acc-btn open" onclick="toggleAcc(this)" style="display:flex">
+          <span><span class="proc-badge mr-3" style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700">Q1</span>What is Cache Fusion and why is it needed in Oracle RAC?</span>
+          <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+        </div>
+        <div class="acc-body" style="padding:1.25rem;border:1px solid rgba(34,197,94,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0">In Oracle RAC, all nodes share the same database files on shared storage but each node has its own independent buffer cache. <strong style="color:#fff">Cache Fusion</strong> is Oracle's protocol that allows nodes to transfer dirty (modified) data blocks <em>directly between buffer caches over the private interconnect</em>, avoiding the need to write the block to disk first.</p>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0">Without Cache Fusion, if Node 1 modifies a block and Node 2 needs that block, Node 1 would have to write the block to disk and Node 2 would read from disk — a slow and wasteful operation. Cache Fusion makes this a fast in-memory transfer. The Global Cache Service (GCS) and Global Enqueue Service (GES) coordinate all block transfers and locking. High latency or lost packets on the interconnect are the #1 cause of RAC performance problems.</p>
+        </div>
+
+        <!-- Q2 -->
+        <div class="acc-btn" onclick="toggleAcc(this)" style="display:flex">
+          <span><span class="proc-badge mr-3" style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700">Q2</span>What is the difference between Oracle RAC and Oracle Data Guard?</span>
+          <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+        </div>
+        <div class="acc-body" style="padding:1.25rem;border:1px solid rgba(34,197,94,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0"><strong style="color:#4ade80">RAC</strong> is a High Availability + Scale-Out solution: multiple active nodes share one database on shared storage. All nodes are read-write and serve production traffic simultaneously. Protection is against node failure, not datacenter failure.</p>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0"><strong style="color:#4ade80">Data Guard</strong> is a Disaster Recovery solution: a standby database on separate storage (possibly at a different datacenter) receives redo from the primary. The standby is passive (Physical Standby) or used for read-only reporting (Active Data Guard). Protection is against datacenter/storage failure. Many enterprises deploy both: RAC for HA on the primary site, Data Guard for DR to a secondary site.</p>
+        </div>
+
+        <!-- Q3 -->
+        <div class="acc-btn" onclick="toggleAcc(this)" style="display:flex">
+          <span><span class="proc-badge mr-3" style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700">Q3</span>What is Transparent Application Failover (TAF) and how does it work?</span>
+          <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+        </div>
+        <div class="acc-body" style="padding:1.25rem;border:1px solid rgba(34,197,94,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0">TAF is a client-side failover mechanism configured in the TNS descriptor (tnsnames.ora or connection string). If the node a client is connected to fails, TAF automatically reconnects the session to a surviving node and re-executes any active query in progress — without the application receiving a fatal error.</p>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0">TAF has two modes: <strong style="color:#fff">SELECT</strong> (refetches rows already returned to the application; the query continues from where it was) and <strong style="color:#fff">SESSION</strong> (reconnects only; running queries are re-executed from scratch). TAF is transparent to SELECT statements only — uncommitted DML at the time of failover is lost and must be resubmitted.</p>
+        </div>
+
+        <!-- Q4 -->
+        <div class="acc-btn" onclick="toggleAcc(this)" style="display:flex">
+          <span><span class="proc-badge mr-3" style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700">Q4</span>How does Oracle RAC achieve load balancing?</span>
+          <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+        </div>
+        <div class="acc-body" style="padding:1.25rem;border:1px solid rgba(34,197,94,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0">Oracle RAC uses two load balancing methods:</p>
+          <ul style="color:#94a3b8;font-size:.9rem;line-height:1.8;margin:.5rem 0 0 1rem">
+            <li><strong style="color:#fff">Client-side LB:</strong> Configured in TNS with <code style="color:#4ade80;font-size:.8rem">LOAD_BALANCE=ON</code>. The JDBC/OCI driver randomly picks an address from the address list in the connection descriptor. Simple round-robin, no awareness of actual node load.</li>
+            <li><strong style="color:#fff">Server-side LB (SCAN):</strong> SCAN (Single Client Access Name) resolves to 3 IP addresses managed by GNS/DNS. LREG publishes each node's connection load metrics to the SCAN listener. New connections are routed to the least-loaded node. This is the recommended approach for 11gR2+ and above.</li>
+          </ul>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0">Services can also be configured with preferred/available instances to control which workloads land on which nodes (e.g., OLTP on node 1, reports on node 2).</p>
+        </div>
+
+        <!-- Q5 -->
+        <div class="acc-btn" onclick="toggleAcc(this)" style="display:flex">
+          <span><span class="proc-badge mr-3" style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700">Q5</span>What is the importance of the private interconnect in Oracle RAC?</span>
+          <i class="fas fa-chevron-down" style="color:#4ade80;transition:transform .2s"></i>
+        </div>
+        <div class="acc-body" style="padding:1.25rem;border:1px solid rgba(34,197,94,.2);border-top:none;border-radius:0 0 10px 10px;background:rgba(0,0,0,.25)">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0">The private interconnect is a dedicated high-speed network (typically 10GbE or InfiniBand bonded) used exclusively for inter-node communication in RAC. All Cache Fusion block transfers, GCS/GES messages, and cluster heartbeats travel over this network. It must be isolated from public traffic to guarantee low, consistent latency.</p>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0">If the private interconnect becomes saturated or unreliable: (1) "gc buffer busy acquire/release" wait events will spike; (2) cache fusion transfers slow down; (3) in worst case, the cluster heartbeat misses its deadline and Oracle Clusterware triggers a node eviction (node reboot) to protect database integrity. Monitoring via <code style="color:#4ade80;font-size:.8rem">V$CLUSTER_INTERCONNECTS</code> and <code style="color:#4ade80;font-size:.8rem">V$GES_STATISTICS</code> is essential in RAC environments.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- Back to top -->
   <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="display:none;position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:#22c55e;color:#000;border:none;cursor:pointer;align-items:center;justify-content:center;font-size:18px;z-index:99;box-shadow:0 4px 20px rgba(34,197,94,.4)">
     <i class="fas fa-arrow-up"></i>

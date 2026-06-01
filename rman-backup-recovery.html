@@ -1667,6 +1667,106 @@
   </div>
 </footer>
 
+<!-- ═══════════════ INTERVIEW Q&A ═══════════════ -->
+<section id="interview" class="py-20 relative">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="badge badge-red">Interview Q&amp;A</span>
+      <h2 class="text-3xl font-display font-bold text-white mt-3 mb-2">RMAN Backup &amp; Recovery — Interview Questions</h2>
+      <p class="text-neutral-400 max-w-xl mx-auto">Top questions asked in Oracle DBA interviews on backup strategy, RMAN commands, and recovery scenarios.</p>
+    </div>
+    <div class="space-y-4 reveal">
+
+      <!-- Q1 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/[.02] transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q1</span></div>
+            <span class="font-semibold text-white text-sm">What is the difference between an incremental differential and incremental cumulative backup?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content px-5 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">Both are level 1 backups built on a level 0 base. The key difference is what each level 1 captures:</p>
+          <ul class="text-neutral-400 text-sm mt-2 space-y-1.5 list-disc pl-4 leading-relaxed">
+            <li><strong class="text-white">Differential (default):</strong> Backs up all blocks changed since the <em>last incremental backup of any level</em>. Monday's differential covers Monday's changes only; Tuesday's covers only Tuesday's changes. Each individual backup is small, but recovery must apply every differential in sequence.</li>
+            <li><strong class="text-white">Cumulative:</strong> Backs up all blocks changed since the <em>last level 0</em>. Monday's cumulative covers Monday; Tuesday's covers both Monday and Tuesday. Each backup is larger, but recovery only needs to apply the most recent cumulative — faster recovery time.</li>
+          </ul>
+          <p class="text-neutral-400 text-sm mt-2"><strong class="text-oracle-red">Trade-off:</strong> Differential = smaller daily backups, longer recovery. Cumulative = larger backups, faster recovery.</p>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/[.02] transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q2</span></div>
+            <span class="font-semibold text-white text-sm">What is the RMAN recovery catalog and when should you use one?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content px-5 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">By default RMAN stores backup metadata in the <strong class="text-white">control file</strong>. A <strong class="text-white">recovery catalog</strong> is an additional Oracle schema in a separate database that stores the same metadata with much longer retention and extra capabilities.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Use a recovery catalog when you: (1) manage multiple target databases from one place; (2) need to store stored scripts (backup strategies) centrally; (3) require long retention of backup history beyond <code class="text-oracle-red font-mono text-xs">CONTROL_FILE_RECORD_KEEP_TIME</code>; (4) want to use RMAN reporting across databases; (5) need to register and use virtual private catalogs per team. Without a catalog, if the control file is lost, RMAN cannot locate older backups.</p>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/[.02] transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q3</span></div>
+            <span class="font-semibold text-white text-sm">What is block change tracking and when should you enable it?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content px-5 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">Block change tracking (BCT) maintains a bitmap file that records every database block changed since the last backup. RMAN reads this file during incremental backups to skip unchanged blocks entirely — instead of reading every block to check if it's changed.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Enable BCT when your database is large (&gt;100GB) and your incremental backup window is too long. The BCT file overhead is minimal (1MB per 1GB of database, approximately). Without BCT, RMAN reads every data file block during incremental backups regardless of whether it changed.</p>
+          <div class="bg-neutral-900/50 rounded-lg p-3 mt-2 font-mono text-xs text-green-400">ALTER DATABASE ENABLE BLOCK CHANGE TRACKING<br>&nbsp;&nbsp;USING FILE '/u03/rman/bct.dbf' REUSE;</div>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/[.02] transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q4</span></div>
+            <span class="font-semibold text-white text-sm">How do you recover a single datafile that was accidentally deleted while the database is running?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content px-5 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">Since the database is running, the datafile can be recovered online without shutting down:</p>
+          <ol class="text-neutral-400 text-sm mt-2 space-y-1.5 list-decimal pl-4 leading-relaxed">
+            <li>Take the specific datafile offline: <code class="text-oracle-red font-mono text-xs">ALTER DATABASE DATAFILE '/path/file.dbf' OFFLINE;</code></li>
+            <li>Connect to RMAN and restore the specific datafile: <code class="text-oracle-red font-mono text-xs">RESTORE DATAFILE '/path/file.dbf';</code></li>
+            <li>Recover the datafile by applying archivelogs: <code class="text-oracle-red font-mono text-xs">RECOVER DATAFILE '/path/file.dbf';</code></li>
+            <li>Bring the datafile back online: <code class="text-oracle-red font-mono text-xs">ALTER DATABASE DATAFILE '/path/file.dbf' ONLINE;</code></li>
+          </ol>
+          <p class="text-neutral-400 text-sm mt-2"><strong class="text-oracle-red">Note:</strong> The database remains open and other users are unaffected during this recovery.</p>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-5 text-left hover:bg-white/[.02] transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q5</span></div>
+            <span class="font-semibold text-white text-sm">What is a backup piece vs a backup set? When would you use image copies?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content px-5 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">A <strong class="text-white">backup set</strong> is RMAN's proprietary format containing one or more backup pieces. Backup sets are compressed, can include only used blocks (no free blocks), and can span multiple files. A <strong class="text-white">backup piece</strong> is a single physical file within a backup set.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed"><strong class="text-white">Image copies</strong> are exact byte-for-byte copies of data files in OS format (like <code class="text-oracle-red font-mono text-xs">cp</code>). They are larger but enable instant recovery: RMAN can switch the database to use the image copy immediately with <code class="text-oracle-red font-mono text-xs">SWITCH DATABASE TO COPY</code>, then apply redo incrementally while the database is open — this is the <strong class="text-white">RMAN Incremental Update</strong> strategy and achieves near-zero RTO.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- Back to top -->
 <button id="btt" class="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-oracle-red/80 text-white flex items-center justify-center opacity-0 transition-opacity duration-300 hover:bg-oracle-red z-40">
   <i class="fas fa-chevron-up text-sm"></i>
@@ -1675,6 +1775,17 @@
 <script>
 // Mobile menu
 document.getElementById('mob-btn').addEventListener('click',()=>{ document.getElementById('mob-menu').classList.toggle('open'); });
+
+// Accordion
+document.querySelectorAll('.acc-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const c=btn.nextElementSibling;
+    const isOpen=c.classList.contains('open');
+    document.querySelectorAll('.acc-content').forEach(x=>x.classList.remove('open'));
+    document.querySelectorAll('.acc-btn').forEach(b=>b.classList.remove('open'));
+    if(!isOpen){c.classList.add('open');btn.classList.add('open');}
+  });
+});
 
 // Back to top
 const btt=document.getElementById('btt');

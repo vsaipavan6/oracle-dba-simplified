@@ -2656,6 +2656,117 @@ EXEC DBMS_STATS.GATHER_TABLE_STATS('SCOTT','ORDERS',
   </div>
 </footer>
 
+<!-- ═══════════════ INTERVIEW Q&A ═══════════════ -->
+<section id="interview" class="py-20 relative bg-gradient-to-b from-transparent to-black/20">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="badge badge-cyan">Interview Q&amp;A</span>
+      <h2 class="text-3xl font-display font-bold text-white mt-3 mb-2">Performance Tuning — Interview Questions</h2>
+      <p class="text-neutral-400 max-w-xl mx-auto">High-frequency Oracle performance tuning questions covering AWR, wait events, parsing, and SQL tuning methodology.</p>
+    </div>
+    <div class="space-y-4 reveal">
+
+      <!-- Q1 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors" onclick="toggleAcc(this)">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-cyan-400 text-xs">Q1</span></div>
+            <span class="font-semibold text-white text-sm">What is the difference between a hard parse and a soft parse?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <p class="text-neutral-400 text-sm leading-relaxed">A <strong class="text-white">hard parse</strong> occurs when Oracle cannot find a matching execution plan in the Shared Pool for the incoming SQL. It must perform: (1) syntax check, (2) semantic check (validate objects/privileges), (3) optimization (CBO generates execution plan). Hard parses are CPU-intensive and involve a library cache latch — at high rates they cause severe library cache contention.</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">A <strong class="text-white">soft parse</strong> occurs when Oracle finds a matching SQL hash in the library cache. It validates the SQL is still valid (objects unchanged) and reuses the existing execution plan. Much cheaper — avoids optimization overhead.</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed"><strong class="text-cyan-400">Ideal state:</strong> Hard parses should approach zero in a well-tuned OLTP system. Achieve this through bind variables, application connection pooling, and setting <code class="font-mono text-xs text-cyan-400">CURSOR_SHARING=FORCE</code> as a stopgap for applications that don't use bind variables.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors" onclick="toggleAcc(this)">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-cyan-400 text-xs">Q2</span></div>
+            <span class="font-semibold text-white text-sm">What is an AWR report and what key sections do you look at first?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <p class="text-neutral-400 text-sm leading-relaxed">An AWR (Automatic Workload Repository) report is a snapshot-based performance report comparing two time intervals. It's generated via <code class="font-mono text-xs text-cyan-400">@$ORACLE_HOME/rdbms/admin/awrrpt.sql</code>.</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Key sections to review in order:</p>
+            <ol class="text-neutral-400 text-sm mt-1.5 space-y-1.5 list-decimal pl-4 leading-relaxed">
+              <li><strong class="text-white">DB Time and Load Profile:</strong> How busy was the database? DB Time &gt;&gt; Elapsed Time means CPU/IO bottleneck.</li>
+              <li><strong class="text-white">Top 5 Wait Events:</strong> What were sessions waiting for most? CPU, I/O, lock waits, etc.</li>
+              <li><strong class="text-white">SQL Statistics:</strong> Top SQL by Elapsed Time, CPU, Disk Reads. These are your tuning targets.</li>
+              <li><strong class="text-white">Instance Efficiency Percentages:</strong> Buffer cache hit ratio, library cache hit ratio, parse ratios.</li>
+              <li><strong class="text-white">Memory Statistics:</strong> SGA/PGA sizing, memory advisor recommendations.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors" onclick="toggleAcc(this)">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-cyan-400 text-xs">Q3</span></div>
+            <span class="font-semibold text-white text-sm">What is the difference between logical reads and physical reads? Why does it matter?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <p class="text-neutral-400 text-sm leading-relaxed">A <strong class="text-white">logical read</strong> is any access to a data block — whether it comes from the buffer cache (fast) or from disk (slow). Every physical read first becomes a logical read once in cache.</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">A <strong class="text-white">physical read</strong> means the block was not in the buffer cache and had to be fetched from disk (or the OS file cache). Physical reads are typically 10–1000x slower than logical reads from RAM.</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">The <strong class="text-white">buffer cache hit ratio</strong> = (logical reads - physical reads) / logical reads. A 99% hit ratio sounds good but is misleading — a poorly indexed query doing 1M logical reads per second is a problem even if 99% come from cache. Focus on <em>reducing total logical reads</em> (fix the SQL/index), not just improving hit ratio.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors" onclick="toggleAcc(this)">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-cyan-400 text-xs">Q4</span></div>
+            <span class="font-semibold text-white text-sm">How do you identify and resolve a blocking session causing performance problems?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <p class="text-neutral-400 text-sm leading-relaxed">First identify blocking sessions using V$SESSION:</p>
+            <div class="bg-neutral-900/50 rounded-lg p-3 mt-2 font-mono text-xs text-cyan-400">SELECT blocking_session, sid, wait_class, seconds_in_wait, sql_id<br>FROM v$session WHERE blocking_session IS NOT NULL;</div>
+            <p class="text-neutral-400 text-sm mt-3 leading-relaxed">Look at what SQL the blocking session is running. Common causes: (1) Long uncommitted transaction with row-level locks; (2) Missing commit after DML; (3) Application bug holding locks; (4) Deadlock (ORA-00060).</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Resolution: (1) Ask the blocking user to commit/rollback; (2) Kill the blocking session: <code class="font-mono text-xs text-cyan-400">ALTER SYSTEM KILL SESSION 'sid,serial#' IMMEDIATE</code>; (3) Long-term: reduce lock hold time, use SELECT FOR UPDATE NOWAIT or SKIP LOCKED to avoid blocking.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors" onclick="toggleAcc(this)">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-cyan-400 text-xs">Q5</span></div>
+            <span class="font-semibold text-white text-sm">What is the difference between V$SESSION_WAIT and V$SYSTEM_EVENT?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <p class="text-neutral-400 text-sm leading-relaxed"><strong class="text-white">V$SESSION_WAIT</strong> shows what each <em>currently active session</em> is waiting on right now — one row per session. It's a point-in-time snapshot and is useful for diagnosing immediate, ongoing problems.</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed"><strong class="text-white">V$SYSTEM_EVENT</strong> shows cumulative wait statistics since instance startup for all wait events across all sessions. It shows total waits, total timeouts, time waited, and average wait time. This is ideal for trend analysis and understanding the overall wait profile of the database over time.</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">For performance tuning, use V$SYSTEM_EVENT to identify the worst cumulative waits, then drill into V$SESSION_WAIT for active sessions, and finally V$SQL_MONITOR or ASH (Active Session History) for SQL-level analysis.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- Back to top -->
 <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})"
   class="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-cyan-500 text-black flex items-center justify-center shadow-lg opacity-0 transition-opacity z-40 hover:bg-cyan-400">

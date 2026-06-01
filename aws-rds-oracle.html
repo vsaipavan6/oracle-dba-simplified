@@ -2256,6 +2256,106 @@ impdp admin/password@prod-endpoint:1521/ORCL
     </div>
   </footer>
 
+  <!-- ═══════════════ INTERVIEW Q&A ═══════════════ -->
+  <section id="interview" class="py-20 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 reveal">
+        <span class="badge badge-sky">Interview Q&amp;A</span>
+        <h2 class="text-3xl font-display font-bold text-white mt-3 mb-2">AWS RDS Oracle — Interview Questions</h2>
+        <p class="text-neutral-400 max-w-xl mx-auto">Top AWS RDS Oracle interview questions covering managed service constraints, monitoring, backups, and cost optimization.</p>
+      </div>
+      <div class="space-y-4 reveal">
+
+        <!-- Q1 -->
+        <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+          <button class="acc-btn w-full flex items-center justify-between p-5 text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-sky-400 text-xs">Q1</span></div>
+              <span class="font-semibold text-white text-sm">What is the main difference between Oracle on RDS vs Oracle on EC2?</span>
+            </div>
+            <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+          </button>
+          <div class="acc-content px-5 pb-5">
+            <p class="text-neutral-400 text-sm pt-2 leading-relaxed"><strong class="text-white">RDS (Managed):</strong> AWS handles OS patching, Oracle patching, backups, Multi-AZ failover, and storage scaling. You don't have OS access (no SSH to the host). Simplifies DBA operations but restricts advanced administration. Limited to AWS-supported Oracle versions and patch levels. Cannot use all Oracle features.</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed"><strong class="text-white">EC2 (Self-Managed):</strong> Full OS access and root-level control. You manage everything — OS, Oracle, patching, backups, HA. Supports all Oracle features including RAC, Data Guard with custom configuration, and RMAN with full flexibility. More DBA effort required; better for complex architectures or features not available on RDS.</p>
+            <p class="text-neutral-400 text-sm mt-2"><strong class="text-sky-400">Rule of thumb:</strong> Use RDS for standard workloads where simplicity matters; use EC2 when you need full Oracle feature set or compliance with specific configurations.</p>
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+          <button class="acc-btn w-full flex items-center justify-between p-5 text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-sky-400 text-xs">Q2</span></div>
+              <span class="font-semibold text-white text-sm">Can you access the Oracle alert log on RDS? How do you monitor it?</span>
+            </div>
+            <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+          </button>
+          <div class="acc-content px-5 pb-5">
+            <p class="text-neutral-400 text-sm pt-2 leading-relaxed">You cannot SSH to the underlying OS of an RDS instance — there is no direct file system access. However, RDS publishes the Oracle alert log to <strong class="text-white">Amazon CloudWatch Logs</strong>. The log group is named <code class="text-sky-400 font-mono text-xs">/aws/rds/instance/&lt;db-identifier&gt;/alert</code>.</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Within Oracle, you can also query alert log content via the <code class="text-sky-400 font-mono text-xs">V$DIAG_ALERT_EXT</code> view (XML-based) or using the <code class="text-sky-400 font-mono text-xs">SYS.DBMS_SUPPORT</code> package (if enabled). For trace files, use <code class="text-sky-400 font-mono text-xs">rdsadmin.rdsadmin_util.show_configuration</code> or the RDS console's Log &amp; Events tab to download trace files.</p>
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+          <button class="acc-btn w-full flex items-center justify-between p-5 text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-sky-400 text-xs">Q3</span></div>
+              <span class="font-semibold text-white text-sm">What is a DB Parameter Group and how does it compare to Oracle's SPFILE?</span>
+            </div>
+            <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+          </button>
+          <div class="acc-content px-5 pb-5">
+            <p class="text-neutral-400 text-sm pt-2 leading-relaxed">A <strong class="text-white">DB Parameter Group</strong> is an AWS-managed collection of Oracle database parameters. It replaces both the SPFILE and PFILE on RDS. You modify parameters via the RDS console, CLI, or API — not with <code class="text-sky-400 font-mono text-xs">ALTER SYSTEM</code> commands (though some dynamic parameters can still be changed at session level).</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Static parameters (requiring a restart) are changed in the Parameter Group and applied by rebooting the instance. Dynamic parameters can be applied immediately. Not all Oracle init.ora parameters are exposed in Parameter Groups — AWS restricts modification of OS-level and storage-management parameters.</p>
+            <p class="text-neutral-400 text-sm mt-2"><strong class="text-sky-400">Note:</strong> You cannot directly view or edit the SPFILE on RDS. Use the Parameter Group API/console exclusively.</p>
+          </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+          <button class="acc-btn w-full flex items-center justify-between p-5 text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-sky-400 text-xs">Q4</span></div>
+              <span class="font-semibold text-white text-sm">What Oracle features are NOT available on RDS for Oracle?</span>
+            </div>
+            <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+          </button>
+          <div class="acc-content px-5 pb-5">
+            <p class="text-neutral-400 text-sm pt-2 leading-relaxed">RDS for Oracle has several restrictions compared to on-premise Oracle:</p>
+            <ul class="text-neutral-400 text-sm mt-2 space-y-1.5 list-disc pl-4 leading-relaxed">
+              <li>No Oracle Real Application Clusters (RAC)</li>
+              <li>No SYS or SYSTEM as the master user — use RDS-specific admin account</li>
+              <li>No direct OS access or external table file system manipulation without S3 integration</li>
+              <li>Limited Data Guard configuration — use Multi-AZ as the HA mechanism instead</li>
+              <li>RMAN backup/restore to external locations requires S3 integration via Oracle S3 file system</li>
+              <li>Oracle Label Security, Database Vault — limited or not supported</li>
+              <li>Automatic Storage Management (ASM) — handled by RDS storage layer</li>
+              <li>Custom listener.ora / tnsnames.ora — managed by RDS</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+          <button class="acc-btn w-full flex items-center justify-between p-5 text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-sky-400 text-xs">Q5</span></div>
+              <span class="font-semibold text-white text-sm">How do RDS automated backups work for Oracle?</span>
+            </div>
+            <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+          </button>
+          <div class="acc-content px-5 pb-5">
+            <p class="text-neutral-400 text-sm pt-2 leading-relaxed">RDS automated backups use Oracle RMAN internally to take a daily backup and continuously archive Oracle redo logs to Amazon S3 every 5 minutes. This combination enables Point-in-Time Recovery (PITR) within the backup retention window (1–35 days).</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Backups are stored in S3 managed by AWS (not visible in your S3 buckets). You can also create on-demand <strong class="text-white">DB Snapshots</strong> which are full RMAN backups preserved until explicitly deleted (retained even if the instance is deleted, unlike automated backups). Manual RMAN exports to your own S3 bucket require configuring the Oracle S3 option group and using <code class="text-sky-400 font-mono text-xs">rdsadmin.rdsadmin_s3_tasks</code> for import/export operations.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- Back to top -->
   <button id="back-top" class="fixed bottom-6 right-6 w-10 h-10 rounded-full opacity-0 transition-all duration-300 flex items-center justify-center z-40" style="background:linear-gradient(135deg,#38bdf8,#818cf8);pointer-events:none">
     <i class="fas fa-arrow-up text-white text-xs"></i>

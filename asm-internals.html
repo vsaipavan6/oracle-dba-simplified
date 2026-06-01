@@ -2773,6 +2773,92 @@ sqlplus / <span class="kw">AS</span> SYSASM
   </div>
 </footer>
 
+<!-- ═══════════════ INTERVIEW Q&A ═══════════════ -->
+<section id="interview" class="py-20 relative" style="background:linear-gradient(to bottom,transparent,rgba(0,0,0,.15))">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="badge badge-yellow">Interview Q&amp;A</span>
+      <h2 class="text-3xl font-display font-bold text-white mt-3 mb-2">ASM Internals — Interview Questions</h2>
+      <p class="text-neutral-400 max-w-xl mx-auto">Top ASM interview questions covering redundancy, disk groups, rebalancing, and administration.</p>
+    </div>
+    <div class="space-y-3 reveal">
+
+      <!-- Q1 -->
+      <div class="err-acc">
+        <button class="acc-btn" onclick="toggleAcc(this)">
+          <span><span style="background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q1</span>What is the difference between External, Normal, and High redundancy in ASM?</span>
+          <i class="fas fa-chevron-down text-amber-400 transition-transform duration-200"></i>
+        </button>
+        <div class="err-body hidden px-5 pb-5">
+          <ul style="color:#94a3b8;font-size:.9rem;line-height:1.8;margin:0;padding-left:1rem">
+            <li><strong style="color:#f59e0b">External Redundancy:</strong> ASM does not mirror — relies entirely on the hardware storage (RAID controller) for protection. Each extent is written to one disk only. Cheapest on disk space; use only with hardware RAID.</li>
+            <li><strong style="color:#f59e0b">Normal Redundancy (2-way mirror):</strong> ASM writes 2 copies of every extent across different failure groups. Can tolerate the loss of 1 failure group. Requires at least 2 failure groups.</li>
+            <li><strong style="color:#f59e0b">High Redundancy (3-way mirror):</strong> ASM writes 3 copies. Can tolerate loss of 2 failure groups simultaneously. Requires at least 3 failure groups. Costs 3x the raw disk space.</li>
+          </ul>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0"><strong style="color:#fff">Best practice:</strong> Use Normal or High redundancy with ASM failure groups mapped to physical disk shelves or JBOD controllers so a shelf failure doesn't lose both copies.</p>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="err-acc">
+        <button class="acc-btn" onclick="toggleAcc(this)">
+          <span><span style="background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q2</span>What is ASM rebalancing and when is it triggered?</span>
+          <i class="fas fa-chevron-down text-amber-400 transition-transform duration-200"></i>
+        </button>
+        <div class="err-body hidden px-5 pb-5">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0">ASM rebalancing redistributes extents across all disks in a disk group to ensure even utilization (all disks should have the same percentage of used space). It is triggered automatically when disks are added, removed, dropped, or resized.</p>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0">Rebalancing can be throttled with <code style="color:#f59e0b;font-size:.8rem">ALTER DISKGROUP DATA REBALANCE POWER 4;</code> (scale 0–1024; default 1 in 11g, 8 in 12c+). A power of 0 stops rebalancing. Higher values use more I/O resources. Monitor progress with <code style="color:#f59e0b;font-size:.8rem">V$ASM_OPERATION</code>. The ARB0/ARBn background processes perform the actual extent moves in the background, so the database remains fully available during rebalancing.</p>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="err-acc">
+        <button class="acc-btn" onclick="toggleAcc(this)">
+          <span><span style="background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q3</span>What are ASM Allocation Units (AU) and why do they matter?</span>
+          <i class="fas fa-chevron-down text-amber-400 transition-transform duration-200"></i>
+        </button>
+        <div class="err-body hidden px-5 pb-5">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0">An Allocation Unit (AU) is the fundamental unit of storage in ASM — the smallest chunk that ASM allocates. The default AU size is 1MB, but can be set to 1, 2, 4, 8, 16, 32, or 64MB at disk group creation time (cannot be changed afterward).</p>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0"><strong style="color:#fff">Why it matters:</strong> For OLTP workloads with many small I/Os, keep the default 1MB AU. For data warehouses or large sequential I/Os (Exadata, large scans), a larger AU (4MB or 8MB) reduces striping overhead and aligns better with large I/O patterns. Flex/Extended disk groups can have variable AU sizes. The AU size also determines the maximum file size (AU_size × 128 × 128 for fine-grained extents).</p>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="err-acc">
+        <button class="acc-btn" onclick="toggleAcc(this)">
+          <span><span style="background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q4</span>How does ASM protect data against a disk failure?</span>
+          <i class="fas fa-chevron-down text-amber-400 transition-transform duration-200"></i>
+        </button>
+        <div class="err-body hidden px-5 pb-5">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0">When a disk fails in a Normal or High redundancy disk group, ASM detects the failure immediately via I/O errors. The disk group stays mounted and the database remains open — ASM reads mirrored copies from other failure groups for any extent that was on the failed disk.</p>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0">Once you add a replacement disk and run <code style="color:#f59e0b;font-size:.8rem">ALTER DISKGROUP DATA ADD DISK '/dev/sdd';</code>, ASM automatically rebuilds (rebalances) all the data that was on the failed disk onto the new disk. The disk group must have sufficient <strong style="color:#fff">free space</strong> equal to at least one disk's worth of data to survive a failure — this is the fundamental sizing requirement for ASM disk groups. Monitor using <code style="color:#f59e0b;font-size:.8rem">V$ASM_DISK</code> and <code style="color:#f59e0b;font-size:.8rem">V$ASM_DISKGROUP</code>.</p>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="err-acc">
+        <button class="acc-btn" onclick="toggleAcc(this)">
+          <span><span style="background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25);font-size:.75rem;padding:2px 8px;border-radius:100px;font-weight:700;margin-right:.75rem">Q5</span>What is the ASMCMD utility and what tasks can you perform with it?</span>
+          <i class="fas fa-chevron-down text-amber-400 transition-transform duration-200"></i>
+        </button>
+        <div class="err-body hidden px-5 pb-5">
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:0">ASMCMD is a command-line interface for managing ASM disk groups and files, similar to the Linux shell but operating inside the ASM namespace. It connects to the local ASM instance using OS authentication.</p>
+          <div class="bg-neutral-900 rounded-lg p-3 mt-3 font-mono text-xs text-amber-400">
+            asmcmd lsdg          # list disk groups and usage<br>
+            asmcmd ls +DATA      # list files in disk group<br>
+            asmcmd cp +DATA/ORCL/datafile/users.dbf /tmp/  # copy out<br>
+            asmcmd md_backup /tmp/diskgroup_backup.xml    # metadata backup<br>
+            asmcmd remap +DATA/disk0 100 200             # remap bad sectors<br>
+            asmcmd lsdsk --discovery                     # discover candidate disks
+          </div>
+          <p style="color:#94a3b8;font-size:.9rem;line-height:1.7;margin:.75rem 0 0">ASMCMD also supports <code style="color:#f59e0b;font-size:.8rem">pwcopy</code> (copy password file to/from ASM), <code style="color:#f59e0b;font-size:.8rem">spbackup/sprestore</code> (SPFILE operations), and <code style="color:#f59e0b;font-size:.8rem">volcreate/voldelete</code> for ASM Dynamic Volume Manager (ADVM).</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- Back to Top -->
 <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})"
   style="display:none;position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:#f59e0b;color:#000;border:none;cursor:pointer;align-items:center;justify-content:center;font-size:18px;z-index:99;box-shadow:0 4px 20px rgba(245,158,11,.4)">

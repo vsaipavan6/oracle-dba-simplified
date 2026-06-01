@@ -1874,6 +1874,109 @@ standby_file_management=<span class="str">'AUTO'</span>
   </div>
 </footer>
 
+<!-- ═══════════════ INTERVIEW Q&A ═══════════════ -->
+<section id="interview" class="py-20 relative">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="badge badge-red">Interview Q&amp;A</span>
+      <h2 class="text-3xl font-display font-bold text-white mt-3 mb-2">Data Guard — Interview Questions</h2>
+      <p class="text-neutral-400 max-w-xl mx-auto">Critical Data Guard questions asked in Oracle DBA interviews covering protection modes, switchover vs failover, and Active Data Guard.</p>
+    </div>
+    <div class="space-y-4 reveal">
+
+      <!-- Q1 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q1</span></div>
+            <span class="font-semibold text-white text-sm">What is the difference between a Physical Standby and a Logical Standby?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <p class="text-neutral-400 text-sm leading-relaxed"><strong class="text-white">Physical Standby</strong> maintains an exact, block-for-block copy of the primary database. It applies redo changes using Media Recovery (MRP process). It can be opened read-only with Active Data Guard, but is otherwise in managed recovery mode. Supports all data types, indexes, and structures automatically.</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed"><strong class="text-white">Logical Standby</strong> applies SQL (reconstructed from LogMiner) instead of redo blocks. The standby schema is open read-write and can have additional indexes, materialized views, or even different storage. Supports only Oracle-supported SQL types (some object types, LOBs, and certain DDLs are not supported). Primarily used for reporting while primary handles OLTP. Much more complex to manage and has more restrictions.</p>
+            <p class="text-neutral-400 text-sm mt-2"><strong class="text-oracle-red">Bottom line:</strong> Physical Standby is preferred for DR and read-only offloading (via Active Data Guard). Logical Standby is used for open standby with DDL transformations — a niche use case.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q2</span></div>
+            <span class="font-semibold text-white text-sm">What are the three Data Guard protection modes and how do they differ?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <ul class="text-neutral-400 text-sm space-y-2 leading-relaxed">
+              <li><strong class="text-white">Maximum Performance (default):</strong> Redo is shipped asynchronously (ASYNC). Primary never waits for standby acknowledgment. Zero performance impact; RPO is small but non-zero (lag = time to last shipped redo).</li>
+              <li><strong class="text-white">Maximum Availability:</strong> Redo is shipped synchronously (SYNC with AFFIRM). The primary waits for standby to confirm it has written the redo to disk. If the standby becomes unreachable, the primary automatically degrades to Maximum Performance mode — no production outage. This is the recommended mode for most enterprises.</li>
+              <li><strong class="text-white">Maximum Protection:</strong> Like Maximum Availability but the primary shuts down rather than degrading if the standby is unreachable. Guarantees zero data loss. Requires at least two standbys for practicality; rarely used due to availability risk on primary.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q3</span></div>
+            <span class="font-semibold text-white text-sm">What is the difference between a Data Guard switchover and a failover?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <p class="text-neutral-400 text-sm leading-relaxed"><strong class="text-white">Switchover</strong> is a planned role reversal — both the primary and standby are available. The primary gracefully transfers its role to the standby with no data loss. The old primary becomes the new standby. Used for planned maintenance, Oracle upgrades, or datacenter migrations. Reversible at any time.</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed"><strong class="text-white">Failover</strong> is an emergency role change when the primary is unavailable (crash, datacenter failure). The standby is activated as the new primary. Data loss is possible (depending on protection mode and redo lag at the time of failure). The old primary cannot automatically rejoin as standby — it must be reinstated using DGMGRL's <code class="text-oracle-red font-mono text-xs">REINSTATE DATABASE</code> command or rebuilt using RMAN Duplicate from the new primary.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q4</span></div>
+            <span class="font-semibold text-white text-sm">What is Active Data Guard and what additional licensing does it require?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <p class="text-neutral-400 text-sm leading-relaxed">Active Data Guard (ADG) allows a <em>Physical Standby</em> database to be open in <strong class="text-white">READ ONLY mode while MRP continues to apply redo</strong>. This means the standby is always current and fully synchronized, yet still serves read-only queries simultaneously — offloading reporting and analytics from the primary.</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">ADG is a <strong class="text-white">licensed option</strong> in Oracle Enterprise Edition — it is not included in the base EE license. Without ADG, opening the standby read-only stops the MRP process. ADG features also include Far Sync (redo forwarding relay), Automatic Block Repair (standby fixes primary block corruptions), and Global Temporary Table DML on standby.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between p-6 text-left hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-oracle-red/10 border border-oracle-red/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-oracle-red text-xs">Q5</span></div>
+            <span class="font-semibold text-white text-sm">How do you monitor Data Guard lag and what causes apply lag?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content">
+          <div class="px-6 pb-6">
+            <p class="text-neutral-400 text-sm leading-relaxed">Monitor lag using <code class="text-oracle-red font-mono text-xs">V$DATAGUARD_STATS</code> on the standby (shows transport lag and apply lag) or via DGMGRL: <code class="text-oracle-red font-mono text-xs">SHOW DATABASE VERBOSE &lt;standby_name&gt;</code>.</p>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Common causes of apply lag: (1) <strong class="text-white">Network bandwidth saturation</strong> — primary is generating more redo than the network can ship; (2) <strong class="text-white">I/O bottleneck on standby</strong> — standby's storage is too slow to write redo fast enough; (3) <strong class="text-white">Too few MRP workers</strong> — increase with <code class="text-oracle-red font-mono text-xs">RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE PARALLEL 8</code>; (4) <strong class="text-white">Standby under-resourced</strong> — standby should have comparable hardware to primary for zero-lag performance.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- Back to top -->
 <button id="btt" class="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-oracle-red/80 text-white flex items-center justify-center opacity-0 transition-opacity duration-300 hover:bg-oracle-red z-40"><i class="fas fa-chevron-up text-sm"></i></button>
 

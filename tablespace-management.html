@@ -1891,6 +1891,98 @@
   </div>
 </footer>
 
+<!-- ═══════════════ INTERVIEW Q&A ═══════════════ -->
+<section id="interview" class="py-20 relative bg-gradient-to-b from-transparent to-black/20">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="badge badge-orange">Interview Q&amp;A</span>
+      <h2 class="text-3xl font-display font-bold text-white mt-3 mb-2">Tablespace Management — Interview Questions</h2>
+      <p class="text-neutral-400 max-w-xl mx-auto">Frequently asked tablespace and storage management questions in Oracle DBA interviews.</p>
+    </div>
+    <div class="space-y-4 reveal">
+
+      <!-- Q1 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-orange-400 text-xs">Q1</span></div>
+            <span class="font-semibold text-white text-sm">What is the difference between the SYSTEM and SYSAUX tablespaces?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">The <strong class="text-white">SYSTEM</strong> tablespace stores Oracle's core data dictionary — the metadata that defines every object in the database (DBA_TABLES, DBA_USERS, DBA_INDEXES, etc.). It contains the SYS schema. It must always be online; if it goes down, the database cannot function.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed">The <strong class="text-white">SYSAUX</strong> tablespace (introduced in 10g) is an auxiliary tablespace for Oracle's built-in components that used to crowd SYSTEM: AWR/STATSPACK, Enterprise Manager, LogMiner, Streams, XML DB, etc. Separating these keeps SYSTEM lean. If SYSAUX goes offline, the database continues running but features like AWR, ADDM, and other Oracle-managed tools stop working until it's brought back online.</p>
+          <p class="text-neutral-400 text-sm mt-2"><strong class="text-orange-400">Best practice:</strong> Never store application data in SYSTEM or SYSAUX. Monitor their growth — SYSAUX can grow unexpectedly if AWR retention is too high or Streams capture is left running unused.</p>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-orange-400 text-xs">Q2</span></div>
+            <span class="font-semibold text-white text-sm">What is the difference between LMT and DMT tablespaces?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed"><strong class="text-white">Dictionary-Managed Tablespaces (DMT)</strong> are the legacy Oracle storage model (pre-9i). Free and used extents are tracked in data dictionary tables (UET$ and FET$). This requires recursive SQL for every extent allocation, causing contention on data dictionary tables and fragmentation issues. Deprecated since Oracle 10g.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed"><strong class="text-white">Locally Managed Tablespaces (LMT)</strong> track extent allocation in a bitmap stored in each tablespace's own datafile header. No dictionary contention; self-managing; eliminates fragmentation when using UNIFORM or AUTOALLOCATE. LMT is the default and strongly preferred since Oracle 9i. All newly created tablespaces should be LMT.</p>
+          <p class="text-neutral-400 text-sm mt-2"><strong class="text-orange-400">Migration:</strong> Use <code class="text-orange-400 font-mono text-xs">DBMS_SPACE_ADMIN.TABLESPACE_MIGRATE_TO_LOCAL</code> to convert DMT to LMT.</p>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-orange-400 text-xs">Q3</span></div>
+            <span class="font-semibold text-white text-sm">What is ASSM and how does it differ from MSSM?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">ASSM (Automatic Segment Space Management) uses a hierarchical bitmap structure within each data block to track free space at the row level within a block. Multiple processes can insert into different blocks simultaneously without contention — ideal for high-concurrency OLTP inserts. ASSM is the default since Oracle 10g.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed">MSSM (Manual Segment Space Management) uses <strong class="text-white">Freelist</strong> structures — linked lists of blocks with free space. A single freelist per segment (or a configurable number with <code class="text-orange-400 font-mono text-xs">FREELISTS</code> and <code class="text-orange-400 font-mono text-xs">FREELIST GROUPS</code>) was the traditional approach. High concurrent inserts could cause freelist contention (wait event: "buffer busy waits").</p>
+          <p class="text-neutral-400 text-sm mt-2"><strong class="text-orange-400">Bottom line:</strong> Always create tablespaces with ASSM (<code class="text-orange-400 font-mono text-xs">SEGMENT SPACE MANAGEMENT AUTO</code>) unless there's a specific reason to use MSSM (e.g., compatibility with very old Oracle versions).</p>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-orange-400 text-xs">Q4</span></div>
+            <span class="font-semibold text-white text-sm">What is the UNDO tablespace and what is ORA-01555?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">The <strong class="text-white">UNDO tablespace</strong> stores before-images of data changed by DML (INSERT, UPDATE, DELETE). It serves three critical purposes: (1) <strong class="text-white">Transaction rollback</strong> — if you ROLLBACK, Oracle uses undo to restore original data; (2) <strong class="text-white">Read consistency</strong> — long-running queries see a consistent snapshot of data as of their SCN, regardless of concurrent changes; (3) <strong class="text-white">Flashback queries</strong> — AS OF TIMESTAMP queries use undo to reconstruct older data versions.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed"><strong class="text-white">ORA-01555 ("snapshot too old")</strong> occurs when a query needs old undo data for read consistency, but that undo has already been overwritten by newer transactions. Causes: (1) UNDO tablespace too small; (2) <code class="text-orange-400 font-mono text-xs">UNDO_RETENTION</code> set too low; (3) Very long-running queries. Fix: increase UNDO tablespace size, increase UNDO_RETENTION, or enable the <code class="text-orange-400 font-mono text-xs">RETENTION GUARANTEE</code> option.</p>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full flex items-center justify-between px-6 py-5 hover:bg-white/2 transition-colors text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-orange-400 text-xs">Q5</span></div>
+            <span class="font-semibold text-white text-sm">What are bigfile tablespaces and when should you use them?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-500"></i>
+        </button>
+        <div class="acc-content px-6 pb-5">
+          <p class="text-neutral-400 text-sm pt-2 leading-relaxed">A <strong class="text-white">bigfile tablespace</strong> consists of a single, very large datafile (up to 128TB with 32KB blocks). Traditional smallfile tablespaces contain up to 1022 datafiles of up to 32GB each.</p>
+          <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Bigfile advantages: (1) Simple administration — one file per tablespace means simpler <code class="text-orange-400 font-mono text-xs">ALTER TABLESPACE RESIZE</code> without specifying a datafile; (2) Better for ASM — larger files align better with ASM striping; (3) Supports full range SQL: <code class="text-orange-400 font-mono text-xs">ALTER TABLESPACE data RESIZE 10T</code>. Bigfile disadvantages: RMAN recovery must restore the entire single large file (no partial file restore); parallel recovery is limited. <strong class="text-orange-400">Best for:</strong> Very large data warehouses on ASM or ASM-managed storage. For OLTP, smallfile is still preferred for recovery flexibility.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- Back to top -->
 <button id="back-top" class="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-orange-600 text-white flex items-center justify-center shadow-lg opacity-0 transition-all duration-300 hover:bg-orange-500 z-40">
   <i class="fas fa-chevron-up text-xs"></i>

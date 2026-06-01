@@ -2793,6 +2793,142 @@ done
   </div>
 </footer>
 
+<!-- ═══════════════ INTERVIEW Q&A ═══════════════ -->
+<section id="interview" class="py-20 relative">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-12 reveal">
+      <span class="badge badge-green">Interview Q&amp;A</span>
+      <h2 class="text-3xl font-display font-bold text-white mt-3 mb-2">Linux for DBAs — Interview Questions</h2>
+      <p class="text-neutral-400 max-w-xl mx-auto">Frequently asked Linux interview questions for Oracle DBAs covering kernel parameters, memory, I/O diagnostics, and environment setup.</p>
+    </div>
+    <div class="space-y-4 reveal">
+
+      <!-- Q1 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full text-left p-5 flex items-center justify-between hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-lime-500/10 border border-lime-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-lime-400 text-xs">Q1</span></div>
+            <span class="font-semibold text-white text-sm">What kernel parameters are critical for Oracle on Linux and why?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content">
+          <div class="p-5 pt-2">
+            <p class="text-neutral-400 text-sm leading-relaxed mb-2">Key <code class="text-lime-400 font-mono text-xs">/etc/sysctl.conf</code> parameters for Oracle:</p>
+            <div class="space-y-2">
+              <div class="bg-neutral-900/50 rounded p-2 text-xs font-mono"><span class="text-lime-400">kernel.shmmax</span> <span class="text-neutral-500"># Max shared memory segment (= SGA size; set to at least SGA + 1GB)</span></div>
+              <div class="bg-neutral-900/50 rounded p-2 text-xs font-mono"><span class="text-lime-400">kernel.shmall</span> <span class="text-neutral-500"># Total shared memory pages available (shmmax / page_size)</span></div>
+              <div class="bg-neutral-900/50 rounded p-2 text-xs font-mono"><span class="text-lime-400">kernel.sem</span> <span class="text-neutral-500"># Semaphore limits — Oracle uses semaphores for IPC</span></div>
+              <div class="bg-neutral-900/50 rounded p-2 text-xs font-mono"><span class="text-lime-400">fs.file-max</span> <span class="text-neutral-500"># Max file descriptors (set to 6815744 or higher)</span></div>
+              <div class="bg-neutral-900/50 rounded p-2 text-xs font-mono"><span class="text-lime-400">net.core.rmem_max / wmem_max</span> <span class="text-neutral-500"># TCP buffer size — critical for RAC interconnect</span></div>
+              <div class="bg-neutral-900/50 rounded p-2 text-xs font-mono"><span class="text-lime-400">vm.swappiness=10</span> <span class="text-neutral-500"># Reduce kernel tendency to swap out Oracle SGA pages</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full text-left p-5 flex items-center justify-between hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-lime-500/10 border border-lime-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-lime-400 text-xs">Q2</span></div>
+            <span class="font-semibold text-white text-sm">What are HugePages and why are they recommended for Oracle?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content">
+          <div class="p-5 pt-2">
+            <p class="text-neutral-400 text-sm leading-relaxed">Standard Linux pages are 4KB. HugePages use 2MB pages. For Oracle SGA allocated as shared memory, HugePages provide significant advantages:</p>
+            <ul class="text-neutral-400 text-sm mt-2 space-y-1.5 list-disc pl-4 leading-relaxed">
+              <li><strong class="text-white">Reduced TLB misses:</strong> Far fewer page table entries needed for the same SGA size → less CPU overhead for memory address translation</li>
+              <li><strong class="text-white">Locked in RAM:</strong> HugePage memory is never swapped out — critical for Oracle SGA stability</li>
+              <li><strong class="text-white">Reduced page table overhead:</strong> For a 100GB SGA: 4KB pages = 26 million entries; 2MB pages = only 50,000 entries</li>
+            </ul>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Configure with: <code class="text-lime-400 font-mono text-xs">vm.nr_hugepages = (SGA_size_in_MB / 2) + 10</code> in sysctl.conf. Use AMM (<code class="text-lime-400 font-mono text-xs">MEMORY_TARGET</code>) is incompatible with HugePages — use ASMM (<code class="text-lime-400 font-mono text-xs">SGA_TARGET + PGA_AGGREGATE_TARGET</code>) instead.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full text-left p-5 flex items-center justify-between hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-lime-500/10 border border-lime-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-lime-400 text-xs">Q3</span></div>
+            <span class="font-semibold text-white text-sm">How do you diagnose high I/O wait in Linux for an Oracle database server?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content">
+          <div class="p-5 pt-2">
+            <p class="text-neutral-400 text-sm leading-relaxed mb-2">Step-by-step I/O wait diagnosis:</p>
+            <ol class="text-neutral-400 text-sm space-y-1.5 list-decimal pl-4 leading-relaxed">
+              <li><code class="text-lime-400 font-mono text-xs">top</code> — check %wa column (I/O wait %). Above 10% is concerning for a DB server.</li>
+              <li><code class="text-lime-400 font-mono text-xs">iostat -xm 2 10</code> — identify which device has high util% (&gt;80%), await (ms wait), and r/s or w/s (IOPS)</li>
+              <li><code class="text-lime-400 font-mono text-xs">iotop -o</code> — find which process is generating the most I/O</li>
+              <li><code class="text-lime-400 font-mono text-xs">lsof -p &lt;oracle_pid&gt;</code> — see which files the Oracle process has open</li>
+              <li>In Oracle: query <code class="text-lime-400 font-mono text-xs">V$SESSION_WAIT</code> for "db file sequential read" (index reads) or "db file scattered read" (full table scans)</li>
+            </ol>
+            <p class="text-neutral-400 text-sm mt-2"><strong class="text-lime-400">Root cause:</strong> Usually a poorly indexed SQL causing excessive full scans, or undersized buffer cache forcing repeated physical reads.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full text-left p-5 flex items-center justify-between hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-lime-500/10 border border-lime-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-lime-400 text-xs">Q4</span></div>
+            <span class="font-semibold text-white text-sm">What is the purpose of /etc/security/limits.conf for Oracle?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content">
+          <div class="p-5 pt-2">
+            <p class="text-neutral-400 text-sm leading-relaxed">Oracle processes require high OS resource limits that exceed Linux defaults. The <code class="text-lime-400 font-mono text-xs">/etc/security/limits.conf</code> file (or <code class="text-lime-400 font-mono text-xs">/etc/security/limits.d/oracle.conf</code>) sets per-user resource limits for the oracle and grid OS users.</p>
+            <div class="bg-neutral-900/50 rounded-lg p-3 mt-2 font-mono text-xs text-lime-400">
+              oracle soft nproc  16384   # max processes<br>
+              oracle hard nproc  16384<br>
+              oracle soft nofile 65536   # max open files<br>
+              oracle hard nofile 65536<br>
+              oracle soft stack  10240   # stack size in KB<br>
+              oracle hard stack  32768<br>
+              oracle soft memlock unlimited  # for HugePages locking
+            </div>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">Without proper limits, Oracle startup will fail or the database may hit resource exhaustion errors like <code class="text-lime-400 font-mono text-xs">ORA-27102: out of memory</code> or <code class="text-lime-400 font-mono text-xs">ORA-27300: OS system dependent operation error</code>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+        <button class="acc-btn w-full text-left p-5 flex items-center justify-between hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-lime-500/10 border border-lime-500/25 flex items-center justify-center flex-shrink-0"><span class="font-bold text-lime-400 text-xs">Q5</span></div>
+            <span class="font-semibold text-white text-sm">How do you set Oracle environment variables persistently for the oracle OS user?</span>
+          </div>
+          <i class="fas fa-chevron-down acc-icon text-neutral-400"></i>
+        </button>
+        <div class="acc-content">
+          <div class="p-5 pt-2">
+            <p class="text-neutral-400 text-sm leading-relaxed mb-2">Add Oracle environment variables to the oracle user's profile — either <code class="text-lime-400 font-mono text-xs">~/.bash_profile</code> (interactive login) or <code class="text-lime-400 font-mono text-xs">~/.bashrc</code>:</p>
+            <div class="bg-neutral-900/50 rounded-lg p-3 font-mono text-xs text-lime-400">
+              export ORACLE_BASE=/u01/app/oracle<br>
+              export ORACLE_HOME=$ORACLE_BASE/product/19.0.0/dbhome_1<br>
+              export ORACLE_SID=ORCL<br>
+              export PATH=$ORACLE_HOME/bin:$PATH<br>
+              export LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH<br>
+              export NLS_DATE_FORMAT='DD-MON-YYYY HH24:MI:SS'<br>
+              export TNS_ADMIN=$ORACLE_HOME/network/admin
+            </div>
+            <p class="text-neutral-400 text-sm mt-2 leading-relaxed">For multiple databases on the same server, create separate environment scripts (e.g., <code class="text-lime-400 font-mono text-xs">oraenv_ORCL</code>, <code class="text-lime-400 font-mono text-xs">oraenv_PROD</code>) and source them as needed: <code class="text-lime-400 font-mono text-xs">. ~/oraenv_ORCL</code>. The Oracle-provided <code class="text-lime-400 font-mono text-xs">oraenv</code> script can also handle this via the <code class="text-lime-400 font-mono text-xs">/etc/oratab</code> file.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- BACK TO TOP -->
 <button id="btt" class="fixed bottom-6 right-6 w-10 h-10 rounded-full glass-strong border border-lime-500/30 text-lime-400 text-sm items-center justify-center hidden hover:bg-lime-500/20 transition-all z-50 flex"><i class="fas fa-arrow-up"></i></button>
 
