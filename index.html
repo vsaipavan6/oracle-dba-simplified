@@ -44,83 +44,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
-    :root {
-      --color-primary: #C74634;
-      --color-primary-hover: #a8392a;
-      --color-neutral-50: #fafafa;
-      --color-neutral-100: #f4f4f5;
-      --color-neutral-500: #71717a;
-      --color-neutral-900: #18181b;
-      --color-surface: #111118;
-      --color-border: #1e1e2e;
-      --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
-      --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px; --space-24: 96px;
-      --text-xs: 0.75rem; --text-sm: 0.875rem; --text-base: 1rem;
-      --text-lg: 1.125rem; --text-xl: 1.25rem; --text-2xl: 1.5rem;
-      --text-3xl: 1.875rem; --text-4xl: 2.25rem;
-    }
+    /* Base resets only — global.css handles all design */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'DM Sans', sans-serif; background: #0a0a0f; color: #e2e8f0; overflow-x: hidden; }
-    .font-display { font-family: 'Sora', sans-serif; }
-    .font-mono { font-family: 'JetBrains Mono', monospace; }
-
-    /* Glassmorphism */
-    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
-    .glass-strong { background: rgba(255,255,255,0.07); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.12); }
-
-    /* Gradient text */
-    .gradient-text { background: linear-gradient(135deg, #C74634 0%, #ff8c7a 50%, #ffb347 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .gradient-text-white { background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-
-    /* Noise texture overlay */
-    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; opacity: 0.4; }
-
-    /* Glow orbs */
-    .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; pointer-events: none; }
-    .orb-red { background: radial-gradient(circle, #C74634, transparent); }
-    .orb-blue { background: radial-gradient(circle, #3b82f6, transparent); }
-    .orb-purple { background: radial-gradient(circle, #8b5cf6, transparent); }
-
-    /* Animated grid */
-    .grid-bg { background-image: linear-gradient(rgba(199,70,52,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(199,70,52,0.03) 1px, transparent 1px); background-size: 64px 64px; }
-
-    /* Cards */
-    .topic-card { transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
-    .topic-card:hover { transform: translateY(-8px); box-shadow: 0 20px 60px rgba(199,70,52,0.2); border-color: rgba(199,70,52,0.4) !important; }
-    .blog-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-    .blog-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
-
-    /* Buttons */
-    .btn-primary { background: linear-gradient(135deg, #C74634, #a8392a); color: white; border-radius: 6px; padding: 12px 28px; font-weight: 600; font-size: var(--text-sm); transition: all 0.2s ease; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
-    .btn-primary:hover { background: linear-gradient(135deg, #d95541, #C74634); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(199,70,52,0.4); }
-    .btn-primary:active { transform: scale(0.98); }
-    .btn-secondary { background: transparent; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 12px 28px; font-weight: 500; font-size: var(--text-sm); transition: all 0.2s ease; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
-    .btn-secondary:hover { border-color: rgba(199,70,52,0.6); color: #C74634; background: rgba(199,70,52,0.05); transform: translateY(-1px); }
-    .btn-secondary:active { transform: scale(0.98); }
-
-    /* Navbar */
-    nav { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .nav-link { font-size: var(--text-sm); color: #94a3b8; transition: color 0.2s; position: relative; }
-    .nav-link:hover { color: #C74634; }
-    .nav-link::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 1px; background: #C74634; transition: width 0.2s; }
-    .nav-link:hover::after { width: 100%; }
-
-    /* Scroll reveal */
-    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-
-    /* Terminal */
-    .terminal { background: #0d0d14; border: 1px solid #1e1e2e; border-radius: 12px; overflow: hidden; }
-    .terminal-bar { background: #1a1a25; padding: 12px 16px; display: flex; align-items: center; gap: 8px; }
-    .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+    body { overflow-x: hidden; }
 
     /* Code highlight */
     .code-line { display: block; padding: 2px 0; }
-    .kw { color: #ff7eb6; }
-    .fn { color: #78d4f4; }
-    .str { color: #a8ff78; }
-    .cm { color: #6b7280; font-style: italic; }
-    .num { color: #ffb347; }
+
+    /* Typing cursor */
+    .typing-cursor::after { content: '|'; animation: blink 1s infinite; color: #a78bfa; }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
 
     /* Accordion */
     .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
@@ -128,38 +61,14 @@
     .accordion-icon { transition: transform 0.3s ease; }
     .accordion-btn.open .accordion-icon { transform: rotate(180deg); }
 
-    /* Typing cursor */
-    .typing-cursor::after { content: '|'; animation: blink 1s infinite; }
-    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
-
-    /* Stats counter */
-    .stat-card { background: linear-gradient(135deg, rgba(199,70,52,0.1), rgba(199,70,52,0.02)); border: 1px solid rgba(199,70,52,0.2); border-radius: 12px; padding: var(--space-6); text-align: center; transition: transform 0.3s ease; }
-    .stat-card:hover { transform: translateY(-4px); }
-
-    /* Learning path */
+    /* Learning path nodes */
     .path-node { position: relative; }
-    .path-node::before { content: ''; position: absolute; left: 50%; top: 100%; width: 2px; height: 48px; background: linear-gradient(to bottom, #C74634, transparent); transform: translateX(-50%); }
+    .path-node::before { content: ''; position: absolute; left: 50%; top: 100%; width: 2px; height: 48px; background: linear-gradient(to bottom, #8b5cf6, transparent); transform: translateX(-50%); }
     .path-node:last-child::before { display: none; }
 
     /* Mobile menu */
     #mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
     #mobile-menu.open { max-height: 600px; }
-
-    /* Light mode overrides */
-    .light body { background: #f8f9fa; color: #18181b; }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0a0a0f; }
-    ::-webkit-scrollbar-thumb { background: #C74634; border-radius: 3px; }
-
-    /* Badge */
-    .badge { font-size: var(--text-xs); padding: 3px 10px; border-radius: 100px; font-weight: 600; display: inline-block; }
-    .badge-red { background: rgba(199,70,52,0.15); color: #E8604A; border: 1px solid rgba(199,70,52,0.25); }
-    .badge-blue { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
-    .badge-green { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
-    .badge-purple { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
-    .badge-orange { background: rgba(249,115,22,0.15); color: #fb923c; border: 1px solid rgba(249,115,22,0.25); }
 
     @media (max-width: 768px) {
       .hero-title { font-size: 2.2rem !important; }
@@ -174,12 +83,12 @@
   <div class="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between">
     <!-- Logo -->
     <a href="#" class="flex items-center gap-3 group">
-      <div class="w-9 h-9 rounded-lg flex items-center justify-center shadow-lg transition-all" style="background:linear-gradient(135deg,#38bdf8,#0369a1);box-shadow:0 4px 15px rgba(56,189,248,0.3);">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center transition-all" style="background:linear-gradient(135deg,#7c3aed,#9333ea);box-shadow:0 4px 20px rgba(124,58,237,0.4);">
         <i class="fas fa-database text-white text-sm"></i>
       </div>
       <div>
-        <span class="font-display font-bold text-white text-base leading-none block">Oracle DBA</span>
-        <span class="text-xs font-mono" style="color:#7dd3fc;">Simplified</span>
+        <span class="font-display font-bold text-white text-base leading-none block" style="font-family:'Space Grotesk',sans-serif;">Oracle DBA</span>
+        <span class="text-xs font-mono" style="color:#a78bfa;letter-spacing:.05em;">Simplified</span>
       </div>
     </a>
 
@@ -240,9 +149,9 @@
     <div class="grid lg:grid-cols-2 gap-16 items-center">
       <!-- Left content -->
       <div>
-        <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-8" style="border-color:rgba(56,189,248,0.25);">
-          <span class="w-2 h-2 rounded-full animate-pulse" style="background:#38bdf8;box-shadow:0 0 6px #38bdf8;"></span>
-          <span class="text-xs text-neutral-400 font-mono">Oracle DBA Learning Platform</span>
+        <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-8" style="border-color:rgba(139,92,246,0.28);">
+          <span class="w-2 h-2 rounded-full animate-pulse" style="background:#8b5cf6;box-shadow:0 0 8px rgba(139,92,246,0.8);"></span>
+          <span class="text-xs font-mono" style="color:#a1a1aa;letter-spacing:.04em;">Oracle DBA Learning Platform</span>
         </div>
 
         <h1 class="font-display font-extrabold text-5xl lg:text-6xl leading-tight mb-6 hero-title">
@@ -255,7 +164,7 @@
           Real-world Oracle DBA concepts explained in the simplest possible language. No jargon — just clarity.
         </p>
 
-        <div class="font-mono text-sm mb-8 h-6 overflow-hidden" style="color:#38bdf8;">
+        <div class="font-mono text-sm mb-8 h-6 overflow-hidden" style="color:#a78bfa;">
           <span id="typing-text" class="typing-cursor"></span>
         </div>
 
@@ -296,21 +205,21 @@
       <div class="relative hidden lg:flex items-center justify-center">
         <!-- Central DB icon -->
         <div class="relative w-72 h-72">
-          <div class="absolute inset-0 rounded-full animate-spin-slow" style="border:1px solid rgba(56,189,248,0.20);"></div>
-          <div class="absolute inset-8 rounded-full animate-[spin_15s_linear_reverse_infinite]" style="border:1px solid rgba(129,140,248,0.12);"></div>
+          <div class="absolute inset-0 rounded-full animate-spin-slow" style="border:1px solid rgba(139,92,246,0.18);"></div>
+          <div class="absolute inset-8 rounded-full animate-[spin_15s_linear_reverse_infinite]" style="border:1px solid rgba(236,72,153,0.12);"></div>
           <div class="absolute inset-0 flex items-center justify-center">
-            <div class="w-32 h-32 rounded-2xl glass-strong flex items-center justify-center animate-[float_4s_ease-in-out_infinite]" style="box-shadow:0 0 40px rgba(56,189,248,0.25);animation:float 4s ease-in-out infinite,skyPulse 3s ease-in-out infinite;">
-              <i class="fas fa-database text-5xl" style="color:#38bdf8;"></i>
+            <div class="w-32 h-32 rounded-2xl glass-strong flex items-center justify-center" style="animation:float 4s ease-in-out infinite,prismPulse 3s ease-in-out infinite;">
+              <i class="fas fa-database text-5xl" style="background:linear-gradient(135deg,#8b5cf6,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></i>
             </div>
           </div>
           <!-- Floating cards -->
-          <div class="absolute -top-6 -right-8 glass rounded-xl p-3 animate-float text-xs font-mono" style="border-color:rgba(56,189,248,0.20);">
-            <span style="color:#7dd3fc;">SELECT</span> <span class="text-green-400">*</span> <span style="color:#a5b4fc;">FROM</span> <span class="text-yellow-400">dba_users</span>
+          <div class="absolute -top-6 -right-8 glass rounded-xl p-3 animate-float text-xs font-mono" style="border-color:rgba(139,92,246,0.20);">
+            <span style="color:#c084fc;">SELECT</span> <span style="color:#86efac;">*</span> <span style="color:#67e8f9;">FROM</span> <span style="color:#fbbf24;">dba_users</span>
           </div>
-          <div class="absolute -bottom-4 -left-10 glass rounded-xl p-3 animate-float-delay text-xs" style="border-color:rgba(56,189,248,0.20);">
+          <div class="absolute -bottom-4 -left-10 glass rounded-xl p-3 animate-float-delay text-xs" style="border-color:rgba(139,92,246,0.18);">
             <div class="flex items-center gap-2">
               <i class="fas fa-shield-alt" style="color:#34d399;"></i>
-              <span class="text-neutral-300">Data Guard Active</span>
+              <span style="color:#d4d4d4;">Data Guard Active</span>
             </div>
           </div>
           <div class="absolute top-1/2 -right-16 glass rounded-xl p-3 animate-[float_5s_ease-in-out_1s_infinite] text-xs">
@@ -332,8 +241,8 @@
 
   <!-- Scroll indicator -->
   <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
-    <span class="text-xs text-neutral-600 font-mono">scroll</span>
-    <i class="fas fa-chevron-down text-xs" style="color:#38bdf8;"></i>
+    <span class="text-xs font-mono" style="color:#3f3f46;">scroll</span>
+    <i class="fas fa-chevron-down text-xs" style="color:#8b5cf6;"></i>
   </div>
 </section>
 
