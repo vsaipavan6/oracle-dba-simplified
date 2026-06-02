@@ -1,0 +1,270 @@
+/* ============================================================
+   Oracle DBA Simplified — Global Style Layer
+   Warmer, reader-friendly design refresh
+   Loaded LAST so it wins over page-specific defaults
+   ============================================================ */
+
+/* ── 1. Font import ───────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+/* ── 2. Design tokens ─────────────────────────────────────── */
+:root {
+  --g-bg:        #07101d;   /* warm midnight — replaces cold #0a0a0f  */
+  --g-surface:   #0c1929;
+  --g-border:    rgba(255,255,255,0.10);
+  --g-coral:     #ff6348;   /* warm accent  — replaces cold #C74634   */
+  --g-coral-l:   #ff8a72;
+  --g-coral-glow:rgba(255,99,72,0.30);
+  --g-text:      #d8e8f5;
+  --g-muted:     #7a9abb;
+}
+
+/* ── 3. Body ──────────────────────────────────────────────── */
+body {
+  background: var(--g-bg) !important;
+  color: var(--g-text) !important;
+  font-family: 'Inter', 'DM Sans', sans-serif !important;
+  line-height: 1.75 !important;
+}
+
+/* ── 4. Headings → Plus Jakarta Sans ─────────────────────── */
+h1, h2, h3, h4, h5, h6,
+.font-display,
+[class*="font-display"] {
+  font-family: 'Plus Jakarta Sans', 'Sora', sans-serif !important;
+}
+
+/* ── 5. Scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--g-bg); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--g-coral), #ffab70);
+  border-radius: 4px;
+}
+
+/* ── 6. Text selection ────────────────────────────────────── */
+::selection {
+  background: rgba(255,99,72,0.28);
+  color: #fff;
+}
+
+/* ── 7. Glass cards — warmer / more opaque ───────────────── */
+.glass {
+  background: rgba(12,25,41,0.65) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+}
+.glass-strong {
+  background: rgba(12,25,41,0.80) !important;
+  backdrop-filter: blur(28px) !important;
+  -webkit-backdrop-filter: blur(28px) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+}
+
+/* ── 8. Gradient text — warm coral→amber ─────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #ff6348 0%, #ffab70 50%, #ffd166 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+/* ── 9. Buttons ───────────────────────────────────────────── */
+.btn-primary {
+  background: linear-gradient(135deg, var(--g-coral), #d94530) !important;
+  box-shadow: 0 4px 18px var(--g-coral-glow) !important;
+  border: none !important;
+}
+.btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 32px rgba(255,99,72,0.48) !important;
+}
+
+/* ── 10. Orb backgrounds — warmer ────────────────────────── */
+.orb-red  { background: radial-gradient(circle, #ff6348, transparent) !important; }
+.orb-blue { background: radial-gradient(circle, #4a9fff, transparent) !important; }
+.orb-green{ background: radial-gradient(circle, #34d399, transparent) !important; }
+.orb-purple{background: radial-gradient(circle, #a78bfa, transparent) !important; }
+
+/* ── 11. Grid background ──────────────────────────────────── */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255,99,72,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,99,72,.025) 1px, transparent 1px) !important;
+  background-size: 64px 64px !important;
+}
+
+/* ── 12. Badge — red variant → warmer coral ──────────────── */
+.badge-red {
+  background: rgba(255,99,72,.14) !important;
+  color: var(--g-coral-l) !important;
+  border: 1px solid rgba(255,99,72,.28) !important;
+}
+
+/* ── 13. Navigation links ─────────────────────────────────── */
+.nav-link { transition: color .2s ease !important; }
+.nav-link:hover, .nav-link.active { color: var(--g-coral-l) !important; }
+
+/* ── 14. Terminal / code blocks ───────────────────────────── */
+.terminal {
+  background: #040d18 !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  border-radius: 14px !important;
+}
+.terminal-bar {
+  background: #0a1828 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+/* ── 15. Neutral text (Tailwind utilities) ────────────────── */
+.text-neutral-400 { color: #8dadc8 !important; }
+.text-neutral-500 { color: #7a9abb !important; }
+.text-neutral-600 { color: #6b8aaa !important; }
+.text-neutral-700 { color: #4a7090 !important; }
+
+/* ── 16. Heading white → slightly blue-tinted ─────────────── */
+.text-white { color: #e8f2ff !important; }
+
+/* ── 17. Tab buttons ──────────────────────────────────────── */
+.tab-btn.active, .tab-btn:hover {
+  background: rgba(255,99,72,.12) !important;
+  color: var(--g-coral-l) !important;
+  border-color: rgba(255,99,72,.32) !important;
+}
+
+/* ── 18. Architecture / diagram selected box ─────────────── */
+.arch-box.selected {
+  box-shadow: 0 0 0 2px var(--g-coral), 0 0 32px var(--g-coral-glow) !important;
+}
+
+/* ── 19. Oracle-red color overrides ──────────────────────── */
+.text-oracle-red { color: var(--g-coral-l) !important; }
+.bg-oracle-red { background-color: var(--g-coral) !important; }
+.border-oracle-red { border-color: var(--g-coral) !important; }
+
+/* ── 20. Filter buttons on blog section ─────────────────── */
+.filter-btn.active {
+  background: rgba(255,99,72,.18) !important;
+  color: var(--g-coral-l) !important;
+  border-color: rgba(255,99,72,.35) !important;
+}
+
+/* ── 21. Blog & path cards ───────────────────────────────── */
+.blog-card {
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease !important;
+}
+.blog-card:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 16px 48px rgba(0,0,0,.55) !important;
+}
+.path-card {
+  transition: transform .25s ease, border-color .25s ease !important;
+}
+.path-card:hover { transform: translateY(-3px) !important; }
+
+/* ── 22. Topic / feature cards ───────────────────────────── */
+.group:hover .group-hover\:bg-oracle-red\/20 {
+  background-color: rgba(255,99,72,.20) !important;
+}
+.hover\:border-oracle-red\/40:hover {
+  border-color: rgba(255,99,72,.40) !important;
+}
+
+/* ── 23. Input fields ────────────────────────────────────── */
+input, textarea, select {
+  background: var(--g-surface) !important;
+  border-color: rgba(255,255,255,.12) !important;
+  color: var(--g-text) !important;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: rgba(255,99,72,.45) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(255,99,72,.15) !important;
+}
+
+/* ── 24. Horizontal rules ─────────────────────────────────── */
+hr {
+  border-color: rgba(255,255,255,.07) !important;
+}
+
+/* ── 25. Metric / stat cards on topic pages ─────────────── */
+.metric-card, .stat-card {
+  background: rgba(12,25,41,.7) !important;
+  border: 1px solid rgba(255,255,255,.09) !important;
+  border-radius: 12px !important;
+}
+
+/* ── 26. Content paragraph improvements ─────────────────── */
+.prose p, article p, .content p {
+  line-height: 1.85 !important;
+  margin-bottom: 1rem !important;
+}
+
+/* ── 27. Code inline ─────────────────────────────────────── */
+code:not([class]) {
+  background: rgba(255,99,72,.12) !important;
+  color: var(--g-coral-l) !important;
+  padding: 1px 6px !important;
+  border-radius: 4px !important;
+  font-size: .875em !important;
+}
+
+/* ── 28. Table styles ────────────────────────────────────── */
+table { border-collapse: collapse; width: 100%; }
+th {
+  background: rgba(255,99,72,.10) !important;
+  color: var(--g-coral-l) !important;
+  padding: 10px 14px !important;
+  font-size: .8rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+  border-bottom: 1px solid rgba(255,99,72,.20) !important;
+}
+td {
+  padding: 10px 14px !important;
+  border-bottom: 1px solid rgba(255,255,255,.05) !important;
+  color: var(--g-text) !important;
+  font-size: .875rem !important;
+}
+tr:hover td { background: rgba(255,255,255,.025) !important; }
+
+/* ── 29. Reveal animation — slightly snappier ─────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .55s ease, transform .55s ease !important;
+}
+.reveal.visible {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* ── 30. Footer links ─────────────────────────────────────── */
+footer a:hover { color: var(--g-coral-l) !important; }
+
+/* ── 31. Learning path accent line ───────────────────────── */
+.path-card .absolute.w-1 {
+  opacity: .85 !important;
+}
+
+/* ── 32. Hero gradient blob ───────────────────────────────── */
+.orb { opacity: .18 !important; }
+
+/* ── 33. Section headings spacing ────────────────────────── */
+section h2 { letter-spacing: -.02em; }
+section h3 { letter-spacing: -.01em; }
+
+/* ── 34. Accessibility — focus ring ──────────────────────── */
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--g-coral) !important;
+  outline-offset: 3px !important;
+  border-radius: 4px !important;
+}
+
+/* ── 35. Mobile read comfort ─────────────────────────────── */
+@media (max-width: 640px) {
+  body { line-height: 1.8 !important; }
+  h1 { font-size: clamp(1.75rem, 7vw, 3rem) !important; }
+  h2 { font-size: clamp(1.4rem, 5.5vw, 2.25rem) !important; }
+}

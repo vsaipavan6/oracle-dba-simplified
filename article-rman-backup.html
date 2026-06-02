@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RMAN Level 0 vs Level 1 Backup Explained | Oracle DBA Simplified</title>
+  <meta name="description" content="What's the real difference between RMAN Level 0 and Level 1 backups? Differential vs cumulative explained simply with real-world strategies and examples." />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg:       #07101d;
+      --surface:  #0c1929;
+      --surface2: #102030;
+      --border:   #1a3050;
+      --blue:     #4a9fff;
+      --blue-l:   #7cbfff;
+      --coral:    #ff6348;
+      --green:    #34d399;
+      --gold:     #f5b944;
+      --purple:   #a78bfa;
+      --teal:     #2dd4bf;
+      --text:     #d8e8f5;
+      --muted:    #5e7fa0;
+      --muted-l:  #8dadc8;
+      --radius:   14px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 17px;
+      line-height: 1.82;
+      overflow-x: hidden;
+    }
+
+    #progress-bar {
+      position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+      background: linear-gradient(90deg, var(--blue), var(--teal), var(--green));
+      z-index: 1000; transition: width .1s linear;
+      border-radius: 0 3px 3px 0;
+    }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(7,16,29,.85);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+    }
+    .nav-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-icon { width: 34px; height: 34px; background: linear-gradient(135deg, #2a7fff, #1560cc); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff; }
+    .logo-text { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; color: #fff; font-size: 15px; }
+    .logo-text span { color: var(--blue); }
+    .nav-links { display: flex; gap: 20px; align-items: center; }
+    .nav-links a { color: var(--muted-l); text-decoration: none; font-size: 14px; transition: color .2s; font-weight: 500; }
+    .nav-links a:hover { color: var(--blue); }
+
+    .hero {
+      position: relative; overflow: hidden;
+      background: linear-gradient(160deg, #0c1d33 0%, #0a1828 40%, var(--bg) 100%);
+      padding: 72px 24px 60px;
+      text-align: center;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: radial-gradient(ellipse at 30% 40%, rgba(74,159,255,.08) 0%, transparent 60%),
+                        radial-gradient(ellipse at 70% 60%, rgba(52,211,153,.06) 0%, transparent 60%);
+    }
+    .hero-inner { position: relative; max-width: 780px; margin: 0 auto; }
+    .hero-tags { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 100px; letter-spacing: .05em; text-transform: uppercase; }
+    .tag-blue  { background: rgba(74,159,255,.12); color: var(--blue);  border: 1px solid rgba(74,159,255,.3); }
+    .tag-green { background: rgba(52,211,153,.12); color: var(--green); border: 1px solid rgba(52,211,153,.25); }
+    .tag-gold  { background: rgba(245,185,68,.12); color: var(--gold);  border: 1px solid rgba(245,185,68,.25); }
+    .hero-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(2.1rem, 5vw, 3.2rem);
+      font-weight: 800; color: #fff; line-height: 1.2;
+      margin-bottom: 18px;
+    }
+    .hero-title .accent { color: var(--blue); }
+    .hero-subtitle { font-size: 1.05rem; color: var(--muted-l); max-width: 580px; margin: 0 auto 28px; line-height: 1.7; }
+    .hero-meta { display: flex; gap: 24px; justify-content: center; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+    .hero-meta-item { display: flex; align-items: center; gap: 6px; }
+    .hero-meta i { color: var(--blue); }
+
+    .article-layout {
+      max-width: 1100px; margin: 0 auto; padding: 48px 24px;
+      display: grid; grid-template-columns: 1fr 260px; gap: 48px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .article-layout { grid-template-columns: 1fr; }
+      .toc-sidebar { display: none; }
+    }
+
+    .article-body { min-width: 0; }
+    .article-intro {
+      font-size: 1.15rem; color: var(--muted-l); line-height: 1.85;
+      border-left: 3px solid var(--blue); padding-left: 22px;
+      margin-bottom: 48px;
+    }
+
+    .section { margin-bottom: 56px; }
+    .section-label { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .section-num {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--blue), #1a5fb4);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 15px; color: #fff;
+    }
+    .section-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--blue); }
+    h2.section-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(1.5rem, 3vw, 1.9rem);
+      font-weight: 700; color: #fff; line-height: 1.25; margin-bottom: 20px;
+    }
+    h3.sub-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.15rem; font-weight: 700; color: #fff;
+      margin: 28px 0 10px; display: flex; align-items: center; gap: 8px;
+    }
+    h3.sub-title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+    p { color: var(--text); margin-bottom: 16px; }
+    p:last-child { margin-bottom: 0; }
+    strong { color: #fff; font-weight: 600; }
+
+    .callout { border-radius: var(--radius); padding: 20px 24px; margin: 24px 0; display: flex; gap: 14px; align-items: flex-start; }
+    .callout-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+    .callout-body { flex: 1; }
+    .callout-body strong { display: block; margin-bottom: 4px; font-size: 14px; letter-spacing: .03em; }
+    .callout-body p { font-size: 14.5px; line-height: 1.7; margin: 0; }
+    .callout.analogy { background: rgba(245,185,68,.08); border: 1px solid rgba(245,185,68,.25); }
+    .callout.analogy .callout-icon { color: var(--gold); }
+    .callout.analogy strong { color: var(--gold); }
+    .callout.tip { background: rgba(74,159,255,.08); border: 1px solid rgba(74,159,255,.2); }
+    .callout.tip .callout-icon { color: var(--blue); }
+    .callout.tip strong { color: var(--blue); }
+    .callout.alert { background: rgba(255,99,72,.08); border: 1px solid rgba(255,99,72,.2); }
+    .callout.alert .callout-icon { color: var(--coral); }
+    .callout.alert strong { color: var(--coral); }
+    .callout.success { background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.2); }
+    .callout.success .callout-icon { color: var(--green); }
+    .callout.success strong { color: var(--green); }
+
+    .pull-quote {
+      margin: 32px 0; padding: 24px 28px;
+      border-left: 4px solid var(--blue);
+      background: linear-gradient(to right, rgba(74,159,255,.06), transparent);
+      border-radius: 0 10px 10px 0;
+    }
+    .pull-quote p { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.2rem; font-style: italic; color: #fff; line-height: 1.6; margin: 0; }
+
+    .code-block { margin: 24px 0; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); background: #050d18; }
+    .code-header { background: #0a1828; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .code-header .dots { display: flex; gap: 6px; }
+    .code-header .dots span { width: 11px; height: 11px; border-radius: 50%; }
+    .code-header .label { font-family: 'Fira Code', monospace; font-size: 11px; color: var(--muted); }
+    .code-block pre { padding: 20px; overflow-x: auto; font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.7; }
+    .code-block code { color: #c9d9ec; }
+    .kw { color: #ff79c6; }
+    .fn { color: #78d4f4; }
+    .str { color: #a8ff78; }
+    .cm { color: #4d6380; font-style: italic; }
+    .num { color: #ffb347; }
+    .op { color: var(--blue); }
+
+    /* ── Week timeline visual ── */
+    .timeline { margin: 24px 0; }
+    .timeline-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 12px; }
+    .tl-label { width: 120px; flex-shrink: 0; display: flex; align-items: center; font-size: 13px; font-weight: 600; color: var(--muted-l); }
+    .tl-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; flex: 1; }
+    .tl-day {
+      border-radius: 8px; padding: 8px 6px; text-align: center;
+      font-size: 11px; font-weight: 700; letter-spacing: .02em;
+      border: 1px solid var(--border); color: var(--muted); background: var(--surface);
+    }
+    .tl-day.l0 { background: rgba(74,159,255,.15); border-color: rgba(74,159,255,.4); color: var(--blue); }
+    .tl-day.l1d { background: rgba(52,211,153,.12); border-color: rgba(52,211,153,.35); color: var(--green); }
+    .tl-day.l1c { background: rgba(245,185,68,.12); border-color: rgba(245,185,68,.35); color: var(--gold); }
+    .tl-day.empty { opacity: .35; }
+    .tl-day .size { font-size: 9px; font-weight: 400; margin-top: 3px; opacity: .8; }
+    .tl-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; flex: 1; }
+    .tl-hd { text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 4px 0; }
+
+    /* ── Comparison table ── */
+    .compare-table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+    .compare-table th { background: #0a1828; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 13px; padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    .compare-table th.blue-h { color: var(--blue); }
+    .compare-table th.green-h { color: var(--green); }
+    .compare-table th.gold-h { color: var(--gold); }
+    .compare-table td { padding: 12px 16px; border-bottom: 1px solid rgba(26,48,80,.5); color: var(--muted-l); vertical-align: top; line-height: 1.55; }
+    .compare-table td:first-child { color: var(--text); font-weight: 500; }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:hover td { background: rgba(255,255,255,.02); }
+    .better { color: var(--green); font-weight: 600; }
+    .worse  { color: var(--coral); font-weight: 600; }
+
+    /* ── Step list ── */
+    .step-list { list-style: none; counter-reset: step; margin: 20px 0; }
+    .step-list li { counter-increment: step; padding: 14px 16px 14px 54px; position: relative; border-left: 2px solid var(--border); margin-left: 18px; margin-bottom: 4px; font-size: 14.5px; color: var(--muted-l); line-height: 1.65; }
+    .step-list li::before { content: counter(step); position: absolute; left: -18px; top: 12px; width: 32px; height: 32px; background: var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 13px; color: #fff; }
+    .step-list li:last-child { border-left: 2px solid transparent; }
+    .step-list li strong { color: var(--blue-l); }
+
+    /* ── Decision card ── */
+    .decision-grid { display: grid; gap: 14px; margin: 24px 0; }
+    .decision-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; background: var(--surface); display: flex; gap: 14px; align-items: flex-start; }
+    .decision-card .dc-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+    .decision-card .dc-body { flex: 1; }
+    .decision-card .dc-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; color: #fff; font-size: 15px; margin-bottom: 6px; }
+    .decision-card .dc-when { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 4px; }
+    .decision-card p { font-size: 13.5px; color: var(--muted-l); margin: 0; line-height: 1.6; }
+
+    /* ── Cheat sheet ── */
+    .cheat-sheet { background: #050e1c; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 32px 0; }
+    .cheat-header { padding: 16px 20px; background: linear-gradient(to right, rgba(74,159,255,.1), rgba(52,211,153,.05)); border-bottom: 1px solid var(--border); font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; color: #fff; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    .cheat-header i { color: var(--blue); }
+    .cheat-row { display: grid; grid-template-columns: 180px 1fr; padding: 12px 20px; border-bottom: 1px solid rgba(26,48,80,.5); font-size: 13.5px; }
+    .cheat-row:last-child { border-bottom: none; }
+    .cheat-row:hover { background: rgba(255,255,255,.02); }
+    .cheat-key { color: var(--blue-l); font-family: 'Fira Code', monospace; font-weight: 500; }
+    .cheat-val { color: var(--muted-l); }
+
+    .section-divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+    .toc-sidebar { position: sticky; top: 80px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .toc-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+    .toc-list { list-style: none; }
+    .toc-list li { margin-bottom: 4px; }
+    .toc-list a { color: var(--muted-l); text-decoration: none; font-size: 13px; transition: color .2s; display: flex; align-items: center; gap: 6px; padding: 4px 0; line-height: 1.4; }
+    .toc-list a:hover, .toc-list a.active { color: var(--blue); }
+    .toc-list a::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background .2s; }
+    .toc-list a:hover::before, .toc-list a.active::before { background: var(--blue); }
+
+    .article-footer { max-width: 1100px; margin: 0 auto; padding: 0 24px 64px; }
+    .related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 24px; }
+    .related-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; background: var(--surface); text-decoration: none; display: block; transition: border-color .2s, transform .2s; }
+    .related-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+    .related-card .rtag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 8px; }
+    .related-card h4 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 15px; color: #fff; line-height: 1.35; margin-bottom: 6px; }
+    .related-card p { font-size: 13px; color: var(--muted-l); margin: 0; line-height: 1.55; }
+
+    #btt { position: fixed; bottom: 28px; right: 28px; z-index: 99; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), #1a5fb4); color: #fff; border: none; cursor: pointer; font-size: 17px; opacity: 0; transition: opacity .3s; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(74,159,255,.4); }
+    #btt.show { opacity: 1; }
+
+    .inline-code { font-family: 'Fira Code', monospace; font-size: 12.5px; background: rgba(74,159,255,.1); color: var(--blue); padding: 2px 6px; border-radius: 4px; }
+    .text-blue { color: var(--blue); }
+    .text-green { color: var(--green); }
+    .text-gold  { color: var(--gold); }
+    .text-coral { color: var(--coral); }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">
+      <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+      <div class="logo-text">Oracle DBA <span>Simplified</span></div>
+    </a>
+    <div class="nav-links">
+      <a href="index.html">← All Topics</a>
+      <a href="rman-backup-recovery.html">RMAN Reference</a>
+      <a href="article-oracle-architecture.html">Architecture Article</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tags">
+      <span class="tag tag-blue"><i class="fas fa-redo"></i> RMAN</span>
+      <span class="tag tag-green"><i class="fas fa-graduation-cap"></i> Beginner Friendly</span>
+      <span class="tag tag-gold"><i class="fas fa-lightbulb"></i> Real-World Examples</span>
+    </div>
+    <h1 class="hero-title">RMAN Level 0 vs Level 1<br/><span class="accent">Backup Explained</span></h1>
+    <p class="hero-subtitle">What's the real difference? Differential vs cumulative, block change tracking, and which strategy is right for your database size. No Oracle manual required.</p>
+    <div class="hero-meta">
+      <span class="hero-meta-item"><i class="fas fa-clock"></i> 10 min read</span>
+      <span class="hero-meta-item"><i class="fas fa-calendar"></i> June 2025</span>
+      <span class="hero-meta-item"><i class="fas fa-user"></i> Oracle DBA Simplified</span>
+      <span class="hero-meta-item"><i class="fas fa-database"></i> Oracle 19c</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-layout">
+  <article class="article-body">
+
+    <p class="article-intro">
+      Picture this: Your 500GB production database crashes at 9 AM Monday. Your last backup was Sunday night. You have two paths: restore the full 500GB from scratch and wait 4 hours, or restore a 15GB incremental file from this morning and be done in 30 minutes. <em>That's the whole point of RMAN incremental backups.</em> Let's understand exactly how Level 0 and Level 1 work.
+    </p>
+
+    <!-- SECTION 1 -->
+    <section class="section" id="s1">
+      <div class="section-label">
+        <div class="section-num">1</div>
+        <span class="section-eyebrow">The Problem</span>
+      </div>
+      <h2 class="section-title">Why Full Backups Alone Are Wasteful</h2>
+
+      <p>A full backup — what RMAN calls a "whole database backup" — copies <strong>every single block</strong> in your database, whether it changed recently or not. For a 1TB database that changes 5% per day, you're copying the same 950GB of unchanged data every night. That's:</p>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0">
+        <div style="background:rgba(255,99,72,.08);border:1px solid rgba(255,99,72,.25);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:1.6rem;font-weight:700;color:var(--coral);font-family:'Plus Jakarta Sans',sans-serif">950GB</div>
+          <div style="font-size:12px;color:var(--muted-l);margin-top:4px">wasted I/O per night</div>
+        </div>
+        <div style="background:rgba(255,99,72,.08);border:1px solid rgba(255,99,72,.25);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:1.6rem;font-weight:700;color:var(--coral);font-family:'Plus Jakarta Sans',sans-serif">3-4 hrs</div>
+          <div style="font-size:12px;color:var(--muted-l);margin-top:4px">backup window needed</div>
+        </div>
+        <div style="background:rgba(255,99,72,.08);border:1px solid rgba(255,99,72,.25);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:1.6rem;font-weight:700;color:var(--coral);font-family:'Plus Jakarta Sans',sans-serif">7TB/week</div>
+          <div style="font-size:12px;color:var(--muted-l);margin-top:4px">storage consumed</div>
+        </div>
+      </div>
+
+      <p>The smarter approach: take one complete baseline, then only backup what <em>changed</em> since that baseline. This is Oracle's incremental backup strategy, and it's built around two levels.</p>
+    </section>
+
+    <hr class="section-divider" />
+
+    <!-- SECTION 2 -->
+    <section class="section" id="s2">
+      <div class="section-label">
+        <div class="section-num">2</div>
+        <span class="section-eyebrow">The Foundation</span>
+      </div>
+      <h2 class="section-title">Level 0 — The Starting Point</h2>
+
+      <p>This is where most people get confused. A <strong>Level 0 backup is NOT just a regular full backup</strong> with a different name. It's specifically designed to be the <em>parent</em> for incremental backups.</p>
+
+      <div class="callout analogy">
+        <div class="callout-icon">📖</div>
+        <div class="callout-body">
+          <strong>The Book Analogy</strong>
+          <p>Imagine your database is a book that gets new chapters added every day. A <strong>Level 0</strong> is making a complete photocopy of the entire book — including all chapters written so far. This is your reference copy. Every day after that, you only photocopy the <em>new pages added today</em>. That's your Level 1.</p>
+        </div>
+      </div>
+
+      <p>What does Level 0 actually copy?</p>
+      <ul style="margin: 12px 0 16px 20px; color: var(--muted-l); font-size: 14.5px; line-height: 1.8;">
+        <li>Every <strong class="text-blue">data block that has ever been used</strong> (not every allocated block, just used ones)</li>
+        <li>Backup is stored in RMAN's proprietary format (compressed if specified)</li>
+        <li>Sets the baseline SCN for all subsequent Level 1 backups</li>
+        <li>Without a Level 0, you cannot take a Level 1 — RMAN will fall back to a Level 0 automatically if none exists</li>
+      </ul>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+          <span class="label">RMAN — Level 0 Backup</span>
+        </div>
+        <pre><code><span class="cm">-- Take a Level 0 (the base for all incrementals)</span>
+<span class="op">RMAN></span> <span class="kw">BACKUP INCREMENTAL LEVEL</span> <span class="num">0</span> <span class="kw">DATABASE</span>
+        <span class="kw">PLUS ARCHIVELOG DELETE INPUT</span>
+        <span class="fn">FORMAT</span> <span class="str">'/rman/backup/%d_L0_%T_%s_%p.bkp'</span>
+        <span class="kw">TAG</span> <span class="str">'WEEKLY_L0'</span>;
+
+<span class="cm">-- Verify what was backed up</span>
+<span class="op">RMAN></span> <span class="kw">LIST BACKUP OF DATABASE</span> <span class="kw">SUMMARY</span>;
+<span class="cm">-- Look for: Incremental Level = 0</span></code></pre>
+      </div>
+    </section>
+
+    <hr class="section-divider" />
+
+    <!-- SECTION 3 -->
+    <section class="section" id="s3">
+      <div class="section-label">
+        <div class="section-num">3</div>
+        <span class="section-eyebrow">Daily Backups</span>
+      </div>
+      <h2 class="section-title">Level 1 — The "What Changed?" Backup</h2>
+
+      <p>Level 1 backups come in two flavors, and this is where the strategy gets interesting:</p>
+
+      <h3 class="sub-title"><span class="dot" style="background:var(--green)"></span> Level 1 Differential (the default)</h3>
+      <p>Copies all blocks changed since the <strong>last incremental backup of any level</strong>. Each day's backup only covers that day's changes.</p>
+
+      <div class="timeline" style="overflow-x:auto">
+        <div class="timeline-row" style="margin-bottom:4px">
+          <div class="tl-label"></div>
+          <div class="tl-header">
+            <div class="tl-hd">Sun</div><div class="tl-hd">Mon</div><div class="tl-hd">Tue</div>
+            <div class="tl-hd">Wed</div><div class="tl-hd">Thu</div><div class="tl-hd">Fri</div><div class="tl-hd">Sat</div>
+          </div>
+        </div>
+        <div class="timeline-row">
+          <div class="tl-label">Differential</div>
+          <div class="tl-days">
+            <div class="tl-day l0">L0<div class="size">100 GB</div></div>
+            <div class="tl-day l1d">L1D<div class="size">5 GB</div></div>
+            <div class="tl-day l1d">L1D<div class="size">3 GB</div></div>
+            <div class="tl-day l1d">L1D<div class="size">4 GB</div></div>
+            <div class="tl-day l1d">L1D<div class="size">6 GB</div></div>
+            <div class="tl-day l1d">L1D<div class="size">3 GB</div></div>
+            <div class="tl-day l1d">L1D<div class="size">2 GB</div></div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:8px;margin-left:120px">
+          ↑ Each day = only that day's changes. To restore Friday: L0 + Mon + Tue + Wed + Thu + Fri = <strong class="text-coral">6 files to apply</strong>
+        </div>
+      </div>
+
+      <div class="callout tip" style="margin-top:20px">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body">
+          <strong>Monday's differential only has Monday's changes</strong>
+          <p>If someone updated 1,000 rows on Monday and 2,000 rows on Tuesday, Monday's Level 1 Differential backup is small (just Monday's blocks). Tuesday's Level 1 Differential is slightly larger (Tuesday's blocks only). The chain grows by one link each day.</p>
+        </div>
+      </div>
+
+      <h3 class="sub-title"><span class="dot" style="background:var(--gold)"></span> Level 1 Cumulative</h3>
+      <p>Copies all blocks changed since the <strong>last Level 0</strong> — regardless of any Level 1s taken in between. Each day's backup builds on the Level 0 and includes everything since then.</p>
+
+      <div class="timeline" style="overflow-x:auto">
+        <div class="timeline-row" style="margin-bottom:4px">
+          <div class="tl-label"></div>
+          <div class="tl-header">
+            <div class="tl-hd">Sun</div><div class="tl-hd">Mon</div><div class="tl-hd">Tue</div>
+            <div class="tl-hd">Wed</div><div class="tl-hd">Thu</div><div class="tl-hd">Fri</div><div class="tl-hd">Sat</div>
+          </div>
+        </div>
+        <div class="timeline-row">
+          <div class="tl-label">Cumulative</div>
+          <div class="tl-days">
+            <div class="tl-day l0">L0<div class="size">100 GB</div></div>
+            <div class="tl-day l1c">L1C<div class="size">5 GB</div></div>
+            <div class="tl-day l1c">L1C<div class="size">8 GB</div></div>
+            <div class="tl-day l1c">L1C<div class="size">12 GB</div></div>
+            <div class="tl-day l1c">L1C<div class="size">18 GB</div></div>
+            <div class="tl-day l1c">L1C<div class="size">21 GB</div></div>
+            <div class="tl-day l1c">L1C<div class="size">23 GB</div></div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:8px;margin-left:120px">
+          ↑ Friday's cumulative = ALL changes since Sunday. To restore Friday: L0 + Friday's L1C = <strong class="text-green">only 2 files to apply</strong>
+        </div>
+      </div>
+
+      <div class="callout analogy" style="margin-top:20px">
+        <div class="callout-icon">📚</div>
+        <div class="callout-body">
+          <strong>The "New Chapters" Analogy</strong>
+          <p>Monday: book has 1 new chapter → differential copies 1 chapter, cumulative copies 1 chapter. Tuesday: 2 more new chapters → <strong>differential copies only Tuesday's 2 chapters</strong>, but <strong>cumulative copies ALL 3 chapters since Sunday</strong>. By Friday: differential has Friday's changes only; cumulative has all 6 days of changes. Recovery? Differential needs all 5 days; cumulative needs just Friday's copy.</p>
+        </div>
+      </div>
+    </section>
+
+    <hr class="section-divider" />
+
+    <!-- SECTION 4 -->
+    <section class="section" id="s4">
+      <div class="section-label">
+        <div class="section-num">4</div>
+        <span class="section-eyebrow">The Comparison</span>
+      </div>
+      <h2 class="section-title">Differential vs Cumulative — Head to Head</h2>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>What You're Comparing</th>
+            <th class="blue-h">Level 1 Differential</th>
+            <th class="gold-h">Level 1 Cumulative</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>What it copies</td>
+            <td>Changed since last backup <em>(any level)</em></td>
+            <td>Changed since last Level 0 <em>(baseline)</em></td>
+          </tr>
+          <tr>
+            <td>Daily backup size</td>
+            <td class="better">✓ Smallest (only that day's changes)</td>
+            <td class="worse">✗ Grows through the week</td>
+          </tr>
+          <tr>
+            <td>Backup storage needed</td>
+            <td class="better">✓ Less total storage</td>
+            <td class="worse">✗ More total storage</td>
+          </tr>
+          <tr>
+            <td>Backup window per day</td>
+            <td class="better">✓ Fastest backup (less to write)</td>
+            <td class="worse">✗ Grows each day</td>
+          </tr>
+          <tr>
+            <td>Files to apply on recovery</td>
+            <td class="worse">✗ L0 + every L1 since L0 (can be 6+ files)</td>
+            <td class="better">✓ Always just L0 + latest L1C (2 files)</td>
+          </tr>
+          <tr>
+            <td>Recovery time</td>
+            <td class="worse">✗ Slower (apply each incremental in sequence)</td>
+            <td class="better">✓ Faster (only 2 backups to apply)</td>
+          </tr>
+          <tr>
+            <td>Best for</td>
+            <td>Small daily changes, large backup windows, storage is expensive</td>
+            <td>Strict RTO requirements, large databases, fast recovery is critical</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pull-quote">
+        <p>"Differential saves storage. Cumulative saves time when restoring. The bigger your RTO requirement, the more you should lean towards cumulative."</p>
+      </div>
+    </section>
+
+    <hr class="section-divider" />
+
+    <!-- SECTION 5 -->
+    <section class="section" id="s5">
+      <div class="section-label">
+        <div class="section-num">5</div>
+        <span class="section-eyebrow">The Speedup</span>
+      </div>
+      <h2 class="section-title">Block Change Tracking — The Hidden Multiplier</h2>
+
+      <p>Here's something that almost no beginner article covers: even with Level 1 incremental backups, <strong>RMAN still reads every single block in your database</strong> to figure out which ones changed since the last backup. For a 1TB database, that's 1TB of reads just to find the 15GB that changed.</p>
+
+      <div class="callout alert">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <strong>The Hidden Performance Problem</strong>
+          <p>Without Block Change Tracking, a Level 1 backup on a 500GB database still reads all 500GB from disk. The backup file is small, but the I/O impact is the same as a full backup. On busy production systems during business hours, this full-read I/O can cause performance problems.</p>
+        </div>
+      </div>
+
+      <p><strong>Block Change Tracking (BCT)</strong> solves this by maintaining a small bitmap file that records which blocks changed since the last backup. RMAN checks this file first, skips unchanged blocks, and only reads the changed ones.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0">
+        <div style="background:rgba(255,99,72,.06);border:1px solid rgba(255,99,72,.2);border-radius:12px;padding:18px">
+          <div style="font-size:13px;font-weight:700;color:var(--coral);margin-bottom:10px">❌ Without BCT</div>
+          <p style="font-size:13.5px;color:var(--muted-l);margin:0;line-height:1.6">RMAN reads <strong style="color:#fff">entire 1TB database</strong> to find which blocks changed. Level 1 backup window = nearly same as full backup.</p>
+        </div>
+        <div style="background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.2);border-radius:12px;padding:18px">
+          <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px">✅ With BCT</div>
+          <p style="font-size:13.5px;color:var(--muted-l);margin:0;line-height:1.6">RMAN checks the BCT bitmap, reads <strong style="color:#fff">only the 50GB that changed</strong>. Level 1 backup window = 70-90% faster.</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+          <span class="label">SQL — Enable Block Change Tracking</span>
+        </div>
+        <pre><code><span class="cm">-- Enable BCT (do this once — it's persistent)</span>
+<span class="kw">ALTER DATABASE ENABLE BLOCK CHANGE TRACKING</span>
+  <span class="kw">USING FILE</span> <span class="str">'/u03/rman/bct/bct.dbf'</span> <span class="kw">REUSE</span>;
+
+<span class="cm">-- Verify it's active</span>
+<span class="kw">SELECT</span> status, filename,
+       ROUND(bytes/<span class="num">1024</span>/<span class="num">1024</span>,<span class="num">1</span>) mb
+<span class="kw">FROM</span>   v$block_change_tracking;
+<span class="cm">-- STATUS should be 'ENABLED'</span>
+
+<span class="cm">-- Check BCT effectiveness on recent backups</span>
+<span class="kw">SELECT</span> file#,
+       ROUND(datafile_blocks * <span class="num">8192</span> / <span class="num">1024</span> / <span class="num">1024</span>) total_mb,
+       ROUND(blocks_read * <span class="num">8192</span> / <span class="num">1024</span> / <span class="num">1024</span>) read_mb,
+       ROUND(<span class="num">100</span> - (blocks_read / datafile_blocks * <span class="num">100</span>), <span class="num">1</span>) pct_saved
+<span class="kw">FROM</span>   v$backup_datafile
+<span class="kw">WHERE</span>  used_change_tracking = <span class="str">'YES'</span>
+<span class="kw">AND</span>    incremental_level = <span class="num">1</span>
+<span class="kw">ORDER BY</span> file#;</code></pre>
+      </div>
+
+      <div class="callout success">
+        <div class="callout-icon">✅</div>
+        <div class="callout-body">
+          <strong>Enable BCT immediately on any database over 100GB</strong>
+          <p>The BCT file is tiny (roughly 1MB per 10GB of database data) and the performance gain for Level 1 backups is massive. There is almost no reason not to enable it.</p>
+        </div>
+      </div>
+    </section>
+
+    <hr class="section-divider" />
+
+    <!-- SECTION 6 -->
+    <section class="section" id="s6">
+      <div class="section-label">
+        <div class="section-num">6</div>
+        <span class="section-eyebrow">Real World</span>
+      </div>
+      <h2 class="section-title">Recovery Scenario — "It Crashed on Thursday"</h2>
+
+      <p>Let's make this concrete. Your 200GB database crashed Thursday afternoon. Your backup strategy is: <strong>Level 0 every Sunday, Level 1 Monday–Saturday</strong>. Here's what recovery looks like:</p>
+
+      <h3 class="sub-title"><span class="dot" style="background:var(--blue)"></span> With Differential Strategy</h3>
+      <ol class="step-list">
+        <li><strong>Restore Level 0 (Sunday backup).</strong> Copy 200GB from backup media → datafiles. ~45 minutes.</li>
+        <li><strong>Apply Level 1 Differential — Monday.</strong> Apply ~8GB incremental. ~12 minutes.</li>
+        <li><strong>Apply Level 1 Differential — Tuesday.</strong> Apply ~6GB incremental. ~9 minutes.</li>
+        <li><strong>Apply Level 1 Differential — Wednesday.</strong> Apply ~10GB incremental. ~14 minutes.</li>
+        <li><strong>Apply archive logs</strong> to bring to exact crash point. ~20 minutes.</li>
+      </ol>
+      <p style="color:var(--muted-l);font-size:14px"><strong class="text-coral">Total recovery time: ~1 hour 40 minutes</strong> — and that includes applying 3 incremental backups in sequence.</p>
+
+      <h3 class="sub-title"><span class="dot" style="background:var(--gold)"></span> With Cumulative Strategy</h3>
+      <ol class="step-list">
+        <li><strong>Restore Level 0 (Sunday backup).</strong> Same ~45 minutes.</li>
+        <li><strong>Apply Level 1 Cumulative — Wednesday.</strong> This one file contains ALL changes since Sunday. Apply ~24GB. ~25 minutes.</li>
+        <li><strong>Apply archive logs</strong> to bring to exact crash point. ~20 minutes.</li>
+      </ol>
+      <p style="color:var(--muted-l);font-size:14px"><strong class="text-green">Total recovery time: ~1 hour 30 minutes</strong> — fewer files to apply means less recovery work. The gap grows larger as the week progresses.</p>
+    </section>
+
+    <hr class="section-divider" />
+
+    <!-- SECTION 7 -->
+    <section class="section" id="s7">
+      <div class="section-label">
+        <div class="section-num">7</div>
+        <span class="section-eyebrow">RMAN Commands</span>
+      </div>
+      <h2 class="section-title">The RMAN Commands You'll Actually Use</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+          <span class="label">RMAN — Complete Incremental Backup Commands</span>
+        </div>
+        <pre><code><span class="cm">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  LEVEL 0 — The weekly base (run Sunday)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<span class="op">RMAN></span> <span class="kw">BACKUP INCREMENTAL LEVEL</span> <span class="num">0</span>
+  <span class="kw">DATABASE PLUS ARCHIVELOG DELETE INPUT</span>
+  <span class="fn">FILESPERSET</span> <span class="num">4</span>
+  <span class="fn">FORMAT</span> <span class="str">'/rman/%d_L0_%T_%s_%p.bkp'</span>
+  <span class="kw">TAG</span> <span class="str">'SUNDAY_L0'</span>;
+
+<span class="cm">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  LEVEL 1 DIFFERENTIAL — run Mon-Sat
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<span class="op">RMAN></span> <span class="kw">BACKUP INCREMENTAL LEVEL</span> <span class="num">1</span>
+  <span class="kw">DATABASE PLUS ARCHIVELOG DELETE INPUT</span>
+  <span class="fn">FORMAT</span> <span class="str">'/rman/%d_L1D_%T_%s_%p.bkp'</span>
+  <span class="kw">TAG</span> <span class="str">'DAILY_L1_DIFF'</span>;
+
+<span class="cm">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  LEVEL 1 CUMULATIVE — run Mon-Sat
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<span class="op">RMAN></span> <span class="kw">BACKUP INCREMENTAL LEVEL</span> <span class="num">1</span> <span class="kw">CUMULATIVE</span>
+  <span class="kw">DATABASE PLUS ARCHIVELOG DELETE INPUT</span>
+  <span class="fn">FORMAT</span> <span class="str">'/rman/%d_L1C_%T_%s_%p.bkp'</span>
+  <span class="kw">TAG</span> <span class="str">'DAILY_L1_CUMUL'</span>;
+
+<span class="cm">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  RECOVERY — restore to a point in time
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<span class="op">RMAN></span> <span class="kw">STARTUP MOUNT</span>;
+<span class="op">RMAN></span> <span class="kw">SET UNTIL TIME</span> <span class="str">"TO_DATE('2025-06-05 14:30:00','YYYY-MM-DD HH24:MI:SS')"</span>;
+<span class="op">RMAN></span> <span class="kw">RESTORE DATABASE</span>;    <span class="cm">-- brings back files from backup</span>
+<span class="op">RMAN></span> <span class="kw">RECOVER DATABASE</span>;   <span class="cm">-- applies incrementals + archivelogs</span>
+<span class="op">RMAN></span> <span class="kw">ALTER DATABASE OPEN RESETLOGS</span>;</code></pre>
+      </div>
+    </section>
+
+    <hr class="section-divider" />
+
+    <!-- SECTION 8 -->
+    <section class="section" id="s8">
+      <div class="section-label">
+        <div class="section-num">8</div>
+        <span class="section-eyebrow">Strategy Guide</span>
+      </div>
+      <h2 class="section-title">Which Strategy Should You Choose?</h2>
+
+      <div class="decision-grid">
+        <div class="decision-card">
+          <div class="dc-icon" style="background:rgba(255,99,72,.12);color:var(--coral)"><i class="fas fa-database"></i></div>
+          <div class="dc-body">
+            <div class="dc-when">DB Size &lt; 50GB</div>
+            <div class="dc-title">Just take a full backup nightly</div>
+            <p>For small databases, incremental complexity isn't worth it. A full backup every night is simple, reliable, and fast enough. Use RMAN compression to keep storage manageable.</p>
+          </div>
+        </div>
+        <div class="decision-card">
+          <div class="dc-icon" style="background:rgba(52,211,153,.12);color:var(--green)"><i class="fas fa-balance-scale"></i></div>
+          <div class="dc-body">
+            <div class="dc-when">DB Size 50GB – 500GB</div>
+            <div class="dc-title">Level 0 weekly + Level 1 Differential daily</div>
+            <p>The classic strategy. Small daily backups, manageable storage. Enable BCT. Recovery might take slightly longer as the week goes on, but acceptable for most businesses.</p>
+          </div>
+        </div>
+        <div class="decision-card">
+          <div class="dc-icon" style="background:rgba(245,185,68,.12);color:var(--gold)"><i class="fas fa-bolt"></i></div>
+          <div class="dc-body">
+            <div class="dc-when">DB Size &gt; 500GB, strict RTO</div>
+            <div class="dc-title">Level 0 weekly + Level 1 Cumulative daily</div>
+            <p>When recovery time is the priority. You always know exactly what to apply (L0 + latest cumulative). Slightly more storage but much more predictable recovery window.</p>
+          </div>
+        </div>
+        <div class="decision-card">
+          <div class="dc-icon" style="background:rgba(74,159,255,.12);color:var(--blue)"><i class="fas fa-infinity"></i></div>
+          <div class="dc-body">
+            <div class="dc-when">Very Large DB (multi-TB) + SSD storage</div>
+            <div class="dc-title">Incremental Forever + Image Copy strategy</div>
+            <p>Advanced technique: take one L0 image copy, then apply L1 differential to the copy daily using <span class="inline-code">RECOVER COPY</span>. The copy is always current. Near-instant recovery: just switch to the copy. No traditional "restore" needed.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="section-divider" />
+
+    <!-- SECTION 9 — Cheat sheet -->
+    <section class="section" id="s9">
+      <div class="section-label">
+        <div class="section-num">9</div>
+        <span class="section-eyebrow">Quick Reference</span>
+      </div>
+      <h2 class="section-title">The Backup Cheat Sheet</h2>
+
+      <div class="cheat-sheet">
+        <div class="cheat-header"><i class="fas fa-layer-group"></i> Backup Levels</div>
+        <div class="cheat-row"><div class="cheat-key">Level 0</div><div class="cheat-val">All used blocks. The base. Must exist before any Level 1. Taken weekly.</div></div>
+        <div class="cheat-row"><div class="cheat-key">Level 1 Differential</div><div class="cheat-val">Changed since last backup (any level). Smallest daily. Longer recovery chain.</div></div>
+        <div class="cheat-row"><div class="cheat-key">Level 1 Cumulative</div><div class="cheat-val">Changed since last Level 0. Grows through week. Always 2 files for recovery.</div></div>
+      </div>
+
+      <div class="cheat-sheet" style="margin-top:16px">
+        <div class="cheat-header"><i class="fas fa-exchange-alt"></i> Storage vs Recovery Tradeoff</div>
+        <div class="cheat-row"><div class="cheat-key">Differential</div><div class="cheat-val">Saves storage. Uses shorter backup window. Longer recovery (many files to apply).</div></div>
+        <div class="cheat-row"><div class="cheat-key">Cumulative</div><div class="cheat-val">Uses more storage. Longer backup window. Faster recovery (always 2 files to apply).</div></div>
+      </div>
+
+      <div class="cheat-sheet" style="margin-top:16px">
+        <div class="cheat-header"><i class="fas fa-map-signs"></i> Key Parameters &amp; Views</div>
+        <div class="cheat-row"><div class="cheat-key">BCT file</div><div class="cheat-val">ALTER DATABASE ENABLE BLOCK CHANGE TRACKING. Makes Level 1 reads 70-90% faster.</div></div>
+        <div class="cheat-row"><div class="cheat-key">V$BACKUP_DATAFILE</div><div class="cheat-val">Shows BCT effectiveness per backup: blocks_read vs datafile_blocks, pct_saved.</div></div>
+        <div class="cheat-row"><div class="cheat-key">V$BLOCK_CHANGE_TRACKING</div><div class="cheat-val">Shows BCT status: ENABLED/DISABLED and filename.</div></div>
+        <div class="cheat-row"><div class="cheat-key">LIST BACKUP SUMMARY</div><div class="cheat-val">RMAN command to see all backups, their levels, sizes, and completion times.</div></div>
+      </div>
+    </section>
+
+  </article>
+
+  <!-- Sidebar TOC -->
+  <aside class="toc-sidebar">
+    <div class="toc-title">In This Article</div>
+    <ul class="toc-list">
+      <li><a href="#s1">1. The Problem with Full Backups</a></li>
+      <li><a href="#s2">2. Level 0 — The Base</a></li>
+      <li><a href="#s3">3. Level 1 — The Daily Change</a></li>
+      <li><a href="#s4">4. Differential vs Cumulative</a></li>
+      <li><a href="#s5">5. Block Change Tracking</a></li>
+      <li><a href="#s6">6. Recovery Scenario</a></li>
+      <li><a href="#s7">7. RMAN Commands</a></li>
+      <li><a href="#s8">8. Strategy Guide</a></li>
+      <li><a href="#s9">9. Cheat Sheet</a></li>
+    </ul>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Related</div>
+      <a href="article-oracle-architecture.html" style="display:block;color:var(--muted-l);text-decoration:none;font-size:13px;line-height:1.4;padding:6px 0;border-bottom:1px solid rgba(26,48,80,.4);transition:color .2s" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--muted-l)'">→ Oracle Architecture Explained Simply</a>
+      <a href="rman-backup-recovery.html" style="display:block;color:var(--muted-l);text-decoration:none;font-size:13px;line-height:1.4;padding:6px 0;transition:color .2s;margin-top:4px" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--muted-l)'">→ RMAN Complete Command Reference</a>
+    </div>
+  </aside>
+</div>
+
+<div class="article-footer">
+  <hr class="section-divider" />
+  <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:18px;color:#fff;margin-bottom:6px">More to Read</div>
+  <p style="color:var(--muted-l);font-size:14px;margin-bottom:20px">Continue your Oracle DBA learning journey.</p>
+  <div class="related-grid">
+    <a href="article-oracle-architecture.html" class="related-card">
+      <div class="rtag">Architecture</div>
+      <h4>Oracle Architecture Explained Simply</h4>
+      <p>SGA, PGA, LGWR, DBWn, PMON — how they all connect. The mental model every DBA needs.</p>
+    </a>
+    <a href="rman-backup-recovery.html" class="related-card">
+      <div class="rtag">RMAN Reference</div>
+      <h4>RMAN Complete Reference Page</h4>
+      <p>Every RMAN command, catalog setup, PITR, tablespace recovery, and monitoring queries.</p>
+    </a>
+    <a href="performance-tuning.html" class="related-card">
+      <div class="rtag">Performance</div>
+      <h4>Oracle Performance Tuning Guide</h4>
+      <p>AWR reports, wait events, SQL tuning — from reactive firefighting to proactive optimization.</p>
+    </a>
+  </div>
+  <div style="text-align:center;margin-top:40px">
+    <a href="index.html" style="color:var(--muted-l);text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--muted-l)'">← Back to All Topics</a>
+  </div>
+</div>
+
+<button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+
+<script>
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (window.scrollY / total * 100) + '%';
+  });
+  const btt = document.getElementById('btt');
+  window.addEventListener('scroll', () => btt.classList.toggle('show', window.scrollY > 400));
+  const tocLinks = document.querySelectorAll('.toc-list a');
+  const sections = document.querySelectorAll('section[id]');
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) cur = s.id; });
+    tocLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + cur));
+  }, { passive: true });
+</script>
+</body>
+</html>

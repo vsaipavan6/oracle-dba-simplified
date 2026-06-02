@@ -165,6 +165,7 @@
       .hero-title { font-size: 2.2rem !important; }
     }
   </style>
+  <link rel="stylesheet" href="global.css"/>
 </head>
 <body class="relative">
 
@@ -574,8 +575,9 @@
   <div class="max-w-[1200px] mx-auto px-6">
     <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 reveal gap-4">
       <div>
-        <span class="badge badge-blue mb-4">Latest Articles</span>
-        <h2 class="font-display font-bold text-4xl text-white">Fresh from the<br/><span class="gradient-text">DBA Desk</span></h2>
+        <span class="badge badge-blue mb-4">✍️ Latest Articles</span>
+        <h2 class="font-display font-bold text-4xl text-white">Written by DBAs,<br/><span class="gradient-text">for DBA humans</span></h2>
+        <p class="text-neutral-500 mt-3 max-w-md text-sm leading-relaxed">No jargon walls. No textbook dumps. Real production knowledge explained like your senior DBA is sitting next to you.</p>
       </div>
       <div class="flex gap-2 flex-wrap">
         <button class="filter-btn active badge badge-red cursor-pointer" data-filter="all">All</button>
@@ -589,40 +591,58 @@
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
       <article class="blog-card glass rounded-2xl overflow-hidden reveal" data-category="architecture">
-        <div class="h-44 bg-gradient-to-br from-oracle-red/20 to-orange-900/20 flex items-center justify-center relative">
-          <i class="fas fa-layer-group text-oracle-red text-5xl opacity-40"></i>
-          <div class="absolute top-3 left-3"><span class="badge badge-red">Architecture</span></div>
-          <div class="absolute top-3 right-3 text-xs text-neutral-500 font-mono">8 min read</div>
+        <div class="h-48 flex items-center justify-center relative overflow-hidden" style="background:linear-gradient(135deg,rgba(255,99,72,.18) 0%,rgba(255,171,112,.12) 50%,rgba(12,25,41,0.5) 100%);">
+          <div class="absolute inset-0" style="background:radial-gradient(ellipse at 30% 60%,rgba(255,99,72,.25),transparent 65%)"></div>
+          <i class="fas fa-layer-group text-6xl opacity-25" style="color:#ff6348;"></i>
+          <div class="absolute top-3 left-3 flex gap-2">
+            <span class="badge badge-red">Architecture</span>
+            <span style="background:rgba(255,99,72,.85);color:#fff;font-size:.65rem;padding:2px 8px;border-radius:100px;font-weight:700;letter-spacing:.04em;">NEW</span>
+          </div>
+          <div class="absolute top-3 right-3">
+            <span class="text-xs font-mono" style="background:rgba(0,0,0,.4);color:#8dadc8;padding:3px 8px;border-radius:6px;"><i class="far fa-clock mr-1"></i>8 min read</span>
+          </div>
+          <div class="absolute bottom-3 left-4 right-4">
+            <div style="height:2px;background:linear-gradient(90deg,#ff6348,#ffab70,transparent);border-radius:2px;opacity:.6;"></div>
+          </div>
         </div>
         <div class="p-6">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-6 h-6 rounded-full bg-oracle-red/20 flex items-center justify-center"><i class="fas fa-user text-oracle-red text-xs"></i></div>
-            <span class="text-xs text-neutral-500">Oracle DBA Team</span>
+            <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs text-white" style="background:linear-gradient(135deg,#ff6348,#d94530);">VS</div>
+            <span class="text-xs text-neutral-500">V. Sai Pavan</span>
             <span class="text-neutral-700">·</span>
             <span class="text-xs text-neutral-500">May 2025</span>
           </div>
           <h3 class="font-display font-semibold text-white mb-2 leading-snug hover:text-oracle-red transition-colors cursor-pointer">Oracle Architecture Explained Simply</h3>
-          <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Understand SGA, PGA, background processes like LGWR, DBWn, PMON — explained the way it actually works in production.</p>
-          <a href="oracle-architecture.html" class="btn-primary text-xs py-2 px-4">Read Article <i class="fas fa-arrow-right text-xs"></i></a>
+          <p class="text-neutral-500 text-sm mb-4 leading-relaxed">SGA, PGA, LGWR, DBWn, PMON — explained with real restaurant & library analogies. No textbook walls.</p>
+          <a href="article-oracle-architecture.html" class="btn-primary text-xs py-2 px-4">Read Article <i class="fas fa-arrow-right text-xs"></i></a>
         </div>
       </article>
 
       <article class="blog-card glass rounded-2xl overflow-hidden reveal" data-category="rman" style="transition-delay:0.1s">
-        <div class="h-44 bg-gradient-to-br from-blue-900/20 to-cyan-900/20 flex items-center justify-center relative">
-          <i class="fas fa-redo-alt text-blue-400 text-5xl opacity-40"></i>
-          <div class="absolute top-3 left-3"><span class="badge badge-blue">RMAN</span></div>
-          <div class="absolute top-3 right-3 text-xs text-neutral-500 font-mono">6 min read</div>
+        <div class="h-48 flex items-center justify-center relative overflow-hidden" style="background:linear-gradient(135deg,rgba(74,159,255,.15) 0%,rgba(52,211,153,.10) 50%,rgba(12,25,41,0.5) 100%);">
+          <div class="absolute inset-0" style="background:radial-gradient(ellipse at 70% 40%,rgba(74,159,255,.22),transparent 65%)"></div>
+          <i class="fas fa-shield-alt text-6xl opacity-20" style="color:#4a9fff;"></i>
+          <div class="absolute top-3 left-3 flex gap-2">
+            <span class="badge badge-blue">RMAN</span>
+            <span style="background:rgba(74,159,255,.85);color:#fff;font-size:.65rem;padding:2px 8px;border-radius:100px;font-weight:700;letter-spacing:.04em;">NEW</span>
+          </div>
+          <div class="absolute top-3 right-3">
+            <span class="text-xs font-mono" style="background:rgba(0,0,0,.4);color:#8dadc8;padding:3px 8px;border-radius:6px;"><i class="far fa-clock mr-1"></i>10 min read</span>
+          </div>
+          <div class="absolute bottom-3 left-4 right-4">
+            <div style="height:2px;background:linear-gradient(90deg,#4a9fff,#34d399,transparent);border-radius:2px;opacity:.6;"></div>
+          </div>
         </div>
         <div class="p-6">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center"><i class="fas fa-user text-blue-400 text-xs"></i></div>
-            <span class="text-xs text-neutral-500">Oracle DBA Team</span>
+            <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs text-white" style="background:linear-gradient(135deg,#4a9fff,#2378d4);">VS</div>
+            <span class="text-xs text-neutral-500">V. Sai Pavan</span>
             <span class="text-neutral-700">·</span>
             <span class="text-xs text-neutral-500">Apr 2025</span>
           </div>
           <h3 class="font-display font-semibold text-white mb-2 leading-snug hover:text-blue-400 transition-colors cursor-pointer">RMAN Level 0 vs Level 1 Backup</h3>
-          <p class="text-neutral-500 text-sm mb-4 leading-relaxed">What's the real difference? How does incremental backup strategy reduce recovery time? Real-world examples included.</p>
-          <a href="rman-backup-recovery.html" class="btn-secondary text-xs py-2 px-4 border-blue-500/30 text-blue-400 hover:border-blue-400/60">Read Article <i class="fas fa-arrow-right text-xs"></i></a>
+          <p class="text-neutral-500 text-sm mb-4 leading-relaxed">Stop wasting 950GB nightly on full backups. Learn differential vs cumulative — with visual timelines & real RMAN commands.</p>
+          <a href="article-rman-backup.html" class="btn-secondary text-xs py-2 px-4 border-blue-500/30 text-blue-400 hover:border-blue-400/60">Read Article <i class="fas fa-arrow-right text-xs"></i></a>
         </div>
       </article>
 
