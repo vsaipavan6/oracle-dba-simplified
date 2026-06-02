@@ -1,270 +1,615 @@
-/* ============================================================
-   Oracle DBA Simplified — Global Style Layer
-   Warmer, reader-friendly design refresh
-   Loaded LAST so it wins over page-specific defaults
-   ============================================================ */
+/* ================================================================
+   Oracle DBA Simplified — Global Design System v3
+   "Stellar Navy" — distinctive deep-ocean palette
+   Sky blue · Indigo · Amber · Emerald
+   Nothing like the generic Claude dark template
+   ================================================================ */
 
-/* ── 1. Font import ───────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+/* ── 1. Font imports ─────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* ── 2. Design tokens ─────────────────────────────────────── */
+/* ── 2. Design tokens ────────────────────────────────────────── */
 :root {
-  --g-bg:        #07101d;   /* warm midnight — replaces cold #0a0a0f  */
-  --g-surface:   #0c1929;
-  --g-border:    rgba(255,255,255,0.10);
-  --g-coral:     #ff6348;   /* warm accent  — replaces cold #C74634   */
-  --g-coral-l:   #ff8a72;
-  --g-coral-glow:rgba(255,99,72,0.30);
-  --g-text:      #d8e8f5;
-  --g-muted:     #7a9abb;
+  /* Backgrounds — deep ocean blue (NOT black) */
+  --bg:          #08101e;
+  --surface:     #0c1a30;
+  --surface2:    #102240;
+  --surface3:    #142850;
+
+  /* Borders — cyan-tinted, clearly visible */
+  --border:      rgba(56,189,248,0.14);
+  --border-l:    rgba(56,189,248,0.24);
+
+  /* Palette */
+  --sky:         #38bdf8;   /* Primary — sky blue         */
+  --sky-l:       #7dd3fc;
+  --sky-d:       #0ea5e9;
+  --indigo:      #818cf8;   /* Accent — indigo/violet     */
+  --indigo-l:    #a5b4fc;
+  --amber:       #fb923c;   /* Warm highlight — amber     */
+  --amber-l:     #fdba74;
+  --emerald:     #34d399;   /* Success — emerald          */
+  --emerald-l:   #6ee7b7;
+  --rose:        #fb7185;   /* Alert — rose               */
+  --violet:      #c084fc;   /* Special — soft violet      */
+
+  /* Text */
+  --text:        #ddeeff;   /* Blue-white — not harsh pure white */
+  --text-soft:   #b8d4f0;
+  --muted:       #5b8db8;
+  --muted-l:     #7aaad0;
+  --very-muted:  #2e5a7c;
+
+  /* Gradients */
+  --grad-main:   linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+  --grad-warm:   linear-gradient(135deg, #fb923c 0%, #f59e0b 100%);
+  --grad-text:   linear-gradient(135deg, #38bdf8 0%, #818cf8 60%, #c084fc 100%);
+  --grad-card:   linear-gradient(145deg, rgba(12,26,48,0.9), rgba(8,16,30,0.95));
+
+  /* Glow */
+  --glow-sky:    rgba(56,189,248,0.25);
+  --glow-indigo: rgba(129,140,248,0.25);
+  --glow-amber:  rgba(251,146,60,0.25);
+
+  /* Radius */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
 }
 
-/* ── 3. Body ──────────────────────────────────────────────── */
+/* ── 3. Base reset & body ────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--g-bg) !important;
-  color: var(--g-text) !important;
-  font-family: 'Inter', 'DM Sans', sans-serif !important;
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-family: 'Inter', 'Plus Jakarta Sans', sans-serif !important;
   line-height: 1.75 !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
 
-/* ── 4. Headings → Plus Jakarta Sans ─────────────────────── */
+/* ── 4. Typography ───────────────────────────────────────────── */
 h1, h2, h3, h4, h5, h6,
-.font-display,
-[class*="font-display"] {
-  font-family: 'Plus Jakarta Sans', 'Sora', sans-serif !important;
+.font-display, [class*="font-display"] {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+  letter-spacing: -0.02em;
+  color: var(--text) !important;
+}
+h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; }
+h2 { font-size: clamp(1.5rem, 3.5vw, 2.25rem); font-weight: 700; }
+h3 { font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-weight: 600; }
+
+p, li { line-height: 1.8; }
+
+.font-mono, code, pre,
+[class*="font-mono"] {
+  font-family: 'JetBrains Mono', monospace !important;
 }
 
-/* ── 5. Scrollbar ─────────────────────────────────────────── */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: var(--g-bg); }
+/* ── 5. Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--g-coral), #ffab70);
+  background: linear-gradient(180deg, var(--sky), var(--indigo));
   border-radius: 4px;
 }
+::-webkit-scrollbar-thumb:hover { background: var(--sky-l); }
 
-/* ── 6. Text selection ────────────────────────────────────── */
+/* ── 6. Selection ────────────────────────────────────────────── */
 ::selection {
-  background: rgba(255,99,72,0.28);
+  background: rgba(56,189,248,0.25);
   color: #fff;
 }
 
-/* ── 7. Glass cards — warmer / more opaque ───────────────── */
+/* ── 7. Glass cards ──────────────────────────────────────────── */
 .glass {
-  background: rgba(12,25,41,0.65) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255,255,255,0.10) !important;
+  background: rgba(12,26,48,0.7) !important;
+  backdrop-filter: blur(20px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.5) !important;
+  border: 1px solid var(--border) !important;
 }
 .glass-strong {
-  background: rgba(12,25,41,0.80) !important;
-  backdrop-filter: blur(28px) !important;
-  -webkit-backdrop-filter: blur(28px) !important;
-  border: 1px solid rgba(255,255,255,0.14) !important;
+  background: rgba(12,26,48,0.88) !important;
+  backdrop-filter: blur(28px) saturate(1.8) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.8) !important;
+  border: 1px solid var(--border-l) !important;
 }
 
-/* ── 8. Gradient text — warm coral→amber ─────────────────── */
+/* ── 8. Gradient text ────────────────────────────────────────── */
 .gradient-text {
-  background: linear-gradient(135deg, #ff6348 0%, #ffab70 50%, #ffd166 100%) !important;
+  background: var(--grad-text) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+.gradient-text-w, .gradient-text-white {
+  background: linear-gradient(135deg, #fff 0%, var(--sky-l) 100%) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
 }
 
-/* ── 9. Buttons ───────────────────────────────────────────── */
+/* ── 9. Buttons ──────────────────────────────────────────────── */
 .btn-primary {
-  background: linear-gradient(135deg, var(--g-coral), #d94530) !important;
-  box-shadow: 0 4px 18px var(--g-coral-glow) !important;
+  background: linear-gradient(135deg, var(--sky-d), #0369a1) !important;
+  color: #fff !important;
   border: none !important;
+  border-radius: var(--r-md) !important;
+  font-weight: 600 !important;
+  transition: all 0.22s ease !important;
+  box-shadow: 0 4px 20px var(--glow-sky) !important;
 }
 .btn-primary:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 8px 32px rgba(255,99,72,0.48) !important;
+  box-shadow: 0 8px 32px rgba(56,189,248,0.45) !important;
+  background: linear-gradient(135deg, #38bdf8, #0369a1) !important;
 }
 
-/* ── 10. Orb backgrounds — warmer ────────────────────────── */
-.orb-red  { background: radial-gradient(circle, #ff6348, transparent) !important; }
-.orb-blue { background: radial-gradient(circle, #4a9fff, transparent) !important; }
-.orb-green{ background: radial-gradient(circle, #34d399, transparent) !important; }
-.orb-purple{background: radial-gradient(circle, #a78bfa, transparent) !important; }
+.btn-secondary, .btn-ghost {
+  background: rgba(56,189,248,0.07) !important;
+  color: var(--sky-l) !important;
+  border: 1px solid rgba(56,189,248,0.25) !important;
+  border-radius: var(--r-md) !important;
+  font-weight: 500 !important;
+  transition: all 0.22s ease !important;
+}
+.btn-secondary:hover, .btn-ghost:hover {
+  background: rgba(56,189,248,0.15) !important;
+  border-color: rgba(56,189,248,0.45) !important;
+  transform: translateY(-1px) !important;
+}
 
-/* ── 11. Grid background ──────────────────────────────────── */
+/* ── 10. Badges ──────────────────────────────────────────────── */
+.badge {
+  font-size: .72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: .04em !important;
+  padding: 3px 10px !important;
+  border-radius: 100px !important;
+}
+.badge-red, .badge-oracle {
+  background: rgba(251,113,133,0.13) !important;
+  color: #fb7185 !important;
+  border: 1px solid rgba(251,113,133,0.28) !important;
+}
+.badge-blue {
+  background: rgba(56,189,248,0.12) !important;
+  color: var(--sky-l) !important;
+  border: 1px solid rgba(56,189,248,0.28) !important;
+}
+.badge-green {
+  background: rgba(52,211,153,0.12) !important;
+  color: var(--emerald) !important;
+  border: 1px solid rgba(52,211,153,0.28) !important;
+}
+.badge-purple, .badge-violet {
+  background: rgba(192,132,252,0.12) !important;
+  color: var(--violet) !important;
+  border: 1px solid rgba(192,132,252,0.28) !important;
+}
+.badge-orange, .badge-amber {
+  background: rgba(251,146,60,0.12) !important;
+  color: var(--amber-l) !important;
+  border: 1px solid rgba(251,146,60,0.28) !important;
+}
+.badge-cyan, .badge-sky {
+  background: rgba(34,211,238,0.12) !important;
+  color: #22d3ee !important;
+  border: 1px solid rgba(34,211,238,0.28) !important;
+}
+.badge-yellow {
+  background: rgba(250,204,21,0.12) !important;
+  color: #fcd34d !important;
+  border: 1px solid rgba(250,204,21,0.28) !important;
+}
+
+/* ── 11. Nav ─────────────────────────────────────────────────── */
+nav.fixed, nav[style*="position:fixed"], nav[class*="fixed"] {
+  background: rgba(8,16,30,0.85) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-bottom: 1px solid var(--border) !important;
+  transition: all 0.3s ease !important;
+}
+nav.fixed.scrolled {
+  background: rgba(8,16,30,0.96) !important;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.4) !important;
+}
+
+.nav-link {
+  font-size: .85rem !important;
+  color: var(--muted) !important;
+  font-weight: 500 !important;
+  transition: color 0.2s ease !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  position: relative !important;
+}
+.nav-link:hover, .nav-link.active {
+  color: var(--sky-l) !important;
+  background: rgba(56,189,248,0.08) !important;
+}
+
+/* ── 12. Orbs ────────────────────────────────────────────────── */
+.orb { opacity: 0.18 !important; filter: blur(90px) !important; }
+.orb-red   { background: radial-gradient(circle, #fb7185, transparent) !important; }
+.orb-blue  { background: radial-gradient(circle, #38bdf8, transparent) !important; }
+.orb-green { background: radial-gradient(circle, #34d399, transparent) !important; }
+.orb-purple{ background: radial-gradient(circle, #818cf8, transparent) !important; }
+
+/* ── 13. Grid background ─────────────────────────────────────── */
 .grid-bg {
   background-image:
-    linear-gradient(rgba(255,99,72,.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,99,72,.025) 1px, transparent 1px) !important;
-  background-size: 64px 64px !important;
+    linear-gradient(rgba(56,189,248,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,189,248,.04) 1px, transparent 1px) !important;
+  background-size: 56px 56px !important;
 }
 
-/* ── 12. Badge — red variant → warmer coral ──────────────── */
-.badge-red {
-  background: rgba(255,99,72,.14) !important;
-  color: var(--g-coral-l) !important;
-  border: 1px solid rgba(255,99,72,.28) !important;
+/* ── 14. Oracle-red overrides → sky blue (all Tailwind variants) ── */
+[class*="text-oracle-red"]   { color: var(--sky-l) !important; }
+[class*="bg-oracle-red"]     { background-color: var(--sky-d) !important; }
+[class*="border-oracle-red"] { border-color: rgba(56,189,248,0.30) !important; }
+[class*="from-oracle-red"]   { --tw-gradient-from: rgba(56,189,248,0.20) !important; }
+[class*="to-oracle"]         { --tw-gradient-to:   rgba(14,165,233,0.12) !important; }
+[class*="hover:text-oracle-red"]:hover  { color: var(--sky-l) !important; }
+[class*="hover:border-oracle"]:hover    { border-color: rgba(56,189,248,0.45) !important; }
+[class*="group-hover:bg-oracle"]        { background-color: rgba(56,189,248,0.18) !important; }
+
+/* oracle bg in icons / number circles */
+.bg-oracle-red, .from-oracle-red {
+  background: linear-gradient(135deg, var(--sky-d), #0369a1) !important;
 }
 
-/* ── 13. Navigation links ─────────────────────────────────── */
-.nav-link { transition: color .2s ease !important; }
-.nav-link:hover, .nav-link.active { color: var(--g-coral-l) !important; }
+/* Spinning border ring in hero */
+[class*="border-oracle-red\/"] {
+  border-color: rgba(56,189,248,0.25) !important;
+}
 
-/* ── 14. Terminal / code blocks ───────────────────────────── */
+/* Animate pulse glow — sky blue */
+.animate-pulse-glow {
+  animation: skyPulse 3s ease-in-out infinite !important;
+}
+@keyframes skyPulse {
+  0%,100% { box-shadow: 0 0 15px rgba(56,189,248,0.25); }
+  50%      { box-shadow: 0 0 45px rgba(56,189,248,0.55); }
+}
+
+/* ── 15. Text utility overrides ──────────────────────────────── */
+.text-white          { color: var(--text) !important; }
+.text-neutral-400    { color: var(--muted-l) !important; }
+.text-neutral-500    { color: var(--muted) !important; }
+.text-neutral-600    { color: #4a7898 !important; }
+.text-neutral-700    { color: var(--very-muted) !important; }
+.text-neutral-900    { color: #1e3550 !important; }
+
+/* ── 16. Tab buttons ─────────────────────────────────────────── */
+.tab-btn {
+  background: transparent !important;
+  color: var(--muted) !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--r-md) !important;
+  padding: 8px 18px !important;
+  font-size: .82rem !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+}
+.tab-btn.active, .tab-btn:hover {
+  background: rgba(56,189,248,0.12) !important;
+  color: var(--sky-l) !important;
+  border-color: rgba(56,189,248,0.30) !important;
+}
+
+/* ── 17. Filter buttons ──────────────────────────────────────── */
+.filter-btn.active {
+  background: rgba(56,189,248,0.18) !important;
+  color: var(--sky-l) !important;
+  border-color: rgba(56,189,248,0.35) !important;
+}
+
+/* ── 18. Code / Terminal blocks ──────────────────────────────── */
 .terminal {
-  background: #040d18 !important;
-  border-color: rgba(255,255,255,0.10) !important;
-  border-radius: 14px !important;
+  background: #040c18 !important;
+  border: 1px solid rgba(56,189,248,0.14) !important;
+  border-radius: var(--r-lg) !important;
+  overflow: hidden !important;
 }
 .terminal-bar {
-  background: #0a1828 !important;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: #071224 !important;
+  border-bottom: 1px solid rgba(56,189,248,0.10) !important;
+  padding: 10px 16px !important;
 }
 
-/* ── 15. Neutral text (Tailwind utilities) ────────────────── */
-.text-neutral-400 { color: #8dadc8 !important; }
-.text-neutral-500 { color: #7a9abb !important; }
-.text-neutral-600 { color: #6b8aaa !important; }
-.text-neutral-700 { color: #4a7090 !important; }
-
-/* ── 16. Heading white → slightly blue-tinted ─────────────── */
-.text-white { color: #e8f2ff !important; }
-
-/* ── 17. Tab buttons ──────────────────────────────────────── */
-.tab-btn.active, .tab-btn:hover {
-  background: rgba(255,99,72,.12) !important;
-  color: var(--g-coral-l) !important;
-  border-color: rgba(255,99,72,.32) !important;
-}
-
-/* ── 18. Architecture / diagram selected box ─────────────── */
-.arch-box.selected {
-  box-shadow: 0 0 0 2px var(--g-coral), 0 0 32px var(--g-coral-glow) !important;
-}
-
-/* ── 19. Oracle-red color overrides ──────────────────────── */
-.text-oracle-red { color: var(--g-coral-l) !important; }
-.bg-oracle-red { background-color: var(--g-coral) !important; }
-.border-oracle-red { border-color: var(--g-coral) !important; }
-
-/* ── 20. Filter buttons on blog section ─────────────────── */
-.filter-btn.active {
-  background: rgba(255,99,72,.18) !important;
-  color: var(--g-coral-l) !important;
-  border-color: rgba(255,99,72,.35) !important;
-}
-
-/* ── 21. Blog & path cards ───────────────────────────────── */
-.blog-card {
-  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease !important;
-}
-.blog-card:hover {
-  transform: translateY(-5px) !important;
-  box-shadow: 0 16px 48px rgba(0,0,0,.55) !important;
-}
-.path-card {
-  transition: transform .25s ease, border-color .25s ease !important;
-}
-.path-card:hover { transform: translateY(-3px) !important; }
-
-/* ── 22. Topic / feature cards ───────────────────────────── */
-.group:hover .group-hover\:bg-oracle-red\/20 {
-  background-color: rgba(255,99,72,.20) !important;
-}
-.hover\:border-oracle-red\/40:hover {
-  border-color: rgba(255,99,72,.40) !important;
-}
-
-/* ── 23. Input fields ────────────────────────────────────── */
-input, textarea, select {
-  background: var(--g-surface) !important;
-  border-color: rgba(255,255,255,.12) !important;
-  color: var(--g-text) !important;
-}
-input:focus, textarea:focus, select:focus {
-  border-color: rgba(255,99,72,.45) !important;
-  outline: none !important;
-  box-shadow: 0 0 0 2px rgba(255,99,72,.15) !important;
-}
-
-/* ── 24. Horizontal rules ─────────────────────────────────── */
-hr {
-  border-color: rgba(255,255,255,.07) !important;
-}
-
-/* ── 25. Metric / stat cards on topic pages ─────────────── */
-.metric-card, .stat-card {
-  background: rgba(12,25,41,.7) !important;
-  border: 1px solid rgba(255,255,255,.09) !important;
-  border-radius: 12px !important;
-}
-
-/* ── 26. Content paragraph improvements ─────────────────── */
-.prose p, article p, .content p {
-  line-height: 1.85 !important;
-  margin-bottom: 1rem !important;
-}
-
-/* ── 27. Code inline ─────────────────────────────────────── */
-code:not([class]) {
-  background: rgba(255,99,72,.12) !important;
-  color: var(--g-coral-l) !important;
-  padding: 1px 6px !important;
-  border-radius: 4px !important;
+code:not([class]):not(.kw):not(.fn) {
+  background: rgba(56,189,248,0.10) !important;
+  color: var(--sky-l) !important;
+  padding: 2px 7px !important;
+  border-radius: 5px !important;
   font-size: .875em !important;
 }
 
-/* ── 28. Table styles ────────────────────────────────────── */
-table { border-collapse: collapse; width: 100%; }
-th {
-  background: rgba(255,99,72,.10) !important;
-  color: var(--g-coral-l) !important;
-  padding: 10px 14px !important;
+pre {
+  background: #040c18 !important;
+  border: 1px solid rgba(56,189,248,0.12) !important;
+  border-radius: var(--r-md) !important;
+  padding: 1.2rem !important;
+  overflow-x: auto !important;
   font-size: .8rem !important;
+  line-height: 1.7 !important;
+}
+
+/* ── 19. Tables ──────────────────────────────────────────────── */
+table { border-collapse: collapse; width: 100%; }
+thead th {
+  background: rgba(56,189,248,0.10) !important;
+  color: var(--sky-l) !important;
+  padding: 11px 16px !important;
+  font-size: .78rem !important;
+  font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: .06em !important;
-  border-bottom: 1px solid rgba(255,99,72,.20) !important;
+  border-bottom: 1px solid rgba(56,189,248,0.22) !important;
 }
-td {
-  padding: 10px 14px !important;
-  border-bottom: 1px solid rgba(255,255,255,.05) !important;
-  color: var(--g-text) !important;
+tbody td {
+  padding: 11px 16px !important;
+  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+  color: var(--text-soft) !important;
   font-size: .875rem !important;
 }
-tr:hover td { background: rgba(255,255,255,.025) !important; }
+tbody tr:hover td {
+  background: rgba(56,189,248,0.04) !important;
+}
+tbody tr:nth-child(even) td {
+  background: rgba(255,255,255,0.018) !important;
+}
 
-/* ── 29. Reveal animation — slightly snappier ─────────────── */
+/* ── 20. Cards ───────────────────────────────────────────────── */
+.blog-card {
+  background: rgba(12,26,48,0.72) !important;
+  border: 1px solid var(--border) !important;
+  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease !important;
+}
+.blog-card:hover {
+  transform: translateY(-6px) !important;
+  border-color: rgba(56,189,248,0.35) !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.55), 0 0 0 1px rgba(56,189,248,0.15) !important;
+}
+
+.path-card {
+  background: rgba(12,26,48,0.72) !important;
+  border: 1px solid var(--border) !important;
+  transition: transform 0.25s ease, border-color 0.25s ease !important;
+}
+.path-card:hover {
+  transform: translateY(-4px) !important;
+  border-color: rgba(56,189,248,0.30) !important;
+}
+
+/* ── 21. Feature / topic cards ───────────────────────────────── */
+div.glass.rounded-2xl, div.glass.rounded-xl {
+  border-color: var(--border) !important;
+  transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s !important;
+}
+div.glass.rounded-2xl:hover, div.glass.rounded-xl:hover {
+  border-color: var(--border-l) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
+}
+
+/* ── 22. Architecture box selected ───────────────────────────── */
+.arch-box.selected {
+  box-shadow: 0 0 0 2px var(--sky), 0 0 32px var(--glow-sky) !important;
+}
+.arch-box:hover {
+  filter: brightness(1.1) !important;
+}
+
+/* ── 23. Horizontal rules ────────────────────────────────────── */
+hr { border-color: rgba(56,189,248,0.12) !important; }
+
+/* ── 24. Flow step connector ─────────────────────────────────── */
+.flow-step:not(:last-child)::after {
+  background: linear-gradient(to bottom, var(--sky), transparent) !important;
+}
+
+/* ── 25. Accordion ───────────────────────────────────────────── */
+.acc-btn:hover {
+  background: rgba(56,189,248,0.06) !important;
+}
+.acc-btn.open .acc-icon { color: var(--sky-l) !important; }
+
+/* ── 26. Section backgrounds ─────────────────────────────────── */
+section {
+  background: transparent;
+}
+
+/* ── 27. Reveal animations ───────────────────────────────────── */
 .reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity .55s ease, transform .55s ease !important;
+  opacity: 0 !important;
+  transform: translateY(22px) !important;
+  transition: opacity 0.55s ease, transform 0.55s ease !important;
 }
 .reveal.visible {
   opacity: 1 !important;
   transform: none !important;
 }
 
-/* ── 30. Footer links ─────────────────────────────────────── */
-footer a:hover { color: var(--g-coral-l) !important; }
-
-/* ── 31. Learning path accent line ───────────────────────── */
-.path-card .absolute.w-1 {
-  opacity: .85 !important;
+/* ── 28. Progress bar (global.js injects it) ─────────────────── */
+#gbl-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--sky), var(--indigo), var(--violet));
+  z-index: 9999;
+  transition: width 0.1s linear;
+  pointer-events: none;
 }
 
-/* ── 32. Hero gradient blob ───────────────────────────────── */
-.orb { opacity: .18 !important; }
+/* ── 29. Back to top button (global.js injects it) ───────────── */
+#gbl-top-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(56,189,248,0.15);
+  border: 1px solid rgba(56,189,248,0.30);
+  color: var(--sky-l);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  z-index: 999;
+  backdrop-filter: blur(10px);
+}
+#gbl-top-btn.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+#gbl-top-btn:hover {
+  background: rgba(56,189,248,0.28);
+  border-color: rgba(56,189,248,0.55);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(56,189,248,0.25);
+}
 
-/* ── 33. Section headings spacing ────────────────────────── */
-section h2 { letter-spacing: -.02em; }
-section h3 { letter-spacing: -.01em; }
+/* ── 30. Footer ──────────────────────────────────────────────── */
+footer {
+  background: var(--surface) !important;
+  border-top: 1px solid var(--border) !important;
+}
+footer a:hover { color: var(--sky-l) !important; }
+footer .text-neutral-500 { color: var(--muted) !important; }
 
-/* ── 34. Accessibility — focus ring ──────────────────────── */
+/* ── 31. Input / search ──────────────────────────────────────── */
+input, textarea, select {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  border-radius: var(--r-md) !important;
+  transition: border-color 0.2s !important;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: rgba(56,189,248,0.5) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(56,189,248,0.12) !important;
+}
+
+/* ── 32. Focus ring ──────────────────────────────────────────── */
 a:focus-visible, button:focus-visible {
-  outline: 2px solid var(--g-coral) !important;
+  outline: 2px solid var(--sky) !important;
   outline-offset: 3px !important;
-  border-radius: 4px !important;
+  border-radius: 5px !important;
 }
 
-/* ── 35. Mobile read comfort ─────────────────────────────── */
+/* ── 33. Proc cards / topic cards ────────────────────────────── */
+.proc-card:hover {
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(56,189,248,0.18) !important;
+}
+.priv-card:hover {
+  border-color: rgba(56,189,248,0.28) !important;
+  background: rgba(56,189,248,0.04) !important;
+}
+
+/* ── 34. Learning path accent bars ───────────────────────────── */
+.path-card .absolute.w-1 {
+  opacity: 0.9 !important;
+  width: 3px !important;
+}
+
+/* ── 35. Hero gradient enhancements ──────────────────────────── */
+.min-h-\[60vh\], .min-h-\[70vh\] {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(56,189,248,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(129,140,248,0.07) 0%, transparent 60%) !important;
+}
+
+/* ── 36. Stat cards ──────────────────────────────────────────── */
+.stat-card, .metric-card {
+  background: rgba(12,26,48,0.8) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-lg) !important;
+}
+
+/* ── 37. Syntax/code highlight ───────────────────────────────── */
+code .kw  { color: #7dd3fc !important; }
+code .fn  { color: #a5b4fc !important; }
+code .str { color: #86efac !important; }
+code .cm  { color: var(--very-muted) !important; font-style: italic !important; }
+code .num { color: #fda4af !important; }
+code .var { color: #7dd3fc !important; }
+code .key { color: #fcd34d !important; }
+code .opt { color: #c084fc !important; }
+code .flag{ color: var(--emerald) !important; }
+code .err { color: var(--rose) !important; }
+code .op  { color: var(--text) !important; }
+
+/* ── 38. Section header labels ───────────────────────────────── */
+.section-label {
+  background: rgba(56,189,248,0.12) !important;
+  color: var(--sky-l) !important;
+  border: 1px solid rgba(56,189,248,0.25) !important;
+}
+
+/* ── 39. vs-row tables (comparison) ──────────────────────────── */
+.vs-row:nth-child(odd) { background: rgba(56,189,248,0.025) !important; }
+
+/* ── 40. Danger cards ────────────────────────────────────────── */
+.danger-card:hover {
+  border-color: rgba(251,113,133,0.40) !important;
+  background: rgba(251,113,133,0.04) !important;
+}
+
+/* ── 41. Mobile menu ─────────────────────────────────────────── */
+#mob-menu, #mobile-menu {
+  background: rgba(8,16,30,0.97) !important;
+  border-top: 1px solid var(--border) !important;
+}
+
+/* ── 42. Smooth page entrance ────────────────────────────────── */
+body {
+  animation: pageIn 0.4s ease !important;
+}
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* ── 43. Print ───────────────────────────────────────────────── */
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  nav, #gbl-progress, #gbl-top-btn { display: none !important; }
+}
+
+/* ── 44. Mobile comfort ──────────────────────────────────────── */
 @media (max-width: 640px) {
-  body { line-height: 1.8 !important; }
-  h1 { font-size: clamp(1.75rem, 7vw, 3rem) !important; }
-  h2 { font-size: clamp(1.4rem, 5.5vw, 2.25rem) !important; }
+  body { font-size: 0.95rem !important; }
+  h1 { font-size: clamp(1.75rem, 7vw, 2.5rem) !important; }
+  h2 { font-size: clamp(1.3rem, 5vw, 1.75rem) !important; }
+  h3 { font-size: clamp(1.05rem, 3.5vw, 1.25rem) !important; }
+  .terminal { font-size: .72rem !important; }
+  #gbl-top-btn { bottom: 16px; right: 16px; }
+}
+
+/* ── 45. Reduced motion ──────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

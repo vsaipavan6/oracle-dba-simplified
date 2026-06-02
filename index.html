@@ -174,12 +174,12 @@
   <div class="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between">
     <!-- Logo -->
     <a href="#" class="flex items-center gap-3 group">
-      <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-oracle-red to-oracle-dark flex items-center justify-center shadow-lg group-hover:shadow-oracle-red/40 transition-shadow">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center shadow-lg transition-all" style="background:linear-gradient(135deg,#38bdf8,#0369a1);box-shadow:0 4px 15px rgba(56,189,248,0.3);">
         <i class="fas fa-database text-white text-sm"></i>
       </div>
       <div>
         <span class="font-display font-bold text-white text-base leading-none block">Oracle DBA</span>
-        <span class="text-oracle-red text-xs font-mono">Simplified</span>
+        <span class="text-xs font-mono" style="color:#7dd3fc;">Simplified</span>
       </div>
     </a>
 
@@ -240,8 +240,8 @@
     <div class="grid lg:grid-cols-2 gap-16 items-center">
       <!-- Left content -->
       <div>
-        <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-8">
-          <span class="w-2 h-2 rounded-full bg-oracle-red animate-pulse"></span>
+        <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-8" style="border-color:rgba(56,189,248,0.25);">
+          <span class="w-2 h-2 rounded-full animate-pulse" style="background:#38bdf8;box-shadow:0 0 6px #38bdf8;"></span>
           <span class="text-xs text-neutral-400 font-mono">Oracle DBA Learning Platform</span>
         </div>
 
@@ -255,7 +255,7 @@
           Real-world Oracle DBA concepts explained in the simplest possible language. No jargon — just clarity.
         </p>
 
-        <div class="font-mono text-sm text-oracle-red mb-8 h-6 overflow-hidden">
+        <div class="font-mono text-sm mb-8 h-6 overflow-hidden" style="color:#38bdf8;">
           <span id="typing-text" class="typing-cursor"></span>
         </div>
 
@@ -296,20 +296,20 @@
       <div class="relative hidden lg:flex items-center justify-center">
         <!-- Central DB icon -->
         <div class="relative w-72 h-72">
-          <div class="absolute inset-0 rounded-full border border-oracle-red/20 animate-spin-slow"></div>
-          <div class="absolute inset-8 rounded-full border border-oracle-red/10 animate-[spin_15s_linear_reverse_infinite]"></div>
+          <div class="absolute inset-0 rounded-full animate-spin-slow" style="border:1px solid rgba(56,189,248,0.20);"></div>
+          <div class="absolute inset-8 rounded-full animate-[spin_15s_linear_reverse_infinite]" style="border:1px solid rgba(129,140,248,0.12);"></div>
           <div class="absolute inset-0 flex items-center justify-center">
-            <div class="w-32 h-32 rounded-2xl glass-strong flex items-center justify-center animate-[float_4s_ease-in-out_infinite] animate-pulse-glow">
-              <i class="fas fa-database text-oracle-red text-5xl"></i>
+            <div class="w-32 h-32 rounded-2xl glass-strong flex items-center justify-center animate-[float_4s_ease-in-out_infinite]" style="box-shadow:0 0 40px rgba(56,189,248,0.25);animation:float 4s ease-in-out infinite,skyPulse 3s ease-in-out infinite;">
+              <i class="fas fa-database text-5xl" style="color:#38bdf8;"></i>
             </div>
           </div>
           <!-- Floating cards -->
-          <div class="absolute -top-6 -right-8 glass rounded-xl p-3 animate-float text-xs font-mono">
-            <span class="text-oracle-red">SELECT</span> <span class="text-green-400">*</span> <span class="text-blue-400">FROM</span> <span class="text-yellow-400">dba_users</span>
+          <div class="absolute -top-6 -right-8 glass rounded-xl p-3 animate-float text-xs font-mono" style="border-color:rgba(56,189,248,0.20);">
+            <span style="color:#7dd3fc;">SELECT</span> <span class="text-green-400">*</span> <span style="color:#a5b4fc;">FROM</span> <span class="text-yellow-400">dba_users</span>
           </div>
-          <div class="absolute -bottom-4 -left-10 glass rounded-xl p-3 animate-float-delay text-xs">
+          <div class="absolute -bottom-4 -left-10 glass rounded-xl p-3 animate-float-delay text-xs" style="border-color:rgba(56,189,248,0.20);">
             <div class="flex items-center gap-2">
-              <i class="fas fa-shield-alt text-oracle-red"></i>
+              <i class="fas fa-shield-alt" style="color:#34d399;"></i>
               <span class="text-neutral-300">Data Guard Active</span>
             </div>
           </div>
@@ -333,7 +333,7 @@
   <!-- Scroll indicator -->
   <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
     <span class="text-xs text-neutral-600 font-mono">scroll</span>
-    <i class="fas fa-chevron-down text-oracle-red text-xs"></i>
+    <i class="fas fa-chevron-down text-xs" style="color:#38bdf8;"></i>
   </div>
 </section>
 
@@ -1472,5 +1472,6 @@
     });
   });
 </script>
+  <script src="global.js"></script>
 </body>
 </html>

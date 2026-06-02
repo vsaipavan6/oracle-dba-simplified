@@ -9,20 +9,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     :root {
-      --bg:       #07101d;
-      --surface:  #0c1929;
-      --surface2: #102030;
-      --border:   #1a3050;
-      --blue:     #4a9fff;
-      --blue-l:   #7cbfff;
-      --coral:    #ff6348;
+      --bg:       #08101e;
+      --surface:  #0c1a30;
+      --surface2: #102240;
+      --border:   rgba(56,189,248,0.18);
+      --blue:     #38bdf8;
+      --blue-l:   #7dd3fc;
+      --coral:    #fb923c;
       --green:    #34d399;
-      --gold:     #f5b944;
-      --purple:   #a78bfa;
+      --gold:     #fcd34d;
+      --purple:   #c084fc;
       --teal:     #2dd4bf;
-      --text:     #d8e8f5;
-      --muted:    #5e7fa0;
-      --muted-l:  #8dadc8;
+      --text:     #ddeeff;
+      --muted:    #5b8db8;
+      --muted-l:  #7aaad0;
       --radius:   14px;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -254,6 +254,7 @@
     .text-gold  { color: var(--gold); }
     .text-coral { color: var(--coral); }
   </style>
+  <link rel="stylesheet" href="global.css"/>
 </head>
 <body>
 
@@ -814,5 +815,6 @@
     tocLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + cur));
   }, { passive: true });
 </script>
+  <script src="global.js"></script>
 </body>
 </html>
