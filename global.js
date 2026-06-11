@@ -350,9 +350,14 @@
     initNavShrink();
     initReveal();
     initActiveTOC();
-    initMobileMenu();
-    initTabs();
-    initAccordions();
+    // NOTE: Mobile menu, tabs, and accordions are wired by each page's own
+    // inline <script>. global.js must NOT re-bind them — doing so attaches a
+    // second click handler to the same element, which toggles the `.open`
+    // class twice per click (cancelling out) and makes the dropdown / tabs /
+    // accordions appear broken. These initializers are intentionally disabled.
+    // initMobileMenu();
+    // initTabs();
+    // initAccordions();
     initLinks();
     ensureBackToHome();
     initPageProgress();
